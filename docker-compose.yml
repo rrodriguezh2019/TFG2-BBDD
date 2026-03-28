@@ -1,21 +1,19 @@
-version: '3.5'
+version: '3.8'
 
 services:
   postgres:
     container_name: postgres_container
-    image: postgres
+    image: postgres:16
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
-      PGDATA: /data/postgres
     volumes:
-       - postgres:/data/postgres
+      - postgres:/var/lib/postgresql/data
     ports:
       - "5432:5432"
     networks:
       - postgres
-    # restart: unless-stopped
-  
+
   pgadmin:
     container_name: pgadmin_container
     image: dpage/pgadmin4
@@ -24,18 +22,30 @@ services:
       PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-admin}
       PGADMIN_CONFIG_SERVER_MODE: 'False'
     volumes:
-       - pgadmin:/var/lib/pgadmin
-
+      - pgadmin:/var/lib/pgadmin
     ports:
-      - "${PGADMIN_PORT:-5050}:80"
+      - "5050:80"
     networks:
       - postgres
-    # restart: unless-stopped
+
+  postgrest:
+    container_name: postgrest_container
+    image: postgrest/postgrest:latest
+    depends_on:
+      - postgres
+    environment:
+      PGRST_DB_URI: postgres://authenticator:authenticator_password@postgres:5432/Universidad
+      PGRST_DB_SCHEMAS: public
+      PGRST_DB_ANON_ROLE: web_anon
+    ports:
+      - "3000:3000"
+    networks:
+      - postgres
 
 networks:
   postgres:
     driver: bridge
 
 volumes:
-    postgres:
-    pgadmin:
+  postgres:
+  pgadmin:

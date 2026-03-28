@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Panel 3D Universidad</title>
+    <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+</head>
+<body>
+
+    <a-scene cursor="rayOrigin: mouse">
+        <a-sky color="#222"></a-sky>
+        <a-plane position="0 0 0" rotation="-90 0 0" width="20" height="20" color="#333"></a-plane>
+
+        <a-entity position="-3 1.5 -4">
+            <a-box color="#4CC3D9" depth="1" height="1" width="1" 
+                   animation__hover="property: scale; to: 1.2 1.2 1.2; startEvents: mouseenter; dur: 200"
+                   animation__leave="property: scale; to: 1 1 1; startEvents: mouseleave; dur: 200"
+                   onclick="consultarTabla('estudiantes')">
+            </a-box>
+            <a-text value="ESTUDIANTES" align="center" position="0 0.8 0" width="6"></a-text>
+        </a-entity>
+
+        <a-entity position="-1 1.5 -4">
+            <a-box color="#EF2D5E" depth="1" height="1" width="1"
+                   animation__hover="property: scale; to: 1.2 1.2 1.2; startEvents: mouseenter; dur: 200"
+                   animation__leave="property: scale; to: 1 1 1; startEvents: mouseleave; dur: 200"
+                   onclick="consultarTabla('profesores')">
+            </a-box>
+            <a-text value="PROFESORES" align="center" position="0 0.8 0" width="6"></a-text>
+        </a-entity>
+
+        <a-entity position="1 1.5 -4">
+            <a-box color="#FFC65D" depth="1" height="1" width="1"
+                   animation__hover="property: scale; to: 1.2 1.2 1.2; startEvents: mouseenter; dur: 200"
+                   animation__leave="property: scale; to: 1 1 1; startEvents: mouseleave; dur: 200"
+                   onclick="consultarTabla('asignaturas')">
+            </a-box>
+            <a-text value="ASIGNATURAS" align="center" position="0 0.8 0" width="6"></a-text>
+        </a-entity>
+
+        <a-entity position="3 1.5 -4">
+            <a-box color="#7BC8A4" depth="1" height="1" width="1"
+                   animation__hover="property: scale; to: 1.2 1.2 1.2; startEvents: mouseenter; dur: 200"
+                   animation__leave="property: scale; to: 1 1 1; startEvents: mouseleave; dur: 200"
+                   onclick="consultarTabla('matriculas')">
+            </a-box>
+            <a-text value="MATRICULAS" align="center" position="0 0.8 0" width="6"></a-text>
+        </a-entity>
+
+        <a-text id="info-panel" value="Haz clic en una tabla para consultar la API" 
+                position="0 3 -5" align="center" color="#FFF" width="5"></a-text>
+
+        <a-entity camera look-controls wasd-controls position="0 1.6 0"></a-entity>
+    </a-scene>
+
+    <script>
+        async function consultarTabla(nombreTabla) {
+            const panel = document.getElementById('info-panel');
+            panel.setAttribute('value', `Consultando ${nombreTabla}...`);
+            
+            try {
+                const response = await fetch(`http://localhost:3000/${nombreTabla}`);
+                const datos = await response.json();
+                
+                panel.setAttribute('value', `Tabla: ${nombreTabla.toUpperCase()}\nRegistros encontrados: ${datos.length}`);
+                console.log(`Datos de ${nombreTabla}:`, datos);
+            } catch (error) {
+                panel.setAttribute('value', "Error: No se pudo conectar con la API");
+                console.error(error);
+            }
+        }
+    </script>
+</body>
+</html>
