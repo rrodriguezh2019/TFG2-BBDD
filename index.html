@@ -2,12 +2,12 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Visualizador Universidad - Versión Robusta</title>
+    <title>Visualizador Universidad - Datos Reales</title>
     <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
 </head>
 <body>
 
-    <a-scene cursor="rayOrigin: mouse" raycaster="objects: .clickable; far: 100">
+    <a-scene cursor="rayOrigin: mouse" raycaster="objects: .clickable">
         
         <a-sky color="#BCBABE"></a-sky>
         <a-plane position="0 0 -4" rotation="-90 0 0" width="100" height="100" color="#AAB8BB"></a-plane>
@@ -31,9 +31,9 @@
         <a-entity id="menu-tablas" position="0 3.5 -5" visible="false"></a-entity>
 
         <a-entity id="visualizador-datos" position="0 1 -7" visible="false">
-            <a-box color="#F39C12" depth="1" height="3" width="5" material="metalness: 0.5"></a-box>
-            <a-text id="texto-tabla" value="" align="center" position="0 1.8 0.51" width="10" color="#222"></a-text>
-            <a-text id="info-detallada" value="" align="center" position="0 0.5 0.51" width="5" color="#FFF"></a-text>
+            <a-box color="#222" depth="1" height="3" width="6" material="metalness: 0.5; opacity: 0.9; transparent: true"></a-box>
+            <a-text id="texto-tabla" value="" align="center" position="0 1.8 0.51" width="10" color="#00E5FF"></a-text>
+            <a-text id="info-detallada" value="Esperando seleccion..." align="center" position="0 0.2 0.51" width="4.5" color="#FFF"></a-text>
         </a-entity>
 
         <a-entity camera look-controls wasd-controls position="0 1.6 0"></a-entity>
@@ -41,47 +41,36 @@
 
     <script>
         const tablas = ['estudiantes', 'profesores', 'asignaturas', 'matriculas'];
+        const API_URL = "http://localhost:3000";
 
         function mostrarMenuPrincipal() {
-            console.log("Conectando a BBDD...");
             document.getElementById('contenedor-bienvenida').setAttribute('visible', 'false');
-            
-            // Eliminamos la capacidad de clic del botón de bienvenida para que no estorbe
-            const btnViejo = document.querySelector('#btn-conectar-wrapper a-box');
-            if(btnViejo) btnViejo.classList.remove('clickable');
+            document.querySelector('#btn-conectar-wrapper a-box').classList.remove('clickable');
 
             const menu = document.getElementById('menu-tablas');
             menu.setAttribute('visible', 'true');
 
             tablas.forEach((nombre, index) => {
                 const xPos = (index * 2.5) - 3.75;
-                
-                // Creamos el contenedor del botón
                 const btnEntity = document.createElement('a-entity');
                 btnEntity.setAttribute('position', `${xPos} 0 0`);
                 
-                // Creamos la caja (el cuerpo del botón)
                 const caja = document.createElement('a-box');
                 caja.setAttribute('width', '2.2');
                 caja.setAttribute('height', '0.7');
                 caja.setAttribute('depth', '0.2');
                 caja.setAttribute('color', '#333');
-                caja.setAttribute('class', 'clickable'); // Clase para el raycaster
+                caja.setAttribute('class', 'clickable');
 
-                // Texto
                 const txt = document.createElement('a-text');
                 txt.setAttribute('value', nombre.toUpperCase());
                 txt.setAttribute('align', 'center');
                 txt.setAttribute('position', '0 0 0.11');
                 txt.setAttribute('width', '5');
 
-                // EVENTO CLICK DIRECTO AL BOX
-                caja.addEventListener('click', function() {
-                    console.log("Cargando tabla: " + nombre);
-                    cargarDetalleTabla(nombre);
-                });
+                // Al hacer clic, llamamos a la función asíncrona
+                caja.addEventListener('click', () => pedirDatos(nombre));
 
-                // Efectos visuales al pasar el mouse
                 caja.addEventListener('mouseenter', () => caja.setAttribute('color', '#00E5FF'));
                 caja.addEventListener('mouseleave', () => caja.setAttribute('color', '#333'));
 
@@ -91,22 +80,42 @@
             });
         }
 
-        function cargarDetalleTabla(nombre) {
+        async function pedirDatos(nombreTabla) {
             const visualizador = document.getElementById('visualizador-datos');
             const titulo = document.getElementById('texto-tabla');
             const info = document.getElementById('info-detallada');
 
             visualizador.setAttribute('visible', 'true');
-            titulo.setAttribute('value', nombre.toUpperCase());
-            
-            const datosSimulados = {
-                'estudiantes': '150 Alumnos\n85% Asistencia',
-                'profesores': '25 Docentes\n10 Departamentos',
-                'asignaturas': '12 Materias\nIngeniería',
-                'matriculas': 'Periodo 2026\nAbierto'
-            };
+            titulo.setAttribute('value', nombreTabla.toUpperCase());
+            info.setAttribute('value', "Cargando datos desde la API...");
 
-            info.setAttribute('value', datosSimulados[nombre] || "Sin datos");
+            try {
+                // Realizamos la petición fetch
+                const response = await fetch(`${API_URL}/${nombreTabla}`);
+                
+                if (!response.ok) throw new Error("Error en la respuesta del servidor");
+
+                const datos = await response.json();
+
+                // Procesamos los datos para mostrarlos
+                // Tomamos los primeros 3 elementos para que no se desborde el texto en el 3D
+                if (datos.length > 0) {
+                    let resumen = "";
+                    datos.slice(0, 5).forEach(item => {
+                        // Intentamos sacar un nombre o descripción (ajusta según tus columnas)
+                        resumen += `- ${item.nombre || item.apellido || Object.values(item)[1]}\n`;
+                    });
+                    resumen += `\nTotal registros: ${datos.length}`;
+                    info.setAttribute('value', resumen);
+                } else {
+                    info.setAttribute('value', "La tabla está vacía.");
+                }
+
+            } catch (error) {
+                console.error("Error al conectar:", error);
+                info.setAttribute('value', "ERROR: No se pudo conectar con localhost:3000.\n¿Esta activado el CORS?");
+                info.setAttribute('color', '#FF4444');
+            }
         }
     </script>
 </body>
