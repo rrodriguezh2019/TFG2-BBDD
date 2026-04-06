@@ -2,72 +2,93 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Panel 3D Universidad</title>
+    <title>Visualizador Universidad - Estética Unificada</title>
     <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
 </head>
 <body>
 
     <a-scene cursor="rayOrigin: mouse">
-        <a-sky color="#222"></a-sky>
-        <a-plane position="0 0 0" rotation="-90 0 0" width="20" height="20" color="#333"></a-plane>
+        <a-sky color="#BCBABE"></a-sky>
+        
+        <a-plane position="0 0 -4" rotation="-90 0 0" width="100" height="100" color="#AAB8BB" material="roughness: 1"></a-plane>
 
-        <a-entity position="-3 1.5 -4">
-            <a-box color="#4CC3D9" depth="1" height="1" width="1" 
-                   animation__hover="property: scale; to: 1.2 1.2 1.2; startEvents: mouseenter; dur: 200"
-                   animation__leave="property: scale; to: 1 1 1; startEvents: mouseleave; dur: 200"
-                   onclick="consultarTabla('estudiantes')">
-            </a-box>
-            <a-text value="ESTUDIANTES" align="center" position="0 0.8 0" width="6"></a-text>
+        <a-entity light="type: ambient; color: #888"></a-entity>
+        <a-entity light="type: directional; color: #FFF; intensity: 0.8" position="1 4 3"></a-entity>
+        <a-entity light="type: spot; intensity: 0.4; distance: 10; decay: 2" position="0 5 0" rotation="-90 0 0"></a-entity>
+
+        <a-entity id="contenedor-bienvenida">
+            
+            <a-entity position="0 2.6 -4">
+                <a-box color="#111" depth="0.3" height="0.9" width="8.5" 
+                       material="roughness: 0.1; metalness: 0.8; emissive: #050505"></a-box>
+                
+                <a-text value="BIENVENIDO AL VISUALIZADOR" 
+                        align="center" 
+                        position="0 0 0.16" 
+                        width="11" 
+                        color="#00E5FF"
+                        font="exo2bold"></a-text>
+            </a-entity>
+            
+            <a-entity id="btn-universidad" position="0 1.2 -4"
+                      onclick="cargarBBDD()"
+                      animation__hover="property: scale; to: 1.05 1.05 1.05; startEvents: mouseenter; dur: 200"
+                      animation__leave="property: scale; to: 1 1 1; startEvents: mouseleave; dur: 200">
+                
+                <a-box color="#111" depth="0.5" height="0.8" width="3" 
+                       material="roughness: 0.1; metalness: 0.9; emissive: #050505"></a-box>
+                <a-text value="CONECTAR BBDD" 
+                        align="center" 
+                        position="0 0 0.26" 
+                        width="6" 
+                        color="#00E5FF"
+                        font="exo2bold"></a-text>
+            </a-entity>
         </a-entity>
 
-        <a-entity position="-1 1.5 -4">
-            <a-box color="#EF2D5E" depth="1" height="1" width="1"
-                   animation__hover="property: scale; to: 1.2 1.2 1.2; startEvents: mouseenter; dur: 200"
-                   animation__leave="property: scale; to: 1 1 1; startEvents: mouseleave; dur: 200"
-                   onclick="consultarTabla('profesores')">
-            </a-box>
-            <a-text value="PROFESORES" align="center" position="0 0.8 0" width="6"></a-text>
-        </a-entity>
-
-        <a-entity position="1 1.5 -4">
-            <a-box color="#FFC65D" depth="1" height="1" width="1"
-                   animation__hover="property: scale; to: 1.2 1.2 1.2; startEvents: mouseenter; dur: 200"
-                   animation__leave="property: scale; to: 1 1 1; startEvents: mouseleave; dur: 200"
-                   onclick="consultarTabla('asignaturas')">
-            </a-box>
-            <a-text value="ASIGNATURAS" align="center" position="0 0.8 0" width="6"></a-text>
-        </a-entity>
-
-        <a-entity position="3 1.5 -4">
-            <a-box color="#7BC8A4" depth="1" height="1" width="1"
-                   animation__hover="property: scale; to: 1.2 1.2 1.2; startEvents: mouseenter; dur: 200"
-                   animation__leave="property: scale; to: 1 1 1; startEvents: mouseleave; dur: 200"
-                   onclick="consultarTabla('matriculas')">
-            </a-box>
-            <a-text value="MATRICULAS" align="center" position="0 0.8 0" width="6"></a-text>
-        </a-entity>
-
-        <a-text id="info-panel" value="Haz clic en una tabla para consultar la API" 
-                position="0 3 -5" align="center" color="#FFF" width="5"></a-text>
+        <a-entity id="contenedor-tablas" position="0 1.5 -7"></a-entity>
 
         <a-entity camera look-controls wasd-controls position="0 1.6 0"></a-entity>
     </a-scene>
 
     <script>
-        async function consultarTabla(nombreTabla) {
-            const panel = document.getElementById('info-panel');
-            panel.setAttribute('value', `Consultando ${nombreTabla}...`);
-            
-            try {
-                const response = await fetch(`http://localhost:3000/${nombreTabla}`);
-                const datos = await response.json();
+        function cargarBBDD() {
+            const bienvenida = document.getElementById('contenedor-bienvenida');
+            const contenedorTablas = document.getElementById('contenedor-tablas');
+
+            // Ocultar la interfaz de bienvenida
+            bienvenida.setAttribute('visible', 'false');
+
+            // Tablas de ejemplo (en un futuro vendrán de PostgREST)
+            const tablas = ['estudiantes', 'profesores', 'asignaturas', 'matriculas'];
+
+            // Crear las tablas en 3D
+            tablas.forEach((nombre, index) => {
+                // Espaciado horizontal automático
+                const xPos = (index * 3.5) - 5.25; 
                 
-                panel.setAttribute('value', `Tabla: ${nombreTabla.toUpperCase()}\nRegistros encontrados: ${datos.length}`);
-                console.log(`Datos de ${nombreTabla}:`, datos);
-            } catch (error) {
-                panel.setAttribute('value', "Error: No se pudo conectar con la API");
-                console.error(error);
-            }
+                const tablaEntity = document.createElement('a-entity');
+                tablaEntity.setAttribute('position', `${xPos} 0 0`);
+
+                // Bloques tipo "Monolito" de las tablas (Oro/Naranja para contrastar sobre el gris)
+                const caja = document.createElement('a-box');
+                caja.setAttribute('color', '#F39C12'); 
+                caja.setAttribute('depth', '2'); 
+                caja.setAttribute('height', '2.5'); 
+                caja.setAttribute('material', 'roughness: 0.1; metalness: 0.5');
+                
+                // Texto sobre el monolito
+                const texto = document.createElement('a-text');
+                texto.setAttribute('value', nombre.toUpperCase());
+                texto.setAttribute('align', 'center');
+                texto.setAttribute('position', '0 1.6 0.1');
+                texto.setAttribute('width', '9');
+                texto.setAttribute('color', '#222'); // Texto oscuro sobre fondo claro
+
+                tablaEntity.appendChild(caja);
+                tablaEntity.appendChild(texto);
+                contenedorTablas.appendChild(tablaEntity);
+            });
         }
     </script>
 </body>
