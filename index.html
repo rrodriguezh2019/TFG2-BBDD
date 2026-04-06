@@ -2,93 +2,111 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Visualizador Universidad - Estética Unificada</title>
+    <title>Visualizador Universidad - Versión Robusta</title>
     <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
 </head>
 <body>
 
-    <a-scene cursor="rayOrigin: mouse">
-        <a-sky color="#BCBABE"></a-sky>
+    <a-scene cursor="rayOrigin: mouse" raycaster="objects: .clickable; far: 100">
         
-        <a-plane position="0 0 -4" rotation="-90 0 0" width="100" height="100" color="#AAB8BB" material="roughness: 1"></a-plane>
+        <a-sky color="#BCBABE"></a-sky>
+        <a-plane position="0 0 -4" rotation="-90 0 0" width="100" height="100" color="#AAB8BB"></a-plane>
 
         <a-entity light="type: ambient; color: #888"></a-entity>
         <a-entity light="type: directional; color: #FFF; intensity: 0.8" position="1 4 3"></a-entity>
-        <a-entity light="type: spot; intensity: 0.4; distance: 10; decay: 2" position="0 5 0" rotation="-90 0 0"></a-entity>
 
         <a-entity id="contenedor-bienvenida">
-            
             <a-entity position="0 2.6 -4">
-                <a-box color="#111" depth="0.3" height="0.9" width="8.5" 
-                       material="roughness: 0.1; metalness: 0.8; emissive: #050505"></a-box>
-                
-                <a-text value="BIENVENIDO AL VISUALIZADOR" 
-                        align="center" 
-                        position="0 0 0.16" 
-                        width="11" 
-                        color="#00E5FF"
-                        font="exo2bold"></a-text>
+                <a-box color="#111" depth="0.3" height="0.9" width="8.5" material="metalness: 0.8"></a-box>
+                <a-text value="BIENVENIDO AL VISUALIZADOR" align="center" position="0 0 0.16" width="11" color="#00E5FF"></a-text>
             </a-entity>
             
-            <a-entity id="btn-universidad" position="0 1.2 -4"
-                      onclick="cargarBBDD()"
-                      animation__hover="property: scale; to: 1.05 1.05 1.05; startEvents: mouseenter; dur: 200"
-                      animation__leave="property: scale; to: 1 1 1; startEvents: mouseleave; dur: 200">
-                
-                <a-box color="#111" depth="0.5" height="0.8" width="3" 
-                       material="roughness: 0.1; metalness: 0.9; emissive: #050505"></a-box>
-                <a-text value="CONECTAR BBDD" 
-                        align="center" 
-                        position="0 0 0.26" 
-                        width="6" 
-                        color="#00E5FF"
-                        font="exo2bold"></a-text>
+            <a-entity id="btn-conectar-wrapper" position="0 1.2 -4">
+                <a-box class="clickable" color="#111" depth="0.5" height="0.8" width="3" onclick="mostrarMenuPrincipal()">
+                    <a-text value="CONECTAR BBDD" align="center" position="0 0 0.26" width="6" color="#00E5FF"></a-text>
+                </a-box>
             </a-entity>
         </a-entity>
 
-        <a-entity id="contenedor-tablas" position="0 1.5 -7"></a-entity>
+        <a-entity id="menu-tablas" position="0 3.5 -5" visible="false"></a-entity>
+
+        <a-entity id="visualizador-datos" position="0 1 -7" visible="false">
+            <a-box color="#F39C12" depth="1" height="3" width="5" material="metalness: 0.5"></a-box>
+            <a-text id="texto-tabla" value="" align="center" position="0 1.8 0.51" width="10" color="#222"></a-text>
+            <a-text id="info-detallada" value="" align="center" position="0 0.5 0.51" width="5" color="#FFF"></a-text>
+        </a-entity>
 
         <a-entity camera look-controls wasd-controls position="0 1.6 0"></a-entity>
     </a-scene>
 
     <script>
-        function cargarBBDD() {
-            const bienvenida = document.getElementById('contenedor-bienvenida');
-            const contenedorTablas = document.getElementById('contenedor-tablas');
+        const tablas = ['estudiantes', 'profesores', 'asignaturas', 'matriculas'];
 
-            // Ocultar la interfaz de bienvenida
-            bienvenida.setAttribute('visible', 'false');
+        function mostrarMenuPrincipal() {
+            console.log("Conectando a BBDD...");
+            document.getElementById('contenedor-bienvenida').setAttribute('visible', 'false');
+            
+            // Eliminamos la capacidad de clic del botón de bienvenida para que no estorbe
+            const btnViejo = document.querySelector('#btn-conectar-wrapper a-box');
+            if(btnViejo) btnViejo.classList.remove('clickable');
 
-            // Tablas de ejemplo (en un futuro vendrán de PostgREST)
-            const tablas = ['estudiantes', 'profesores', 'asignaturas', 'matriculas'];
+            const menu = document.getElementById('menu-tablas');
+            menu.setAttribute('visible', 'true');
 
-            // Crear las tablas en 3D
             tablas.forEach((nombre, index) => {
-                // Espaciado horizontal automático
-                const xPos = (index * 3.5) - 5.25; 
+                const xPos = (index * 2.5) - 3.75;
                 
-                const tablaEntity = document.createElement('a-entity');
-                tablaEntity.setAttribute('position', `${xPos} 0 0`);
-
-                // Bloques tipo "Monolito" de las tablas (Oro/Naranja para contrastar sobre el gris)
+                // Creamos el contenedor del botón
+                const btnEntity = document.createElement('a-entity');
+                btnEntity.setAttribute('position', `${xPos} 0 0`);
+                
+                // Creamos la caja (el cuerpo del botón)
                 const caja = document.createElement('a-box');
-                caja.setAttribute('color', '#F39C12'); 
-                caja.setAttribute('depth', '2'); 
-                caja.setAttribute('height', '2.5'); 
-                caja.setAttribute('material', 'roughness: 0.1; metalness: 0.5');
-                
-                // Texto sobre el monolito
-                const texto = document.createElement('a-text');
-                texto.setAttribute('value', nombre.toUpperCase());
-                texto.setAttribute('align', 'center');
-                texto.setAttribute('position', '0 1.6 0.1');
-                texto.setAttribute('width', '9');
-                texto.setAttribute('color', '#222'); // Texto oscuro sobre fondo claro
+                caja.setAttribute('width', '2.2');
+                caja.setAttribute('height', '0.7');
+                caja.setAttribute('depth', '0.2');
+                caja.setAttribute('color', '#333');
+                caja.setAttribute('class', 'clickable'); // Clase para el raycaster
 
-                tablaEntity.appendChild(caja);
-                tablaEntity.appendChild(texto);
-                contenedorTablas.appendChild(tablaEntity);
+                // Texto
+                const txt = document.createElement('a-text');
+                txt.setAttribute('value', nombre.toUpperCase());
+                txt.setAttribute('align', 'center');
+                txt.setAttribute('position', '0 0 0.11');
+                txt.setAttribute('width', '5');
+
+                // EVENTO CLICK DIRECTO AL BOX
+                caja.addEventListener('click', function() {
+                    console.log("Cargando tabla: " + nombre);
+                    cargarDetalleTabla(nombre);
+                });
+
+                // Efectos visuales al pasar el mouse
+                caja.addEventListener('mouseenter', () => caja.setAttribute('color', '#00E5FF'));
+                caja.addEventListener('mouseleave', () => caja.setAttribute('color', '#333'));
+
+                btnEntity.appendChild(caja);
+                btnEntity.appendChild(txt);
+                menu.appendChild(btnEntity);
             });
+        }
+
+        function cargarDetalleTabla(nombre) {
+            const visualizador = document.getElementById('visualizador-datos');
+            const titulo = document.getElementById('texto-tabla');
+            const info = document.getElementById('info-detallada');
+
+            visualizador.setAttribute('visible', 'true');
+            titulo.setAttribute('value', nombre.toUpperCase());
+            
+            const datosSimulados = {
+                'estudiantes': '150 Alumnos\n85% Asistencia',
+                'profesores': '25 Docentes\n10 Departamentos',
+                'asignaturas': '12 Materias\nIngeniería',
+                'matriculas': 'Periodo 2026\nAbierto'
+            };
+
+            info.setAttribute('value', datosSimulados[nombre] || "Sin datos");
         }
     </script>
 </body>
