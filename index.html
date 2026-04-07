@@ -2,57 +2,133 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Visualizador Universidad - Consola Lateral</title>
+    <title>Visualizador Universidad - Tablas 3D</title>
     <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Arial', sans-serif;
+            background: #000;
+        }
+        
+        .loading {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #00E5FF;
+            font-size: 24px;
+            z-index: 100;
+            text-shadow: 0 0 10px #00E5FF;
+        }
+    </style>
 </head>
 <body>
 
-    <a-scene cursor="rayOrigin: mouse" raycaster="objects: .clickable">
-        <a-sky color="#050505"></a-sky>
-        <a-plane position="7 -1 -4" rotation="-90 0 0" width="100" height="100" color="#111"></a-plane>
+    <a-scene cursor="rayOrigin: mouse" raycaster="objects: .clickable" background="color: #000" fog="type: linear; color: #000; far: 50; near: 1">
+        
+        <!-- Luces -->
+        <a-light type="ambient" intensity="0.6" color="#fff"></a-light>
+        <a-light type="directional" intensity="0.8" color="#00E5FF" position="5 10 5"></a-light>
+        <a-light type="directional" intensity="0.4" color="#FF00FF" position="-5 10 -5"></a-light>
+        <a-light type="point" intensity="0.5" color="#00E5FF" position="7 3 2"></a-light>
 
+        <!-- Piso -->
+        <a-plane position="7 -2 -4" rotation="-90 0 0" width="120" height="120" color="#0a0a0a"></a-plane>
+        <a-plane position="7 -1.95 -4" rotation="-90 0 0" width="120" height="120" color="#111" opacity="0.3"></a-plane>
+
+        <!-- Cielo estrellado -->
+        <a-sky color="#050505"></a-sky>
+
+        <!-- CONTAINER BIENVENIDA -->
         <a-entity id="contenedor-bienvenida">
-            <a-entity position="7 3 -4">
-                <a-box color="#111" depth="0.3" height="0.9" width="8.5"></a-box>
-                <a-text value="SISTEMA DE GESTION UNIVERSITARIA" align="center" position="0 0 0.16" width="11" color="#00E5FF"></a-text>
+            <a-entity position="7 4 -4">
+                <!-- Fondo con efecto 3D -->
+                <a-box color="#0a0a0a" depth="0.5" height="1.2" width="9.5" opacity="0.9"></a-box>
+                <a-box color="#00E5FF" depth="0.51" height="1.19" width="9.4" opacity="0.1"></a-box>
+                
+                <a-text value="SISTEMA DE GESTION UNIVERSITARIA" align="center" position="0 0 0.3" width="11" color="#00E5FF" font-size="120"></a-text>
+                <a-text value="Gestión Académica en Realidad Aumentada" align="center" position="0 -0.35 0.3" width="11" color="#AAA" font-size="60" opacity="0.7"></a-text>
             </a-entity>
-            <a-entity position="7 1.5 -4">
-                <a-box class="clickable" color="#00E5FF" depth="0.5" height="0.8" width="4" onclick="mostrarMenuPrincipal()">
-                    <a-text value="CONECTAR BBDD" align="center" position="0 0 0.26" width="7" color="#000"></a-text>
+
+            <!-- Botón CONECTAR -->
+            <a-entity position="7 1.5 -4" class="clickable-btn">
+                <a-box class="clickable" color="#00E5FF" depth="0.6" height="1" width="4.5" 
+                       onclick="mostrarMenuPrincipal()" 
+                       animation="property: scale; to: 1.1; dur: 300; easing: easeInOutQuad; startEvents: mouseenter; dir: alternate"
+                       animation__out="property: scale; to: 1; dur: 300; easing: easeInOutQuad; startEvents: mouseleave">
+                    <a-text value="CONECTAR BBDD" align="center" position="0 0 0.35" width="7" color="#000" font-size="80" font-weight="bold"></a-text>
                 </a-box>
+                <a-box color="#00E5FF" depth="0.61" height="1.01" width="4.51" opacity="0.2" animation="property: scale; to: 1.15; dur: 300; easing: easeInOutQuad; startEvents: mouseenter; dir: alternate"></a-box>
             </a-entity>
         </a-entity>
 
-        <a-entity id="menu-tablas" position="7 7.5 -8" visible="false"></a-entity>
+        <!-- MENU TABLAS -->
+        <a-entity id="menu-tablas" position="7 6.5 -10" visible="false"></a-entity>
 
-        <a-entity id="visualizador-datos" position="0 0 -10" visible="false">
+        <!-- VISUALIZADOR DATOS -->
+        <a-entity id="visualizador-datos" position="7 0 -15" visible="false">
             
-            <a-text id="texto-tabla" value="" align="center" position="7 6.8 0" width="15" color="#00E5FF"></a-text>
+            <!-- Título de tabla -->
+            <a-entity position="0 6 0">
+                <a-box color="#0a0a0a" depth="0.4" height="1" width="12" opacity="0.95"></a-box>
+                <a-box color="#00E5FF" depth="0.41" height="0.99" width="11.9" opacity="0.15"></a-box>
+                <a-text id="texto-tabla" value="" align="center" position="0 0 0.25" width="15" color="#00E5FF" font-size="100" font-weight="bold"></a-text>
+            </a-entity>
 
-            <a-entity id="controles-lateral" position="1 4 0">
-                <a-text value="CONTROL" position="0 1.2 0" align="center" color="#AAA" width="4"></a-text>
+            <!-- Panel de control lateral izquierdo -->
+            <a-entity id="controles-lateral" position="-5.5 2.5 0">
+                <a-box color="#111" depth="0.3" height="4.5" width="1.8" opacity="0.8"></a-box>
+                <a-box color="#00E5FF" depth="0.31" height="4.49" width="1.79" opacity="0.08"></a-box>
                 
-                <a-box id="btn-anterior" class="clickable" color="#222" width="2" height="0.8" depth="0.2" position="0 0.4 0" onclick="cambiarPagina(-1)">
-                    <a-text value="ANTERIOR" align="center" position="0 0 0.11" width="4" color="#00E5FF"></a-text>
-                </a-box>
+                <a-text value="CONTROLES" position="0 1.8 0.2" align="center" color="#00E5FF" width="4" font-size="60" font-weight="bold"></a-text>
                 
-                <a-entity position="0 -0.4 0">
-                    <a-text id="label-pagina" value="PAG. 1" align="center" color="#FFF" width="4.5"></a-text>
+                <!-- Botón Anterior -->
+                <a-entity position="0 0.8 0.15" class="clickable-btn">
+                    <a-box id="btn-anterior" class="clickable" color="#222" width="1.6" height="0.7" depth="0.3" 
+                           onclick="cambiarPagina(-1)"
+                           animation="property: scale; to: 1.08; dur: 250; easing: easeInOutQuad; startEvents: mouseenter; dir: alternate">
+                        <a-text value="ANTERIOR" align="center" position="0 0 0.2" width="4" color="#00E5FF" font-size="80"></a-text>
+                    </a-box>
+                    <a-box color="#00E5FF" depth="0.31" height="0.69" width="1.59" opacity="0.1"></a-box>
+                </a-entity>
+                
+                <!-- Indicador de página -->
+                <a-entity position="0 -0.1 0.2">
+                    <a-text id="label-pagina" value="PÁG.\n1 / 1" align="center" color="#FFF" width="4.5" font-size="50"></a-text>
                 </a-entity>
 
-                <a-box id="btn-siguiente" class="clickable" color="#222" width="2" height="0.8" depth="0.2" position="0 -1.2 0" onclick="cambiarPagina(1)">
-                    <a-text value="SIGUIENTE" align="center" position="0 0 0.11" width="4" color="#00E5FF"></a-text>
-                </a-box>
+                <!-- Botón Siguiente -->
+                <a-entity position="0 -1.1 0.15" class="clickable-btn">
+                    <a-box id="btn-siguiente" class="clickable" color="#222" width="1.6" height="0.7" depth="0.3" 
+                           onclick="cambiarPagina(1)"
+                           animation="property: scale; to: 1.08; dur: 250; easing: easeInOutQuad; startEvents: mouseenter; dir: alternate">
+                        <a-text value="SIGUIENTE" align="center" position="0 0 0.2" width="4" color="#00E5FF" font-size="80"></a-text>
+                    </a-box>
+                    <a-box color="#00E5FF" depth="0.31" height="0.69" width="1.59" opacity="0.1"></a-box>
+                </a-entity>
             </a-entity>
 
-            <a-entity id="area-datos" position="3.5 0 0">
-                <a-entity id="tabla-cabecera" position="0 5.2 0"></a-entity>
-                <a-entity id="tabla-cuerpo" position="0 4.5 0"></a-entity>
+            <!-- TABLA 3D - Área de datos -->
+            <a-entity id="area-datos" position="1.5 0 0">
+                <a-entity id="tabla-cabecera" position="0 5 0"></a-entity>
+                <a-entity id="tabla-cuerpo" position="0 4 0"></a-entity>
+            </a-entity>
+
+            <!-- Botón Volver -->
+            <a-entity position="0 -2.5 0" class="clickable-btn">
+                <a-box class="clickable" color="#FF6B00" depth="0.3" width="2.5" height="0.6" 
+                       onclick="volverAlMenu()"
+                       animation="property: scale; to: 1.08; dur: 250; easing: easeInOutQuad; startEvents: mouseenter; dir: alternate">
+                    <a-text value="← VOLVER" align="center" position="0 0 0.2" width="5" color="#FFF" font-size="60" font-weight="bold"></a-text>
+                </a-box>
             </a-entity>
 
         </a-entity>
 
-        <a-entity camera look-controls wasd-controls position="7 3 5"></a-entity>
+        <!-- Cámara -->
+        <a-entity camera look-controls wasd-controls position="7 3 8"></a-entity>
+
     </a-scene>
 
     <script>
@@ -60,7 +136,17 @@
         const API_URL = "http://localhost:3000";
         let datosActuales = [];
         let paginaActual = 0;
-        const filasPorPagina = 7; // Subimos a 7 filas ya que hay espacio
+        const filasPorPagina = 6;
+
+        // Paleta de colores 3D
+        const colores = {
+            celda: '#1a1a2e',
+            celdaTexto: '#00E5FF',
+            cabecera: '#0f3460',
+            cabeceraTexto: '#00FF88',
+            fila_alt: '#16213e',
+            borde: '#00E5FF'
+        };
 
         function mostrarMenuPrincipal() {
             document.getElementById('contenedor-bienvenida').setAttribute('visible', 'false');
@@ -69,25 +155,34 @@
 
             tablas.forEach((nombre, index) => {
                 const btn = document.createElement('a-entity');
-                btn.setAttribute('position', `${(index * 3.8) - 5.7} 0 0`);
+                btn.setAttribute('position', `${(index * 4) - 5.5} 0 0`);
+                btn.classList.add('clickable-btn');
+                
                 btn.innerHTML = `
-                    <a-box class="clickable" width="3.5" height="0.8" depth="0.2" color="#222" 
-                           onclick="cargarTabla('${nombre}')">
-                        <a-text value="${nombre.toUpperCase()}" align="center" position="0 0 0.11" width="6" color="#FFF"></a-text>
-                    </a-box>`;
+                    <a-box class="clickable" width="3.8" height="1" depth="0.4" color="#222" 
+                           onclick="cargarTabla('${nombre}')"
+                           animation="property: scale; to: 1.1; dur: 300; easing: easeInOutQuad; startEvents: mouseenter; dir: alternate">
+                        <a-text value="${nombre.toUpperCase()}" align="center" position="0 0 0.25" width="7" color="#00E5FF" font-size="80" font-weight="bold"></a-text>
+                    </a-box>
+                    <a-box width="3.79" height="0.99" depth="0.41" color="#00E5FF" opacity="0.15"></a-box>`;
+                
                 menu.appendChild(btn);
             });
         }
 
         async function cargarTabla(nombre) {
             document.getElementById('visualizador-datos').setAttribute('visible', 'true');
-            document.getElementById('texto-tabla').setAttribute('value', "CONTENIDO DE LA TABLA: " + nombre.toUpperCase());
+            document.getElementById('texto-tabla').setAttribute('value', nombre.toUpperCase());
             paginaActual = 0;
+            
             try {
                 const res = await fetch(`${API_URL}/${nombre}`);
                 datosActuales = await res.json();
                 renderizar();
-            } catch (e) { console.error("Error conectando al backend"); }
+            } catch (e) { 
+                console.error("Error conectando al backend:", e);
+                alert("Error al conectar con la base de datos. Verifica que el servidor esté activo en " + API_URL);
+            }
         }
 
         function renderizar() {
@@ -99,60 +194,105 @@
             if (!datosActuales.length) return;
 
             const columnas = Object.keys(datosActuales[0]);
-            const espaciadoX = 3; 
+            const espaciadoX = 3.2;
+            const altoFila = 0.9;
 
-            // Render Cabeceras
+            // ===== RENDER CABECERAS =====
+            const cabeceraBG = document.createElement('a-entity');
+            cabeceraBG.setAttribute('position', '0 0 -0.3');
+            
             columnas.forEach((col, index) => {
+                // Caja de celda 3D
+                const caja = document.createElement('a-box');
+                caja.setAttribute('width', '3');
+                caja.setAttribute('height', '0.85');
+                caja.setAttribute('depth', '0.4');
+                caja.setAttribute('position', `${index * espaciadoX} 0 0`);
+                caja.setAttribute('color', colores.cabecera);
+                
+                // Texto
                 const txt = document.createElement('a-text');
                 txt.setAttribute('value', col.toUpperCase());
-                txt.setAttribute('position', `${index * espaciadoX} 0 0`);
-                txt.setAttribute('color', '#00E5FF');
-                txt.setAttribute('width', '7');
+                txt.setAttribute('position', `${index * espaciadoX} 0 0.25`);
+                txt.setAttribute('color', colores.cabeceraTexto);
+                txt.setAttribute('width', '6');
+                txt.setAttribute('font-size', '70');
+                txt.setAttribute('font-weight', 'bold');
+                txt.setAttribute('align', 'center');
+
+                cabeceraBG.appendChild(caja);
                 cabecera.appendChild(txt);
             });
+            
+            cabecera.appendChild(cabeceraBG);
 
-            // Render Filas
+            // ===== RENDER FILAS =====
             const inicio = paginaActual * filasPorPagina;
             const slice = datosActuales.slice(inicio, inicio + filasPorPagina);
 
             slice.forEach((fila, i) => {
                 const filaEnt = document.createElement('a-entity');
-                filaEnt.setAttribute('position', `0 ${-i * 0.8} 0`);
+                filaEnt.setAttribute('position', `0 ${-i * (altoFila + 0.2)} 0`);
+
+                // Background de fila (entidad contenedora para cajas 3D)
+                const filaBG = document.createElement('a-entity');
+                filaBG.setAttribute('position', '0 0 -0.3');
                 
+                const esAlternada = i % 2 === 0;
+                const colorFila = esAlternada ? colores.celda : colores.fila_alt;
+
                 columnas.forEach((col, index) => {
+                    // Caja 3D para cada celda
+                    const cajaFila = document.createElement('a-box');
+                    cajaFila.setAttribute('width', '3');
+                    cajaFila.setAttribute('height', altoFila);
+                    cajaFila.setAttribute('depth', '0.4');
+                    cajaFila.setAttribute('position', `${index * espaciadoX} 0 0`);
+                    cajaFila.setAttribute('color', colorFila);
+                    
+                    // Borde luminoso
+                    const borde = document.createElement('a-box');
+                    borde.setAttribute('width', '3.05');
+                    borde.setAttribute('height', altoFila + 0.05);
+                    borde.setAttribute('depth', '0.41');
+                    borde.setAttribute('position', `${index * espaciadoX} 0 0`);
+                    borde.setAttribute('color', colores.borde);
+                    borde.setAttribute('opacity', '0.1');
+
+                    filaBG.appendChild(cajaFila);
+                    filaBG.appendChild(borde);
+
+                    // Texto en celda
                     const celda = document.createElement('a-text');
                     let valor = String(fila[col] || "-");
-                    if (valor.length > 22) valor = valor.substring(0, 19) + "...";
+                    if (valor.length > 20) valor = valor.substring(0, 17) + "...";
+                    
                     celda.setAttribute('value', valor);
-                    celda.setAttribute('position', `${index * espaciadoX} 0 0`);
-                    celda.setAttribute('width', '6');
+                    celda.setAttribute('position', `${index * espaciadoX} 0 0.25`);
+                    celda.setAttribute('width', '5.5');
+                    celda.setAttribute('color', colores.celdaTexto);
+                    celda.setAttribute('font-size', '60');
+                    celda.setAttribute('align', 'center');
+
                     filaEnt.appendChild(celda);
                 });
 
-                // Separador sutil
-                const linea = document.createElement('a-plane');
-                linea.setAttribute('width', (columnas.length * espaciadoX));
-                linea.setAttribute('height', '0.01');
-                linea.setAttribute('position', `${(columnas.length * espaciadoX / 2) - 1.5} -0.4 0`);
-                linea.setAttribute('color', '#333');
-                filaEnt.appendChild(linea);
-
+                filaEnt.appendChild(filaBG);
                 cuerpo.appendChild(filaEnt);
             });
 
-            // Lógica de botones laterales
+            // Actualizar controles de paginación
             const total = Math.ceil(datosActuales.length / filasPorPagina);
-            document.getElementById('label-pagina').setAttribute('value', `PAGINA\n${paginaActual + 1} / ${total}`);
+            document.getElementById('label-pagina').setAttribute('value', `PÁG.\n${paginaActual + 1} / ${total}`);
             
             const btnAnt = document.getElementById('btn-anterior');
             const btnSig = document.getElementById('btn-siguiente');
             
-            // Efecto visual de encendido/apagado
             btnAnt.setAttribute('color', paginaActual > 0 ? '#00E5FF' : '#111');
-            btnAnt.querySelector('a-text').setAttribute('color', paginaActual > 0 ? '#000' : '#444');
+            btnAnt.querySelector('a-text').setAttribute('color', paginaActual > 0 ? '#00E5FF' : '#444');
             
             btnSig.setAttribute('color', paginaActual < total - 1 ? '#00E5FF' : '#111');
-            btnSig.querySelector('a-text').setAttribute('color', paginaActual < total - 1 ? '#000' : '#444');
+            btnSig.querySelector('a-text').setAttribute('color', paginaActual < total - 1 ? '#00E5FF' : '#444');
         }
 
         function cambiarPagina(n) {
@@ -163,6 +303,13 @@
                 renderizar();
             }
         }
+
+        function volverAlMenu() {
+            document.getElementById('visualizador-datos').setAttribute('visible', 'false');
+            document.getElementById('menu-tablas').setAttribute('visible', 'false');
+            document.getElementById('contenedor-bienvenida').setAttribute('visible', 'true');
+        }
     </script>
+
 </body>
 </html>
