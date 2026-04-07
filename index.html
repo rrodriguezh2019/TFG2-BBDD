@@ -2,119 +2,165 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Visualizador Universidad - Datos Reales</title>
+    <title>Visualizador Universidad - Consola Lateral</title>
     <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
 </head>
 <body>
 
     <a-scene cursor="rayOrigin: mouse" raycaster="objects: .clickable">
-        
-        <a-sky color="#BCBABE"></a-sky>
-        <a-plane position="0 0 -4" rotation="-90 0 0" width="100" height="100" color="#AAB8BB"></a-plane>
-
-        <a-entity light="type: ambient; color: #888"></a-entity>
-        <a-entity light="type: directional; color: #FFF; intensity: 0.8" position="1 4 3"></a-entity>
+        <a-sky color="#050505"></a-sky>
+        <a-plane position="7 -1 -4" rotation="-90 0 0" width="100" height="100" color="#111"></a-plane>
 
         <a-entity id="contenedor-bienvenida">
-            <a-entity position="0 2.6 -4">
-                <a-box color="#111" depth="0.3" height="0.9" width="8.5" material="metalness: 0.8"></a-box>
-                <a-text value="BIENVENIDO AL VISUALIZADOR" align="center" position="0 0 0.16" width="11" color="#00E5FF"></a-text>
+            <a-entity position="7 3 -4">
+                <a-box color="#111" depth="0.3" height="0.9" width="8.5"></a-box>
+                <a-text value="SISTEMA DE GESTION UNIVERSITARIA" align="center" position="0 0 0.16" width="11" color="#00E5FF"></a-text>
             </a-entity>
-            
-            <a-entity id="btn-conectar-wrapper" position="0 1.2 -4">
-                <a-box class="clickable" color="#111" depth="0.5" height="0.8" width="3" onclick="mostrarMenuPrincipal()">
-                    <a-text value="CONECTAR BBDD" align="center" position="0 0 0.26" width="6" color="#00E5FF"></a-text>
+            <a-entity position="7 1.5 -4">
+                <a-box class="clickable" color="#00E5FF" depth="0.5" height="0.8" width="4" onclick="mostrarMenuPrincipal()">
+                    <a-text value="CONECTAR BBDD" align="center" position="0 0 0.26" width="7" color="#000"></a-text>
                 </a-box>
             </a-entity>
         </a-entity>
 
-        <a-entity id="menu-tablas" position="0 3.5 -5" visible="false"></a-entity>
+        <a-entity id="menu-tablas" position="7 7.5 -8" visible="false"></a-entity>
 
-        <a-entity id="visualizador-datos" position="0 1 -7" visible="false">
-            <a-box color="#222" depth="1" height="3" width="6" material="metalness: 0.5; opacity: 0.9; transparent: true"></a-box>
-            <a-text id="texto-tabla" value="" align="center" position="0 1.8 0.51" width="10" color="#00E5FF"></a-text>
-            <a-text id="info-detallada" value="Esperando seleccion..." align="center" position="0 0.2 0.51" width="4.5" color="#FFF"></a-text>
+        <a-entity id="visualizador-datos" position="0 0 -10" visible="false">
+            
+            <a-text id="texto-tabla" value="" align="center" position="7 6.8 0" width="15" color="#00E5FF"></a-text>
+
+            <a-entity id="controles-lateral" position="1 4 0">
+                <a-text value="CONTROL" position="0 1.2 0" align="center" color="#AAA" width="4"></a-text>
+                
+                <a-box id="btn-anterior" class="clickable" color="#222" width="2" height="0.8" depth="0.2" position="0 0.4 0" onclick="cambiarPagina(-1)">
+                    <a-text value="ANTERIOR" align="center" position="0 0 0.11" width="4" color="#00E5FF"></a-text>
+                </a-box>
+                
+                <a-entity position="0 -0.4 0">
+                    <a-text id="label-pagina" value="PAG. 1" align="center" color="#FFF" width="4.5"></a-text>
+                </a-entity>
+
+                <a-box id="btn-siguiente" class="clickable" color="#222" width="2" height="0.8" depth="0.2" position="0 -1.2 0" onclick="cambiarPagina(1)">
+                    <a-text value="SIGUIENTE" align="center" position="0 0 0.11" width="4" color="#00E5FF"></a-text>
+                </a-box>
+            </a-entity>
+
+            <a-entity id="area-datos" position="3.5 0 0">
+                <a-entity id="tabla-cabecera" position="0 5.2 0"></a-entity>
+                <a-entity id="tabla-cuerpo" position="0 4.5 0"></a-entity>
+            </a-entity>
+
         </a-entity>
 
-        <a-entity camera look-controls wasd-controls position="0 1.6 0"></a-entity>
+        <a-entity camera look-controls wasd-controls position="7 3 5"></a-entity>
     </a-scene>
 
     <script>
         const tablas = ['estudiantes', 'profesores', 'asignaturas', 'matriculas'];
         const API_URL = "http://localhost:3000";
+        let datosActuales = [];
+        let paginaActual = 0;
+        const filasPorPagina = 7; // Subimos a 7 filas ya que hay espacio
 
         function mostrarMenuPrincipal() {
             document.getElementById('contenedor-bienvenida').setAttribute('visible', 'false');
-            document.querySelector('#btn-conectar-wrapper a-box').classList.remove('clickable');
-
             const menu = document.getElementById('menu-tablas');
             menu.setAttribute('visible', 'true');
 
             tablas.forEach((nombre, index) => {
-                const xPos = (index * 2.5) - 3.75;
-                const btnEntity = document.createElement('a-entity');
-                btnEntity.setAttribute('position', `${xPos} 0 0`);
-                
-                const caja = document.createElement('a-box');
-                caja.setAttribute('width', '2.2');
-                caja.setAttribute('height', '0.7');
-                caja.setAttribute('depth', '0.2');
-                caja.setAttribute('color', '#333');
-                caja.setAttribute('class', 'clickable');
-
-                const txt = document.createElement('a-text');
-                txt.setAttribute('value', nombre.toUpperCase());
-                txt.setAttribute('align', 'center');
-                txt.setAttribute('position', '0 0 0.11');
-                txt.setAttribute('width', '5');
-
-                // Al hacer clic, llamamos a la función asíncrona
-                caja.addEventListener('click', () => pedirDatos(nombre));
-
-                caja.addEventListener('mouseenter', () => caja.setAttribute('color', '#00E5FF'));
-                caja.addEventListener('mouseleave', () => caja.setAttribute('color', '#333'));
-
-                btnEntity.appendChild(caja);
-                btnEntity.appendChild(txt);
-                menu.appendChild(btnEntity);
+                const btn = document.createElement('a-entity');
+                btn.setAttribute('position', `${(index * 3.8) - 5.7} 0 0`);
+                btn.innerHTML = `
+                    <a-box class="clickable" width="3.5" height="0.8" depth="0.2" color="#222" 
+                           onclick="cargarTabla('${nombre}')">
+                        <a-text value="${nombre.toUpperCase()}" align="center" position="0 0 0.11" width="6" color="#FFF"></a-text>
+                    </a-box>`;
+                menu.appendChild(btn);
             });
         }
 
-        async function pedirDatos(nombreTabla) {
-            const visualizador = document.getElementById('visualizador-datos');
-            const titulo = document.getElementById('texto-tabla');
-            const info = document.getElementById('info-detallada');
-
-            visualizador.setAttribute('visible', 'true');
-            titulo.setAttribute('value', nombreTabla.toUpperCase());
-            info.setAttribute('value', "Cargando datos desde la API...");
-
+        async function cargarTabla(nombre) {
+            document.getElementById('visualizador-datos').setAttribute('visible', 'true');
+            document.getElementById('texto-tabla').setAttribute('value', "CONTENIDO DE LA TABLA: " + nombre.toUpperCase());
+            paginaActual = 0;
             try {
-                // Realizamos la petición fetch
-                const response = await fetch(`${API_URL}/${nombreTabla}`);
+                const res = await fetch(`${API_URL}/${nombre}`);
+                datosActuales = await res.json();
+                renderizar();
+            } catch (e) { console.error("Error conectando al backend"); }
+        }
+
+        function renderizar() {
+            const cuerpo = document.getElementById('tabla-cuerpo');
+            const cabecera = document.getElementById('tabla-cabecera');
+            cuerpo.innerHTML = '';
+            cabecera.innerHTML = '';
+
+            if (!datosActuales.length) return;
+
+            const columnas = Object.keys(datosActuales[0]);
+            const espaciadoX = 3; 
+
+            // Render Cabeceras
+            columnas.forEach((col, index) => {
+                const txt = document.createElement('a-text');
+                txt.setAttribute('value', col.toUpperCase());
+                txt.setAttribute('position', `${index * espaciadoX} 0 0`);
+                txt.setAttribute('color', '#00E5FF');
+                txt.setAttribute('width', '7');
+                cabecera.appendChild(txt);
+            });
+
+            // Render Filas
+            const inicio = paginaActual * filasPorPagina;
+            const slice = datosActuales.slice(inicio, inicio + filasPorPagina);
+
+            slice.forEach((fila, i) => {
+                const filaEnt = document.createElement('a-entity');
+                filaEnt.setAttribute('position', `0 ${-i * 0.8} 0`);
                 
-                if (!response.ok) throw new Error("Error en la respuesta del servidor");
+                columnas.forEach((col, index) => {
+                    const celda = document.createElement('a-text');
+                    let valor = String(fila[col] || "-");
+                    if (valor.length > 22) valor = valor.substring(0, 19) + "...";
+                    celda.setAttribute('value', valor);
+                    celda.setAttribute('position', `${index * espaciadoX} 0 0`);
+                    celda.setAttribute('width', '6');
+                    filaEnt.appendChild(celda);
+                });
 
-                const datos = await response.json();
+                // Separador sutil
+                const linea = document.createElement('a-plane');
+                linea.setAttribute('width', (columnas.length * espaciadoX));
+                linea.setAttribute('height', '0.01');
+                linea.setAttribute('position', `${(columnas.length * espaciadoX / 2) - 1.5} -0.4 0`);
+                linea.setAttribute('color', '#333');
+                filaEnt.appendChild(linea);
 
-                // Procesamos los datos para mostrarlos
-                // Tomamos los primeros 3 elementos para que no se desborde el texto en el 3D
-                if (datos.length > 0) {
-                    let resumen = "";
-                    datos.slice(0, 5).forEach(item => {
-                        // Intentamos sacar un nombre o descripción (ajusta según tus columnas)
-                        resumen += `- ${item.nombre || item.apellido || Object.values(item)[1]}\n`;
-                    });
-                    resumen += `\nTotal registros: ${datos.length}`;
-                    info.setAttribute('value', resumen);
-                } else {
-                    info.setAttribute('value', "La tabla está vacía.");
-                }
+                cuerpo.appendChild(filaEnt);
+            });
 
-            } catch (error) {
-                console.error("Error al conectar:", error);
-                info.setAttribute('value', "ERROR: No se pudo conectar con localhost:3000.\n¿Esta activado el CORS?");
-                info.setAttribute('color', '#FF4444');
+            // Lógica de botones laterales
+            const total = Math.ceil(datosActuales.length / filasPorPagina);
+            document.getElementById('label-pagina').setAttribute('value', `PAGINA\n${paginaActual + 1} / ${total}`);
+            
+            const btnAnt = document.getElementById('btn-anterior');
+            const btnSig = document.getElementById('btn-siguiente');
+            
+            // Efecto visual de encendido/apagado
+            btnAnt.setAttribute('color', paginaActual > 0 ? '#00E5FF' : '#111');
+            btnAnt.querySelector('a-text').setAttribute('color', paginaActual > 0 ? '#000' : '#444');
+            
+            btnSig.setAttribute('color', paginaActual < total - 1 ? '#00E5FF' : '#111');
+            btnSig.querySelector('a-text').setAttribute('color', paginaActual < total - 1 ? '#000' : '#444');
+        }
+
+        function cambiarPagina(n) {
+            const total = Math.ceil(datosActuales.length / filasPorPagina);
+            const nuevaPag = paginaActual + n;
+            if (nuevaPag >= 0 && nuevaPag < total) {
+                paginaActual = nuevaPag;
+                renderizar();
             }
         }
     </script>
