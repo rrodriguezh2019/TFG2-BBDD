@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>Visualizador Universidad - Tablas 3D</title>
     <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/aframe-extras@6.1.1/dist/aframe-extras.min.js"></script>
     <style>
         body {
             margin: 0;
@@ -54,7 +55,7 @@
             <!-- Botón CONECTAR -->
             <a-entity position="7 1.5 -4" class="clickable-btn">
                 <a-box class="clickable" color="#00E5FF" depth="0.6" height="1" width="4.5" 
-                       onclick="mostrarMenuPrincipal()" 
+                       data-action="mostrarMenuPrincipal"
                        animation="property: scale; to: 1.1; dur: 300; easing: easeInOutQuad; startEvents: mouseenter; dir: alternate"
                        animation__out="property: scale; to: 1; dur: 300; easing: easeInOutQuad; startEvents: mouseleave">
                     <a-text value="CONECTAR BBDD" align="center" position="0 0 0.35" width="7" color="#000" font-size="80" font-weight="bold"></a-text>
@@ -86,7 +87,7 @@
                 <!-- Botón Anterior -->
                 <a-entity position="0 0.8 0.15" class="clickable-btn">
                     <a-box id="btn-anterior" class="clickable" color="#222" width="1.6" height="0.7" depth="0.3" 
-                           onclick="cambiarPagina(-1)"
+                           data-action="cambiarPagina" data-param="-1"
                            animation="property: scale; to: 1.08; dur: 250; easing: easeInOutQuad; startEvents: mouseenter; dir: alternate">
                         <a-text value="ANTERIOR" align="center" position="0 0 0.2" width="4" color="#00E5FF" font-size="80"></a-text>
                     </a-box>
@@ -101,7 +102,7 @@
                 <!-- Botón Siguiente -->
                 <a-entity position="0 -1.1 0.15" class="clickable-btn">
                     <a-box id="btn-siguiente" class="clickable" color="#222" width="1.6" height="0.7" depth="0.3" 
-                           onclick="cambiarPagina(1)"
+                           data-action="cambiarPagina" data-param="1"
                            animation="property: scale; to: 1.08; dur: 250; easing: easeInOutQuad; startEvents: mouseenter; dir: alternate">
                         <a-text value="SIGUIENTE" align="center" position="0 0 0.2" width="4" color="#00E5FF" font-size="80"></a-text>
                     </a-box>
@@ -118,7 +119,7 @@
             <!-- Botón Volver -->
             <a-entity position="0 -2.5 0" class="clickable-btn">
                 <a-box class="clickable" color="#FF6B00" depth="0.3" width="2.5" height="0.6" 
-                       onclick="volverAlMenu()"
+                       data-action="volverAlMenu"
                        animation="property: scale; to: 1.08; dur: 250; easing: easeInOutQuad; startEvents: mouseenter; dir: alternate">
                     <a-text value="← VOLVER" align="center" position="0 0 0.2" width="5" color="#FFF" font-size="60" font-weight="bold"></a-text>
                 </a-box>
@@ -126,14 +127,22 @@
 
         </a-entity>
 
-        <!-- Cámara -->
-        <a-entity camera look-controls wasd-controls position="7 3 8"></a-entity>
+        <!-- Cámara con RIG para VR y Desktop -->
+        <a-entity id="rig" position="7 3 8">
+            <a-entity id="camera" camera look-controls wasd-controls></a-entity>
+            
+            <!-- Controlador derecho -->
+            <a-entity id="rightController" laser-controls="hand: right" raycaster="objects: .clickable; far: 30" line="color: #00E5FF; opacity: 0.7"></a-entity>
+            
+            <!-- Controlador izquierdo -->
+            <a-entity id="leftController" laser-controls="hand: left" raycaster="objects: .clickable; far: 30" line="color: #00E5FF; opacity: 0.7"></a-entity>
+        </a-entity>
 
     </a-scene>
 
     <script>
         const tablas = ['estudiantes', 'profesores', 'asignaturas', 'matriculas'];
-        const API_URL = "http://localhost:3000";
+        const API_URL = "http://192.168.1.136:3000";
         let datosActuales = [];
         let paginaActual = 0;
         const filasPorPagina = 6;
@@ -148,6 +157,74 @@
             borde: '#00E5FF'
         };
 
+        // ===== MOVIMIENTO SUAVE DE CÁMARA EN VR =====
+        const rig = document.querySelector('#rig');
+        let rigPos = { x: 7, y: 3, z: 8 };
+        const moveSpeed = 0.1; // Velocidad de movimiento
+        
+        // Estado de los joysticks
+        let leftJoystick = { x: 0, y: 0 };
+        let rightJoystick = { x: 0, y: 0 };
+
+        // Escuchar input del joystick izquierdo (movimiento)
+        document.querySelector('#leftController')?.addEventListener('thumbstickmoved', (e) => {
+            leftJoystick.x = e.detail.x; // Izquierda/Derecha
+            leftJoystick.y = e.detail.y; // Adelante/Atrás
+        });
+
+        // Escuchar input del joystick derecho (rotación/zoom)
+        document.querySelector('#rightController')?.addEventListener('thumbstickmoved', (e) => {
+            rightJoystick.x = e.detail.x;
+            rightJoystick.y = e.detail.y;
+        });
+
+        // Loop de actualización de movimiento
+        setInterval(() => {
+            // Movimiento con joystick izquierdo
+            rigPos.x += leftJoystick.x * moveSpeed;
+            rigPos.z += leftJoystick.y * moveSpeed;
+
+            // Movimiento vertical con joystick derecho (arriba/abajo = acercarse/alejarse)
+            rigPos.y += rightJoystick.y * moveSpeed * 0.5;
+
+            // Aplicar posición
+            rig.setAttribute('position', `${rigPos.x} ${rigPos.y} ${rigPos.z}`);
+        }, 30); // Actualizar cada 30ms
+
+        // ===== FUNCIÓN DE CLICK UNIFICADA =====
+        function handleClickAction(action, param) {
+            console.log('✅ Acción:', action, 'Param:', param);
+
+            if (action === 'mostrarMenuPrincipal') mostrarMenuPrincipal();
+            if (action === 'cargarTabla') cargarTabla(param);
+            if (action === 'cambiarPagina') cambiarPagina(parseInt(param));
+            if (action === 'volverAlMenu') volverAlMenu();
+        }
+
+        // ===== ESCUCHAR CLICS MOUSE/DESKTOP =====
+        document.addEventListener('click', (e) => {
+            const el = e.target;
+            const target = el.classList.contains('clickable') ? el : el.closest('.clickable');
+            
+            if (target) {
+                const action = target.getAttribute('data-action');
+                const param = target.getAttribute('data-param');
+                handleClickAction(action, param);
+            }
+        });
+
+        // Detectar clicks en controllers VR
+        document.querySelectorAll('[laser-controls]').forEach(controller => {
+            controller.addEventListener('click', (e) => {
+                const target = e.target;
+                if (target && target.classList.contains('clickable')) {
+                    const action = target.getAttribute('data-action');
+                    const param = target.getAttribute('data-param');
+                    handleClickAction(action, param);
+                }
+            });
+        });
+
         function mostrarMenuPrincipal() {
             document.getElementById('contenedor-bienvenida').setAttribute('visible', 'false');
             const menu = document.getElementById('menu-tablas');
@@ -160,7 +237,7 @@
                 
                 btn.innerHTML = `
                     <a-box class="clickable" width="3.8" height="1" depth="0.4" color="#222" 
-                           onclick="cargarTabla('${nombre}')"
+                           data-action="cargarTabla" data-param="${nombre}"
                            animation="property: scale; to: 1.1; dur: 300; easing: easeInOutQuad; startEvents: mouseenter; dir: alternate">
                         <a-text value="${nombre.toUpperCase()}" align="center" position="0 0 0.25" width="7" color="#00E5FF" font-size="80" font-weight="bold"></a-text>
                     </a-box>
