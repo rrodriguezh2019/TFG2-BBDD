@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Visualizador Universidad - Tablas 3D</title>
+    <title>Visualizador Universidad - 3D VR Experience</title>
     <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/aframe-extras@6.1.1/dist/aframe-extras.min.js"></script>
     <style>
@@ -26,49 +26,72 @@
 </head>
 <body>
 
-    <a-scene cursor="rayOrigin: mouse" raycaster="objects: .clickable" background="color: #000" fog="type: linear; color: #000; far: 50; near: 1">
+    <a-scene cursor="rayOrigin: mouse" raycaster="objects: .clickable" background="color: #000" fog="type: linear; color: #000; far: 100; near: 0.1">
         
-        <!-- Luces -->
-        <a-light type="ambient" intensity="0.6" color="#fff"></a-light>
-        <a-light type="directional" intensity="0.8" color="#00E5FF" position="5 10 5"></a-light>
-        <a-light type="directional" intensity="0.4" color="#FF00FF" position="-5 10 -5"></a-light>
-        <a-light type="point" intensity="0.5" color="#00E5FF" position="7 3 2"></a-light>
+        <!-- Luces dinámicas -->
+        <a-light type="ambient" intensity="0.5" color="#fff"></a-light>
+        <a-light type="directional" intensity="1" color="#00E5FF" position="20 30 20"></a-light>
+        <a-light type="directional" intensity="0.6" color="#FF00FF" position="-20 20 -20"></a-light>
+        <a-light type="point" intensity="0.8" color="#00E5FF" position="7 10 5"></a-light>
+        <a-light type="point" intensity="0.6" color="#FF00FF" position="7 5 -10"></a-light>
 
-        <!-- Piso -->
-        <a-plane position="7 -2 -4" rotation="-90 0 0" width="120" height="120" color="#0a0a0a"></a-plane>
-        <a-plane position="7 -1.95 -4" rotation="-90 0 0" width="120" height="120" color="#111" opacity="0.3"></a-plane>
+        <!-- Piso con grid -->
+        <a-plane position="7 -3 -4" rotation="-90 0 0" width="200" height="200" color="#0a0a0a"></a-plane>
+        <a-plane position="7 -2.95 -4" rotation="-90 0 0" width="200" height="200" 
+                 material="shader: grid; gridSize: 10; gridColor: #00E5FF; opacity: 0.2"></a-plane>
 
-        <!-- Cielo estrellado -->
+        <!-- Cielo con estrellas -->
         <a-sky color="#050505"></a-sky>
+        <a-entity id="stars"></a-entity>
 
-        <!-- CONTAINER BIENVENIDA -->
-        <a-entity id="contenedor-bienvenida">
-            <a-entity position="7 4 -4">
-                <!-- Fondo con efecto 3D -->
-                <a-box color="#0a0a0a" depth="0.5" height="1.2" width="9.5" opacity="0.9"></a-box>
-                <a-box color="#00E5FF" depth="0.51" height="1.19" width="9.4" opacity="0.1"></a-box>
+        <!-- ============ ESCENA 1: BIENVENIDA ============ -->
+        <a-entity id="escena-bienvenida" visible="true">
+            <!-- Título flotante -->
+            <a-entity position="7 5 -15" animation="property: rotation; to: 0 360 0; dur: 20000; easing: linear; loop: true">
+                <a-box color="#0a0a0a" depth="1" height="2.5" width="15" opacity="0.9" shadow></a-box>
+                <a-box color="#00E5FF" depth="1.1" height="2.4" width="14.9" opacity="0.15" shadow></a-box>
                 
-                <a-text value="SISTEMA DE GESTION UNIVERSITARIA" align="center" position="0 0 0.3" width="11" color="#00E5FF" font-size="120"></a-text>
-                <a-text value="Gestión Académica en Realidad Aumentada" align="center" position="0 -0.35 0.3" width="11" color="#AAA" font-size="60" opacity="0.7"></a-text>
+                <a-text value="SISTEMA DE GESTION" align="center" position="0 0.8 0.6" width="20" color="#00E5FF" font-size="120" font-weight="bold"></a-text>
+                <a-text value="UNIVERSITARIA" align="center" position="0 0.2 0.6" width="20" color="#00E5FF" font-size="120" font-weight="bold"></a-text>
+                <a-text value="Realidad Virtual 3D" align="center" position="0 -0.6 0.6" width="20" color="#AAA" font-size="60" opacity="0.7"></a-text>
             </a-entity>
 
-            <!-- Botón CONECTAR -->
-            <a-entity position="7 1.5 -4" class="clickable-btn">
-                <a-box class="clickable" color="#00E5FF" depth="0.6" height="1" width="4.5" 
-                       data-action="mostrarMenuPrincipal"
-                       animation="property: scale; to: 1.1; dur: 300; easing: easeInOutQuad; startEvents: mouseenter; dir: alternate"
-                       animation__out="property: scale; to: 1; dur: 300; easing: easeInOutQuad; startEvents: mouseleave">
-                    <a-text value="CONECTAR BBDD" align="center" position="0 0 0.35" width="7" color="#000" font-size="80" font-weight="bold"></a-text>
+            <!-- Botón inicial -->
+            <a-entity position="7 3 -10" 
+                      animation="property: position; to: 7 4 -10; dur: 2000; easing: easeInOutQuad; dir: alternate; loop: true"
+                      animation__rot="property: rotation; to: 0 360 0; dur: 8000; easing: linear; loop: true">
+                <a-box class="clickable" color="#00E5FF" depth="0.8" height="1.2" width="5" 
+                       data-action="mostrarMenuTablas"
+                       animation="property: scale; to: 1.15; dur: 300; easing: easeInOutQuad; startEvents: mouseenter; dir: alternate"
+                       shadow>
+                    <a-text value="CONECTAR" align="center" position="0 0 0.5" width="8" color="#000" font-size="100" font-weight="bold"></a-text>
                 </a-box>
-                <a-box color="#00E5FF" depth="0.61" height="1.01" width="4.51" opacity="0.2" animation="property: scale; to: 1.15; dur: 300; easing: easeInOutQuad; startEvents: mouseenter; dir: alternate"></a-box>
+                <a-sphere color="#00E5FF" radius="6" opacity="0.1" wireframe="true"></a-sphere>
             </a-entity>
         </a-entity>
 
-        <!-- MENU TABLAS -->
-        <a-entity id="menu-tablas" position="7 6.5 -10" visible="false"></a-entity>
+        <!-- ============ ESCENA 2: SELECCIÓN DE TABLAS ============ -->
+        <a-entity id="escena-menu-tablas" visible="false">
+            <!-- Título -->
+            <a-entity position="7 6 -15" animation="property: rotation; to: 0 360 0; dur: 20000; easing: linear; loop: true">
+                <a-text value="SELECCIONA UNA TABLA" align="center" position="0 0 0" width="20" color="#00E5FF" font-size="140" font-weight="bold"></a-text>
+            </a-entity>
 
-        <!-- VISUALIZADOR DATOS -->
-        <a-entity id="visualizador-datos" position="7 0 -15" visible="false">
+            <!-- Contenedor de botones de tablas -->
+            <a-entity id="menu-tablas" position="7 3 -4"></a-entity>
+
+            <!-- Botón volver -->
+            <a-entity position="7 0 -4">
+                <a-box class="clickable" color="#FF6B00" depth="0.5" width="3.5" height="0.8" 
+                       data-action="volverABienvenida"
+                       animation="property: scale; to: 1.08; dur: 250; startEvents: mouseenter; dir: alternate" shadow>
+                    <a-text value="← VOLVER" align="center" position="0 0 0.3" width="6" color="#FFF" font-size="70" font-weight="bold"></a-text>
+                </a-box>
+            </a-entity>
+        </a-entity>
+
+        <!-- ============ ESCENA 3: VISUALIZACIÓN DE TABLA ============ -->
+        <a-entity id="escena-tabla" visible="false" position="7 0 -15">
             
             <!-- Título de tabla -->
             <a-entity position="0 6 0">
@@ -116,25 +139,22 @@
                 <a-entity id="tabla-cuerpo" position="0 4 0"></a-entity>
             </a-entity>
 
-            <!-- Botón Volver -->
+            <!-- Botón Volver al menú de tablas -->
             <a-entity position="0 -2.5 0" class="clickable-btn">
-                <a-box class="clickable" color="#FF6B00" depth="0.3" width="2.5" height="0.6" 
-                       data-action="volverAlMenu"
+                <a-box class="clickable" color="#FF6B00" depth="0.3" width="3.5" height="0.7" 
+                       data-action="volverAlMenuTablas"
                        animation="property: scale; to: 1.08; dur: 250; easing: easeInOutQuad; startEvents: mouseenter; dir: alternate">
-                    <a-text value="← VOLVER" align="center" position="0 0 0.2" width="5" color="#FFF" font-size="60" font-weight="bold"></a-text>
+                    <a-text value="← VOLVER" align="center" position="0 0 0.2" width="6" color="#FFF" font-size="60" font-weight="bold"></a-text>
                 </a-box>
             </a-entity>
 
         </a-entity>
 
-        <!-- Cámara con RIG para VR y Desktop -->
+        <!-- RIG para movimiento en VR -->
         <a-entity id="rig" position="7 3 8">
             <a-entity id="camera" camera look-controls wasd-controls></a-entity>
             
-            <!-- Controlador derecho -->
             <a-entity id="rightController" laser-controls="hand: right" raycaster="objects: .clickable; far: 30" line="color: #00E5FF; opacity: 0.7"></a-entity>
-            
-            <!-- Controlador izquierdo -->
             <a-entity id="leftController" laser-controls="hand: left" raycaster="objects: .clickable; far: 30" line="color: #00E5FF; opacity: 0.7"></a-entity>
         </a-entity>
 
@@ -147,7 +167,24 @@
         let paginaActual = 0;
         const filasPorPagina = 6;
 
-        // Paleta de colores 3D
+        // ============ SISTEMA DE DEBOUNCE POR ACCIÓN =============
+        const accionesEnProgreso = new Set();
+        const DEBOUNCE_MS = 300;
+
+        function puedeEjecutarAccion(action) {
+            if (accionesEnProgreso.has(action)) {
+                console.warn(`⚠️ Acción "${action}" rechazada por debounce`);
+                return false;
+            }
+            
+            accionesEnProgreso.add(action);
+            setTimeout(() => {
+                accionesEnProgreso.delete(action);
+            }, DEBOUNCE_MS);
+            
+            return true;
+        }
+
         const colores = {
             celda: '#1a1a2e',
             celdaTexto: '#00E5FF',
@@ -157,51 +194,60 @@
             borde: '#00E5FF'
         };
 
-        // ===== MOVIMIENTO SUAVE DE CÁMARA EN VR =====
+        // ===== GENERAR ESTRELLAS =====
+        function generarEstrellas() {
+            const starsContainer = document.querySelector('#stars');
+            for (let i = 0; i < 100; i++) {
+                const star = document.createElement('a-sphere');
+                star.setAttribute('radius', Math.random() * 0.2);
+                star.setAttribute('color', '#FFF');
+                star.setAttribute('position', `${Math.random() * 200 - 100} ${Math.random() * 100} ${Math.random() * 200 - 100}`);
+                star.setAttribute('opacity', Math.random() * 0.8 + 0.2);
+                starsContainer.appendChild(star);
+            }
+        }
+        generarEstrellas();
+
+        // ===== MOVIMIENTO SUAVE DE CÁMARA =====
         const rig = document.querySelector('#rig');
         let rigPos = { x: 7, y: 3, z: 8 };
-        const moveSpeed = 0.1; // Velocidad de movimiento
+        const moveSpeed = 0.1;
         
-        // Estado de los joysticks
         let leftJoystick = { x: 0, y: 0 };
         let rightJoystick = { x: 0, y: 0 };
 
-        // Escuchar input del joystick izquierdo (movimiento)
         document.querySelector('#leftController')?.addEventListener('thumbstickmoved', (e) => {
-            leftJoystick.x = e.detail.x; // Izquierda/Derecha
-            leftJoystick.y = e.detail.y; // Adelante/Atrás
+            leftJoystick.x = e.detail.x;
+            leftJoystick.y = e.detail.y;
         });
 
-        // Escuchar input del joystick derecho (rotación/zoom)
         document.querySelector('#rightController')?.addEventListener('thumbstickmoved', (e) => {
             rightJoystick.x = e.detail.x;
             rightJoystick.y = e.detail.y;
         });
 
-        // Loop de actualización de movimiento
         setInterval(() => {
-            // Movimiento con joystick izquierdo
             rigPos.x += leftJoystick.x * moveSpeed;
             rigPos.z += leftJoystick.y * moveSpeed;
-
-            // Movimiento vertical con joystick derecho (arriba/abajo = acercarse/alejarse)
             rigPos.y += rightJoystick.y * moveSpeed * 0.5;
-
-            // Aplicar posición
             rig.setAttribute('position', `${rigPos.x} ${rigPos.y} ${rigPos.z}`);
-        }, 30); // Actualizar cada 30ms
+        }, 30);
 
         // ===== FUNCIÓN DE CLICK UNIFICADA =====
         function handleClickAction(action, param) {
-            console.log('✅ Acción:', action, 'Param:', param);
+            // ✅ PREVENIR CLICKS DUPLICADOS POR ACCIÓN
+            if (!puedeEjecutarAccion(action)) return;
 
-            if (action === 'mostrarMenuPrincipal') mostrarMenuPrincipal();
+            console.log('✅ Acción ejecutada:', action, 'Param:', param);
+
+            if (action === 'mostrarMenuTablas') mostrarMenuTablas();
             if (action === 'cargarTabla') cargarTabla(param);
             if (action === 'cambiarPagina') cambiarPagina(parseInt(param));
-            if (action === 'volverAlMenu') volverAlMenu();
+            if (action === 'volverAlMenuTablas') volverAlMenuTablas();
+            if (action === 'volverABienvenida') volverABienvenida();
         }
 
-        // ===== ESCUCHAR CLICS MOUSE/DESKTOP =====
+        // ===== LISTENERS DE CLICK =====
         document.addEventListener('click', (e) => {
             const el = e.target;
             const target = el.classList.contains('clickable') ? el : el.closest('.clickable');
@@ -213,7 +259,6 @@
             }
         });
 
-        // Detectar clicks en controllers VR
         document.querySelectorAll('[laser-controls]').forEach(controller => {
             controller.addEventListener('click', (e) => {
                 const target = e.target;
@@ -225,30 +270,53 @@
             });
         });
 
-        function mostrarMenuPrincipal() {
-            document.getElementById('contenedor-bienvenida').setAttribute('visible', 'false');
-            const menu = document.getElementById('menu-tablas');
-            menu.setAttribute('visible', 'true');
+        // ===== GESTIÓN DE ESCENAS =====
+        function ocultarTodasLasEscenas() {
+            document.querySelector('#escena-bienvenida').setAttribute('visible', 'false');
+            document.querySelector('#escena-menu-tablas').setAttribute('visible', 'false');
+            document.querySelector('#escena-tabla').setAttribute('visible', 'false');
+        }
 
+        function volverABienvenida() {
+            console.log('🔄 Volviendo a Bienvenida');
+            ocultarTodasLasEscenas();
+            document.querySelector('#escena-bienvenida').setAttribute('visible', 'true');
+        }
+
+        function mostrarMenuTablas() {
+            console.log('📊 Mostrando menú de tablas');
+            ocultarTodasLasEscenas();
+            document.querySelector('#escena-menu-tablas').setAttribute('visible', 'true');
+            
+            const menu = document.getElementById('menu-tablas');
+            menu.innerHTML = '';
+
+            // Distribuir botones en círculo
             tablas.forEach((nombre, index) => {
+                const angle = (index / tablas.length) * Math.PI * 2;
+                const x = Math.cos(angle) * 8;
+                const z = Math.sin(angle) * 8;
+
                 const btn = document.createElement('a-entity');
-                btn.setAttribute('position', `${(index * 4) - 5.5} 0 0`);
-                btn.classList.add('clickable-btn');
+                btn.setAttribute('position', `${x} 3 ${z}`);
                 
                 btn.innerHTML = `
-                    <a-box class="clickable" width="3.8" height="1" depth="0.4" color="#222" 
+                    <a-box class="clickable" width="4" height="1.2" depth="0.5" color="#222" 
                            data-action="cargarTabla" data-param="${nombre}"
-                           animation="property: scale; to: 1.1; dur: 300; easing: easeInOutQuad; startEvents: mouseenter; dir: alternate">
-                        <a-text value="${nombre.toUpperCase()}" align="center" position="0 0 0.25" width="7" color="#00E5FF" font-size="80" font-weight="bold"></a-text>
+                           animation="property: scale; to: 1.1; dur: 300; startEvents: mouseenter; dir: alternate" shadow>
+                        <a-text value="${nombre.toUpperCase()}" align="center" position="0 0 0.3" width="8" color="#00E5FF" font-size="80" font-weight="bold"></a-text>
                     </a-box>
-                    <a-box width="3.79" height="0.99" depth="0.41" color="#00E5FF" opacity="0.15"></a-box>`;
+                    <a-sphere radius="0.1" color="#00E5FF" opacity="0.5" position="0 0 0"></a-sphere>`;
                 
                 menu.appendChild(btn);
             });
         }
 
         async function cargarTabla(nombre) {
-            document.getElementById('visualizador-datos').setAttribute('visible', 'true');
+            console.log('📈 Cargando tabla:', nombre);
+            ocultarTodasLasEscenas();
+            document.querySelector('#escena-tabla').setAttribute('visible', 'true');
+            
             document.getElementById('texto-tabla').setAttribute('value', nombre.toUpperCase());
             paginaActual = 0;
             
@@ -257,8 +325,8 @@
                 datosActuales = await res.json();
                 renderizar();
             } catch (e) { 
-                console.error("Error conectando al backend:", e);
-                alert("Error al conectar con la base de datos. Verifica que el servidor esté activo en " + API_URL);
+                console.error("Error:", e);
+                alert("Error conectando al servidor en " + API_URL);
             }
         }
 
@@ -279,15 +347,14 @@
             cabeceraBG.setAttribute('position', '0 0 -0.3');
             
             columnas.forEach((col, index) => {
-                // Caja de celda 3D
                 const caja = document.createElement('a-box');
                 caja.setAttribute('width', '3');
                 caja.setAttribute('height', '0.85');
                 caja.setAttribute('depth', '0.4');
                 caja.setAttribute('position', `${index * espaciadoX} 0 0`);
                 caja.setAttribute('color', colores.cabecera);
+                caja.setAttribute('shadow', '');
                 
-                // Texto
                 const txt = document.createElement('a-text');
                 txt.setAttribute('value', col.toUpperCase());
                 txt.setAttribute('position', `${index * espaciadoX} 0 0.25`);
@@ -311,7 +378,6 @@
                 const filaEnt = document.createElement('a-entity');
                 filaEnt.setAttribute('position', `0 ${-i * (altoFila + 0.2)} 0`);
 
-                // Background de fila (entidad contenedora para cajas 3D)
                 const filaBG = document.createElement('a-entity');
                 filaBG.setAttribute('position', '0 0 -0.3');
                 
@@ -319,15 +385,14 @@
                 const colorFila = esAlternada ? colores.celda : colores.fila_alt;
 
                 columnas.forEach((col, index) => {
-                    // Caja 3D para cada celda
                     const cajaFila = document.createElement('a-box');
                     cajaFila.setAttribute('width', '3');
                     cajaFila.setAttribute('height', altoFila);
                     cajaFila.setAttribute('depth', '0.4');
                     cajaFila.setAttribute('position', `${index * espaciadoX} 0 0`);
                     cajaFila.setAttribute('color', colorFila);
+                    cajaFila.setAttribute('shadow', '');
                     
-                    // Borde luminoso
                     const borde = document.createElement('a-box');
                     borde.setAttribute('width', '3.05');
                     borde.setAttribute('height', altoFila + 0.05);
@@ -339,7 +404,6 @@
                     filaBG.appendChild(cajaFila);
                     filaBG.appendChild(borde);
 
-                    // Texto en celda
                     const celda = document.createElement('a-text');
                     let valor = String(fila[col] || "-");
                     if (valor.length > 20) valor = valor.substring(0, 17) + "...";
@@ -381,10 +445,10 @@
             }
         }
 
-        function volverAlMenu() {
-            document.getElementById('visualizador-datos').setAttribute('visible', 'false');
-            document.getElementById('menu-tablas').setAttribute('visible', 'false');
-            document.getElementById('contenedor-bienvenida').setAttribute('visible', 'true');
+        function volverAlMenuTablas() {
+            console.log('🔄 Volviendo al menú de tablas');
+            ocultarTodasLasEscenas();
+            document.querySelector('#escena-menu-tablas').setAttribute('visible', 'true');
         }
     </script>
 
