@@ -25,7 +25,7 @@
 </head>
 <body>
 
-    <a-scene cursor="rayOrigin: mouse" raycaster="objects: .clickable" background="color: #000" fog="type: linear; color: #000; far: 50; near: 1">
+    <a-scene cursor="rayOrigin: mouse" raycaster="objects: .clickable" vr-mode-ui="enabled: true" background="color: #000" fog="type: linear; color: #000; far: 50; near: 1">
         
         <!-- Luces -->
         <a-light type="ambient" intensity="0.6" color="#fff"></a-light>
@@ -126,14 +126,34 @@
 
         </a-entity>
 
-        <!-- Cámara -->
-        <a-entity camera look-controls wasd-controls position="7 3 8"></a-entity>
+        <!-- Cámara con cursor gaze para VR -->
+        <a-entity camera look-controls wasd-controls position="7 3 8">
+            <!-- Cursor gaze para VR (visible solo en modo VR) -->
+            <a-entity id="gaze-cursor"
+                      cursor="fuse: true; fuseTimeout: 1500"
+                      position="0 0 -1"
+                      geometry="primitive: ring; radiusInner: 0.02; radiusOuter: 0.03"
+                      material="color: #00E5FF; shader: flat; opacity: 0.8"
+                      raycaster="objects: .clickable; far: 20"
+                      visible="false">
+            </a-entity>
+        </a-entity>
+
+        <!-- Controladores VR izquierdo y derecho con puntero láser -->
+        <a-entity id="leftHand"
+                  laser-controls="hand: left"
+                  raycaster="objects: .clickable; far: 20; lineColor: #00E5FF; lineOpacity: 0.7">
+        </a-entity>
+        <a-entity id="rightHand"
+                  laser-controls="hand: right"
+                  raycaster="objects: .clickable; far: 20; lineColor: #00E5FF; lineOpacity: 0.7">
+        </a-entity>
 
     </a-scene>
 
     <script>
         const tablas = ['estudiantes', 'profesores', 'asignaturas', 'matriculas'];
-        const API_URL = "http://localhost:3000";
+        const API_URL = "http://" + window.location.hostname + ":3000";
         let datosActuales = [];
         let paginaActual = 0;
         const filasPorPagina = 6;
@@ -309,6 +329,15 @@
             document.getElementById('menu-tablas').setAttribute('visible', 'false');
             document.getElementById('contenedor-bienvenida').setAttribute('visible', 'true');
         }
+
+        // Mostrar cursor gaze en modo VR; ocultarlo al salir
+        const gazeCursor = document.getElementById('gaze-cursor');
+        document.querySelector('a-scene').addEventListener('enter-vr', function () {
+            gazeCursor.setAttribute('visible', 'true');
+        });
+        document.querySelector('a-scene').addEventListener('exit-vr', function () {
+            gazeCursor.setAttribute('visible', 'false');
+        });
     </script>
 
 </body>
