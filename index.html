@@ -23,10 +23,67 @@
             text-shadow: 0 0 10px #00E5FF;
         }
     </style>
+    <script>
+        // ============ COMPONENTE PRO: IGNORAR RAYCAST ============
+        // Esto hace que el rayo literalmente atraviese el objeto en el motor 3D (Three.js)
+        AFRAME.registerComponent('ignore-raycast', {
+            init: function () {
+                this.el.addEventListener('loaded', () => {
+                    if(this.el.object3D) {
+                        this.el.object3D.traverse(function(node) {
+                            node.raycast = function() {}; // Anula la función de colisión
+                        });
+                    }
+                });
+            }
+        });
+
+        // ============ SISTEMA DE INTERACCIÓN A-FRAME ============
+        AFRAME.registerComponent('interactable', {
+            init: function () {
+                this.el.addEventListener('click', (e) => {
+
+                    // ===== 1. Verificar visibilidad real =====
+                    let isVisible = true;
+                    let current = this.el;
+
+                    while (current && current.tagName !== 'A-SCENE') {
+                        const vis = current.getAttribute('visible');
+                        if (vis === false || vis === 'false') {
+                            isVisible = false;
+                            break;
+                        }
+                        current = current.parentElement;
+                    }
+
+                    if (!isVisible) return;
+
+                    // ===== 2. Detectar si es elemento decorativo =====
+                    const isGrafico = this.el.getAttribute('data-grafico') === 'true';
+
+                    // ⚠️ IMPORTANTE: NO bloqueamos propagación si es decorativo
+                    if (!isGrafico) {
+                        e.stopPropagation();
+                    } else {
+                        return; // ignorar sin bloquear
+                    }
+
+                    // ===== 3. Ejecutar acción =====
+                    const action = this.el.getAttribute('data-action');
+                    const param = this.el.getAttribute('data-param');
+
+                    if (action) {
+                        handleClickAction(action, param);
+                    }
+                });
+            }
+        });
+    </script>
 </head>
 <body>
 
-    <a-scene cursor="rayOrigin: mouse" raycaster="objects: .clickable" background="color: #000" fog="type: linear; color: #000; far: 100; near: 0.1">
+    <!-- 🔧 raycaster ajustado con recursive: true -->
+    <a-scene cursor="rayOrigin: mouse" raycaster="objects: .clickable; recursive: true" background="color: #000" fog="type: linear; color: #000; far: 100; near: 0.1">
         
         <!-- Luces dinámicas -->
         <a-light type="ambient" intensity="0.5" color="#fff"></a-light>
@@ -60,7 +117,7 @@
             <a-entity position="7 3 -10" 
                       animation="property: position; to: 7 4 -10; dur: 2000; easing: easeInOutQuad; dir: alternate; loop: true"
                       animation__rot="property: rotation; to: 0 360 0; dur: 8000; easing: linear; loop: true">
-                <a-box class="clickable" color="#00E5FF" depth="0.8" height="1.2" width="5" 
+                <a-box interactable class="clickable" color="#00E5FF" depth="0.8" height="1.2" width="5" 
                        data-action="mostrarMenuTablas"
                        animation="property: scale; to: 1.15; dur: 300; easing: easeInOutQuad; startEvents: mouseenter; dir: alternate"
                        shadow>
@@ -82,8 +139,8 @@
 
             <!-- Botón volver -->
             <a-entity position="7 0 -4">
-                <a-box class="clickable" color="#FF6B00" depth="0.5" width="3.5" height="0.8" 
-                       data-action="volverABienvenida"
+                <a-box interactable class="clickable" color="#FF6B00" depth="0.5" width="3.5" height="0.8" 
+                       data-action="volver"
                        animation="property: scale; to: 1.08; dur: 250; startEvents: mouseenter; dir: alternate" shadow>
                     <a-text value="← VOLVER" align="center" position="0 0 0.3" width="6" color="#FFF" font-size="70" font-weight="bold"></a-text>
                 </a-box>
@@ -102,14 +159,14 @@
 
             <!-- Panel de control lateral izquierdo -->
             <a-entity id="controles-lateral" position="-5.5 2.5 0">
-                <a-box color="#111" depth="0.3" height="4.5" width="1.8" opacity="0.8"></a-box>
-                <a-box color="#00E5FF" depth="0.31" height="4.49" width="1.79" opacity="0.08"></a-box>
+                <a-box color="#111" depth="0.3" height="6" width="1.8" opacity="0.8"></a-box>
+                <a-box color="#00E5FF" depth="0.31" height="5.99" width="1.79" opacity="0.08"></a-box>
                 
-                <a-text value="CONTROLES" position="0 1.8 0.2" align="center" color="#00E5FF" width="4" font-size="60" font-weight="bold"></a-text>
+                <a-text value="CONTROLES" position="0 2.2 0.2" align="center" color="#00E5FF" width="4" font-size="60" font-weight="bold"></a-text>
                 
                 <!-- Botón Anterior -->
-                <a-entity position="0 0.8 0.15" class="clickable-btn">
-                    <a-box id="btn-anterior" class="clickable" color="#222" width="1.6" height="0.7" depth="0.3" 
+                <a-entity position="0 1.2 0.15">
+                    <a-box id="btn-anterior" interactable class="clickable" color="#222" width="1.6" height="0.7" depth="0.3" 
                            data-action="cambiarPagina" data-param="-1"
                            animation="property: scale; to: 1.08; dur: 250; easing: easeInOutQuad; startEvents: mouseenter; dir: alternate">
                         <a-text value="ANTERIOR" align="center" position="0 0 0.2" width="4" color="#00E5FF" font-size="80"></a-text>
@@ -118,18 +175,29 @@
                 </a-entity>
                 
                 <!-- Indicador de página -->
-                <a-entity position="0 -0.1 0.2">
+                <a-entity position="0 0.3 0.2">
                     <a-text id="label-pagina" value="PÁG.\n1 / 1" align="center" color="#FFF" width="4.5" font-size="50"></a-text>
                 </a-entity>
 
                 <!-- Botón Siguiente -->
-                <a-entity position="0 -1.1 0.15" class="clickable-btn">
-                    <a-box id="btn-siguiente" class="clickable" color="#222" width="1.6" height="0.7" depth="0.3" 
+                <a-entity position="0 -0.7 0.15">
+                    <a-box id="btn-siguiente" interactable class="clickable" color="#222" width="1.6" height="0.7" depth="0.3" 
                            data-action="cambiarPagina" data-param="1"
                            animation="property: scale; to: 1.08; dur: 250; easing: easeInOutQuad; startEvents: mouseenter; dir: alternate">
                         <a-text value="SIGUIENTE" align="center" position="0 0 0.2" width="4" color="#00E5FF" font-size="80"></a-text>
                     </a-box>
                     <a-box color="#00E5FF" depth="0.31" height="0.69" width="1.59" opacity="0.1"></a-box>
+                </a-entity>
+
+                <!-- Botón Analizar Edades -->
+                <a-entity id="btn-analizar-container" position="0 -1.7 0.15" visible="false">
+                    <a-box id="btn-analizar" interactable class="clickable" color="#9D4EDD" width="1.6" height="0.7" depth="0.3" 
+                           data-action="analizarEdades"
+                           animation="property: scale; to: 1.08; dur: 250; easing: easeInOutQuad; startEvents: mouseenter; dir: alternate">
+                        <a-text value="ANALIZAR" align="center" position="0 0.15 0.2" width="3.5" color="#00E5FF" font-size="50"></a-text>
+                        <a-text value="EDADES" align="center" position="0 -0.15 0.2" width="3.5" color="#00E5FF" font-size="50"></a-text>
+                    </a-box>
+                    <a-box color="#9D4EDD" depth="0.31" height="0.69" width="1.59" opacity="0.15"></a-box>
                 </a-entity>
             </a-entity>
 
@@ -140,9 +208,46 @@
             </a-entity>
 
             <!-- Botón Volver al menú de tablas -->
-            <a-entity position="0 -2.5 0" class="clickable-btn">
-                <a-box class="clickable" color="#FF6B00" depth="0.3" width="3.5" height="0.7" 
-                       data-action="volverAlMenuTablas"
+            <a-entity position="0 -2.5 0">
+                <a-box interactable class="clickable" color="#FF6B00" depth="0.3" width="3.5" height="0.7" 
+                       data-action="volver"
+                       animation="property: scale; to: 1.08; dur: 250; easing: easeInOutQuad; startEvents: mouseenter; dir: alternate">
+                    <a-text value="← VOLVER" align="center" position="0 0 0.2" width="6" color="#FFF" font-size="60" font-weight="bold"></a-text>
+                </a-box>
+            </a-entity>
+
+        </a-entity>
+
+        <!-- ============ ESCENA 4: ANÁLISIS DE EDADES ============ -->
+        <a-entity id="escena-analisis-edades" visible="false" position="7 0 -15">
+            
+            <!-- Título -->
+            <a-entity position="0 6 0">
+                <a-box color="#0a0a0a" depth="0.4" height="1" width="14" opacity="0.95"></a-box>
+                <a-box color="#9D4EDD" depth="0.41" height="0.99" width="13.9" opacity="0.15"></a-box>
+                <a-text value="ANÁLISIS DE EDADES" align="center" position="0 0 0.25" width="18" color="#9D4EDD" font-size="100" font-weight="bold"></a-text>
+            </a-entity>
+
+            <!-- Panel de estadísticas lateral derecho -->
+            <a-entity id="panel-estadisticas" position="5.5 2.5 0">
+                <a-box color="#111" depth="0.3" height="4.5" width="1.8" opacity="0.8"></a-box>
+                <a-box color="#9D4EDD" depth="0.31" height="4.49" width="1.79" opacity="0.08"></a-box>
+                
+                <a-text value="ESTADÍSTICAS" position="0 1.8 0.2" align="center" color="#9D4EDD" width="4" font-size="55" font-weight="bold"></a-text>
+                
+                <a-text id="stat-edad-min" value="MIN: --" position="0 1.0 0.2" align="center" color="#00FF88" width="4" font-size="50"></a-text>
+                <a-text id="stat-edad-max" value="MÁX: --" position="0 0.4 0.2" align="center" color="#FF88FF" width="4" font-size="50"></a-text>
+                <a-text id="stat-edad-prom" value="PROM: --" position="0 -0.2 0.2" align="center" color="#00E5FF" width="4" font-size="50"></a-text>
+                <a-text id="stat-total" value="TOTAL: --" position="0 -0.8 0.2" align="center" color="#FFB700" width="4" font-size="50"></a-text>
+            </a-entity>
+
+            <!-- Gráfico 3D -->
+            <a-entity id="grafico-edades" position="0 2 0"></a-entity>
+
+            <!-- Botón Volver -->
+            <a-entity position="0 -1 0">
+                <a-box interactable class="clickable" color="#FF6B00" depth="0.3" width="3.5" height="0.7" 
+                       data-action="volver"
                        animation="property: scale; to: 1.08; dur: 250; easing: easeInOutQuad; startEvents: mouseenter; dir: alternate">
                     <a-text value="← VOLVER" align="center" position="0 0 0.2" width="6" color="#FFF" font-size="60" font-weight="bold"></a-text>
                 </a-box>
@@ -153,7 +258,6 @@
         <!-- RIG para movimiento en VR -->
         <a-entity id="rig" position="7 3 8">
             <a-entity id="camera" camera look-controls wasd-controls></a-entity>
-            
             <a-entity id="rightController" laser-controls="hand: right" raycaster="objects: .clickable; far: 30" line="color: #00E5FF; opacity: 0.7"></a-entity>
             <a-entity id="leftController" laser-controls="hand: left" raycaster="objects: .clickable; far: 30" line="color: #00E5FF; opacity: 0.7"></a-entity>
         </a-entity>
@@ -161,11 +265,63 @@
     </a-scene>
 
     <script>
+        // Funciones del sistema (Variables globales)
+        function handleClickAction(action, param) {
+            if (!puedeEjecutarAccion(action)) return;
+
+            console.log('✅ Acción ejecutada:', action, 'Param:', param);
+
+            if (action === 'mostrarMenuTablas') mostrarMenuTablas();
+            if (action === 'cargarTabla') cargarTabla(param);
+            if (action === 'cambiarPagina') cambiarPagina(parseInt(param));
+            if (action === 'analizarEdades') analizarEdades();
+            if (action === 'volver') nav.goBack();
+        }
+
+        // ============ GESTOR DE NAVEGACIÓN CON PILA ============
+        class NavigationManager {
+            constructor() {
+                this.stack = ['escena-bienvenida'];
+            }
+
+            goTo(escena) {
+                console.log(`📍 Navegando a: ${escena}`);
+                this.hideAll();
+                document.querySelector(`#${escena}`).setAttribute('visible', 'true');
+                if (this.stack[this.stack.length - 1] !== escena) {
+                    this.stack.push(escena);
+                }
+            }
+
+            goBack() {
+                console.log(`🔙 Volviendo atrás desde: ${this.stack[this.stack.length - 1]}`);
+                if (this.stack.length > 1) {
+                    this.stack.pop();
+                    const previousScene = this.stack[this.stack.length - 1];
+                    console.log(`✅ Volviendo a: ${previousScene}`);
+                    this.hideAll();
+                    document.querySelector(`#${previousScene}`).setAttribute('visible', 'true');
+                } else {
+                    console.warn('⚠️ No hay escena anterior en el stack');
+                }
+            }
+
+            hideAll() {
+                document.querySelector('#escena-bienvenida').setAttribute('visible', 'false');
+                document.querySelector('#escena-menu-tablas').setAttribute('visible', 'false');
+                document.querySelector('#escena-tabla').setAttribute('visible', 'false');
+                document.querySelector('#escena-analisis-edades').setAttribute('visible', 'false');
+            }
+        }
+
+        const nav = new NavigationManager();
+
         const tablas = ['estudiantes', 'profesores', 'asignaturas', 'matriculas'];
         const API_URL = "http://192.168.1.136:3000";
         let datosActuales = [];
         let paginaActual = 0;
         const filasPorPagina = 6;
+        let tablaActual = '';
 
         // ============ SISTEMA DE DEBOUNCE POR ACCIÓN =============
         const accionesEnProgreso = new Set();
@@ -176,12 +332,10 @@
                 console.warn(`⚠️ Acción "${action}" rechazada por debounce`);
                 return false;
             }
-            
             accionesEnProgreso.add(action);
             setTimeout(() => {
                 accionesEnProgreso.delete(action);
             }, DEBOUNCE_MS);
-            
             return true;
         }
 
@@ -233,65 +387,13 @@
             rig.setAttribute('position', `${rigPos.x} ${rigPos.y} ${rigPos.z}`);
         }, 30);
 
-        // ===== FUNCIÓN DE CLICK UNIFICADA =====
-        function handleClickAction(action, param) {
-            // ✅ PREVENIR CLICKS DUPLICADOS POR ACCIÓN
-            if (!puedeEjecutarAccion(action)) return;
-
-            console.log('✅ Acción ejecutada:', action, 'Param:', param);
-
-            if (action === 'mostrarMenuTablas') mostrarMenuTablas();
-            if (action === 'cargarTabla') cargarTabla(param);
-            if (action === 'cambiarPagina') cambiarPagina(parseInt(param));
-            if (action === 'volverAlMenuTablas') volverAlMenuTablas();
-            if (action === 'volverABienvenida') volverABienvenida();
-        }
-
-        // ===== LISTENERS DE CLICK =====
-        document.addEventListener('click', (e) => {
-            const el = e.target;
-            const target = el.classList.contains('clickable') ? el : el.closest('.clickable');
-            
-            if (target) {
-                const action = target.getAttribute('data-action');
-                const param = target.getAttribute('data-param');
-                handleClickAction(action, param);
-            }
-        });
-
-        document.querySelectorAll('[laser-controls]').forEach(controller => {
-            controller.addEventListener('click', (e) => {
-                const target = e.target;
-                if (target && target.classList.contains('clickable')) {
-                    const action = target.getAttribute('data-action');
-                    const param = target.getAttribute('data-param');
-                    handleClickAction(action, param);
-                }
-            });
-        });
-
-        // ===== GESTIÓN DE ESCENAS =====
-        function ocultarTodasLasEscenas() {
-            document.querySelector('#escena-bienvenida').setAttribute('visible', 'false');
-            document.querySelector('#escena-menu-tablas').setAttribute('visible', 'false');
-            document.querySelector('#escena-tabla').setAttribute('visible', 'false');
-        }
-
-        function volverABienvenida() {
-            console.log('🔄 Volviendo a Bienvenida');
-            ocultarTodasLasEscenas();
-            document.querySelector('#escena-bienvenida').setAttribute('visible', 'true');
-        }
-
+        // ===== FUNCIONES DE ESCENA =====
         function mostrarMenuTablas() {
-            console.log('📊 Mostrando menú de tablas');
-            ocultarTodasLasEscenas();
-            document.querySelector('#escena-menu-tablas').setAttribute('visible', 'true');
+            nav.goTo('escena-menu-tablas');
             
             const menu = document.getElementById('menu-tablas');
             menu.innerHTML = '';
 
-            // Distribuir botones en círculo
             tablas.forEach((nombre, index) => {
                 const angle = (index / tablas.length) * Math.PI * 2;
                 const x = Math.cos(angle) * 8;
@@ -301,7 +403,7 @@
                 btn.setAttribute('position', `${x} 3 ${z}`);
                 
                 btn.innerHTML = `
-                    <a-box class="clickable" width="4" height="1.2" depth="0.5" color="#222" 
+                    <a-box interactable class="clickable" width="4" height="1.2" depth="0.5" color="#222" 
                            data-action="cargarTabla" data-param="${nombre}"
                            animation="property: scale; to: 1.1; dur: 300; startEvents: mouseenter; dir: alternate" shadow>
                         <a-text value="${nombre.toUpperCase()}" align="center" position="0 0 0.3" width="8" color="#00E5FF" font-size="80" font-weight="bold"></a-text>
@@ -313,12 +415,18 @@
         }
 
         async function cargarTabla(nombre) {
-            console.log('📈 Cargando tabla:', nombre);
-            ocultarTodasLasEscenas();
-            document.querySelector('#escena-tabla').setAttribute('visible', 'true');
+            nav.goTo('escena-tabla');
             
             document.getElementById('texto-tabla').setAttribute('value', nombre.toUpperCase());
+            tablaActual = nombre;
             paginaActual = 0;
+            
+            const btnAnalizar = document.getElementById('btn-analizar-container');
+            if (nombre === 'estudiantes') {
+                btnAnalizar.setAttribute('visible', 'true');
+            } else {
+                btnAnalizar.setAttribute('visible', 'false');
+            }
             
             try {
                 const res = await fetch(`${API_URL}/${nombre}`);
@@ -445,10 +553,148 @@
             }
         }
 
-        function volverAlMenuTablas() {
-            console.log('🔄 Volviendo al menú de tablas');
-            ocultarTodasLasEscenas();
-            document.querySelector('#escena-menu-tablas').setAttribute('visible', 'true');
+        // ===== ANÁLISIS DE EDADES =====
+        function analizarEdades() {
+            nav.goTo('escena-analisis-edades');
+            
+            const edades = datosActuales
+                .map(est => parseInt(est.edad))
+                .filter(edad => !isNaN(edad));
+            
+            if (edades.length === 0) {
+                alert('No hay datos de edad disponibles');
+                nav.goBack();
+                return;
+            }
+
+            const edadMin = Math.min(...edades);
+            const edadMax = Math.max(...edades);
+            const edadPromedio = (edades.reduce((a, b) => a + b, 0) / edades.length).toFixed(1);
+
+            const frecuencias = {};
+            edades.forEach(edad => {
+                frecuencias[edad] = (frecuencias[edad] || 0) + 1;
+            });
+
+            document.getElementById('stat-edad-min').setAttribute('value', `MIN: ${edadMin}`);
+            document.getElementById('stat-edad-max').setAttribute('value', `MÁX: ${edadMax}`);
+            document.getElementById('stat-edad-prom').setAttribute('value', `PROM: ${edadPromedio}`);
+            document.getElementById('stat-total').setAttribute('value', `TOTAL: ${edades.length}`);
+
+            renderizarGrafico(frecuencias, edadMax);
+        }
+
+        function renderizarGrafico(frecuencias, edadMax) {
+            const graficoCont = document.getElementById('grafico-edades');
+            graficoCont.innerHTML = '';
+            
+            // 🔧 Hacemos que todo el contenedor ignore colisiones 3D
+            graficoCont.setAttribute('ignore-raycast', '');
+
+            const edadesSortedArray = Object.keys(frecuencias).sort((a, b) => a - b);
+            const maxFrecuencia = Math.max(...Object.values(frecuencias));
+            
+            const espaciadoX = 1.2;
+            const escalaAltura = 2.5 / maxFrecuencia;
+            
+            edadesSortedArray.forEach((edad, index) => {
+                const freq = frecuencias[edad];
+                const altura = freq * escalaAltura;
+                const xPos = (index - edadesSortedArray.length / 2) * espaciadoX;
+                
+                const barra = document.createElement('a-entity');
+                barra.setAttribute('position', `${xPos} ${altura / 2} 0`);
+                barra.setAttribute('data-grafico', 'true');
+                barra.classList.add('no-click');
+
+                const hue = (index / edadesSortedArray.length) * 360;
+                const colorBarra = `hsl(${hue}, 100%, 50%)`;
+                
+                const cajaBar = document.createElement('a-box');
+                cajaBar.setAttribute('width', '0.9');
+                cajaBar.setAttribute('height', altura);
+                cajaBar.setAttribute('depth', '0.9');
+                cajaBar.setAttribute('color', colorBarra);
+                cajaBar.setAttribute('class', 'grafico-barra no-click');
+                cajaBar.setAttribute('data-grafico', 'true');
+                cajaBar.setAttribute('animation', `property: rotation; to: 0 360 0; dur: 8000; easing: linear; loop: true`);
+                
+                const etiqAge = document.createElement('a-text');
+                etiqAge.setAttribute('value', `${edad}`);
+                etiqAge.setAttribute('position', `0 ${-altura / 2 - 0.8} 0`);
+                etiqAge.setAttribute('color', '#00E5FF');
+                etiqAge.setAttribute('width', '2');
+                etiqAge.setAttribute('font-size', '50');
+                etiqAge.setAttribute('font-weight', 'bold');
+                etiqAge.setAttribute('align', 'center');
+                etiqAge.setAttribute('data-grafico', 'true');
+                etiqAge.classList.add('no-click');
+
+                const etiqFreq = document.createElement('a-text');
+                etiqFreq.setAttribute('value', `${freq}`);
+                etiqFreq.setAttribute('position', `0 ${altura / 2 + 0.6} 0`);
+                etiqFreq.setAttribute('color', '#FFB700');
+                etiqFreq.setAttribute('width', '2');
+                etiqFreq.setAttribute('font-size', '50');
+                etiqFreq.setAttribute('font-weight', 'bold');
+                etiqFreq.setAttribute('align', 'center');
+                etiqFreq.setAttribute('data-grafico', 'true');
+                etiqFreq.classList.add('no-click');
+
+                barra.appendChild(cajaBar);
+                barra.appendChild(etiqAge);
+                barra.appendChild(etiqFreq);
+                
+                graficoCont.appendChild(barra);
+            });
+
+            // Ejes del gráfico
+            const ejeX = document.createElement('a-box');
+            ejeX.setAttribute('width', `${edadesSortedArray.length * espaciadoX + 2}`);
+            ejeX.setAttribute('height', '0.1');
+            ejeX.setAttribute('depth', '0.1');
+            ejeX.setAttribute('position', `0 -0.2 0`);
+            ejeX.setAttribute('color', '#00E5FF');
+            ejeX.setAttribute('opacity', '0.5');
+            ejeX.setAttribute('class', 'grafico-barra no-click');
+            ejeX.setAttribute('data-grafico', 'true');
+            graficoCont.appendChild(ejeX);
+
+            const ejeY = document.createElement('a-box');
+            ejeY.setAttribute('width', '0.1');
+            ejeY.setAttribute('height', '3');
+            ejeY.setAttribute('depth', '0.1');
+            ejeY.setAttribute('position', `${-(edadesSortedArray.length * espaciadoX) / 2 - 0.7} 1.4 0`);
+            ejeY.setAttribute('color', '#00E5FF');
+            ejeY.setAttribute('opacity', '0.5');
+            ejeY.setAttribute('class', 'grafico-barra no-click');
+            ejeY.setAttribute('data-grafico', 'true');
+            graficoCont.appendChild(ejeY);
+
+            const labelX = document.createElement('a-text');
+            labelX.setAttribute('value', 'EDAD');
+            labelX.setAttribute('position', `0 -1.3 0`);
+            labelX.setAttribute('color', '#00E5FF');
+            labelX.setAttribute('width', '3');
+            labelX.setAttribute('font-size', '60');
+            labelX.setAttribute('font-weight', 'bold');
+            labelX.setAttribute('align', 'center');
+            labelX.setAttribute('data-grafico', 'true');
+            labelX.classList.add('no-click');
+            graficoCont.appendChild(labelX);
+
+            const labelY = document.createElement('a-text');
+            labelY.setAttribute('value', 'CANTIDAD');
+            labelY.setAttribute('position', `${-(edadesSortedArray.length * espaciadoX) / 2 - 2.5} 1.4 0`);
+            labelY.setAttribute('rotation', '0 0 90');
+            labelY.setAttribute('color', '#00E5FF');
+            labelY.setAttribute('width', '3');
+            labelY.setAttribute('font-size', '60');
+            labelY.setAttribute('font-weight', 'bold');
+            labelY.setAttribute('align', 'center');
+            labelY.setAttribute('data-grafico', 'true');
+            labelY.classList.add('no-click');
+            graficoCont.appendChild(labelY);
         }
     </script>
 
