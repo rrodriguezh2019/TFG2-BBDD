@@ -11,27 +11,15 @@
             font-family: 'Arial', sans-serif;
             background: #000;
         }
-        
-        .loading {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            color: #00E5FF;
-            font-size: 24px;
-            z-index: 100;
-            text-shadow: 0 0 10px #00E5FF;
-        }
     </style>
     <script>
         // ============ COMPONENTE PRO: IGNORAR RAYCAST ============
-        // Esto hace que el rayo literalmente atraviese el objeto en el motor 3D (Three.js)
         AFRAME.registerComponent('ignore-raycast', {
             init: function () {
                 this.el.addEventListener('loaded', () => {
                     if(this.el.object3D) {
                         this.el.object3D.traverse(function(node) {
-                            node.raycast = function() {}; // Anula la función de colisión
+                            node.raycast = function() {}; 
                         });
                     }
                 });
@@ -42,8 +30,6 @@
         AFRAME.registerComponent('interactable', {
             init: function () {
                 this.el.addEventListener('click', (e) => {
-
-                    // ===== 1. Verificar visibilidad real =====
                     let isVisible = true;
                     let current = this.el;
 
@@ -55,23 +41,17 @@
                         }
                         current = current.parentElement;
                     }
-
                     if (!isVisible) return;
 
-                    // ===== 2. Detectar si es elemento decorativo =====
                     const isGrafico = this.el.getAttribute('data-grafico') === 'true';
-
-                    // ⚠️ IMPORTANTE: NO bloqueamos propagación si es decorativo
                     if (!isGrafico) {
                         e.stopPropagation();
                     } else {
-                        return; // ignorar sin bloquear
+                        return;
                     }
 
-                    // ===== 3. Ejecutar acción =====
                     const action = this.el.getAttribute('data-action');
                     const param = this.el.getAttribute('data-param');
-
                     if (action) {
                         handleClickAction(action, param);
                     }
@@ -82,7 +62,6 @@
 </head>
 <body>
 
-    <!-- 🔧 raycaster ajustado con recursive: true -->
     <a-scene cursor="rayOrigin: mouse" raycaster="objects: .clickable; recursive: true" background="color: #000" fog="type: linear; color: #000; far: 100; near: 0.1">
         
         <!-- Luces dinámicas -->
@@ -97,178 +76,168 @@
         <a-plane position="7 -2.95 -4" rotation="-90 0 0" width="200" height="200" 
                  material="shader: grid; gridSize: 10; gridColor: #00E5FF; opacity: 0.2"></a-plane>
 
-        <!-- Cielo con estrellas -->
         <a-sky color="#050505"></a-sky>
         <a-entity id="stars"></a-entity>
 
         <!-- ============ ESCENA 1: BIENVENIDA ============ -->
         <a-entity id="escena-bienvenida" visible="true">
-            <!-- Título flotante -->
             <a-entity position="7 5 -15" animation="property: rotation; to: 0 360 0; dur: 20000; easing: linear; loop: true">
                 <a-box color="#0a0a0a" depth="1" height="2.5" width="15" opacity="0.9" shadow></a-box>
-                <a-box color="#00E5FF" depth="1.1" height="2.4" width="14.9" opacity="0.15" shadow></a-box>
-                
                 <a-text value="SISTEMA DE GESTION" align="center" position="0 0.8 0.6" width="20" color="#00E5FF" font-size="120" font-weight="bold"></a-text>
                 <a-text value="UNIVERSITARIA" align="center" position="0 0.2 0.6" width="20" color="#00E5FF" font-size="120" font-weight="bold"></a-text>
-                <a-text value="Realidad Virtual 3D" align="center" position="0 -0.6 0.6" width="20" color="#AAA" font-size="60" opacity="0.7"></a-text>
             </a-entity>
 
-            <!-- Botón inicial -->
+            <!-- Esfera giratoria central y botones -->
             <a-entity position="7 3 -10" 
-                      animation="property: position; to: 7 4 -10; dur: 2000; easing: easeInOutQuad; dir: alternate; loop: true"
-                      animation__rot="property: rotation; to: 0 360 0; dur: 8000; easing: linear; loop: true">
-                <a-box interactable class="clickable" color="#00E5FF" depth="0.8" height="1.2" width="5" 
-                       data-action="mostrarMenuTablas"
-                       animation="property: scale; to: 1.15; dur: 300; easing: easeInOutQuad; startEvents: mouseenter; dir: alternate"
-                       shadow>
-                    <a-text value="CONECTAR" align="center" position="0 0 0.5" width="8" color="#000" font-size="100" font-weight="bold"></a-text>
-                </a-box>
-                <a-sphere color="#00E5FF" radius="6" opacity="0.1" wireframe="true"></a-sphere>
+                      animation="property: position; to: 7 3.5 -10; dur: 2000; easing: easeInOutQuad; dir: alternate; loop: true">
+                
+                <!-- Esfera 3D molona -->
+                <a-sphere color="#00E5FF" radius="6" opacity="0.1" wireframe="true"
+                          animation="property: rotation; to: 0 360 0; dur: 10000; easing: linear; loop: true"></a-sphere>
+
+                <!-- Botón Ver Tablas -->
+                <a-entity position="-3 0 0">
+                    <a-box interactable class="clickable" color="#00E5FF" depth="0.8" height="1.2" width="4" 
+                           data-action="mostrarMenuTablas" shadow>
+                        <a-text value="VER TABLAS" align="center" position="0 0 0.5" width="6" color="#000" font-size="70" font-weight="bold"></a-text>
+                    </a-box>
+                </a-entity>
+
+                <!-- Botón Constructor de Consultas -->
+                <a-entity position="3 0 0">
+                    <a-box interactable class="clickable" color="#FF00FF" depth="0.8" height="1.2" width="5" 
+                           data-action="iniciarQueryBuilder" shadow>
+                        <a-text value="CONSTRUIR\nCONSULTA" align="center" position="0 0 0.5" width="6" color="#FFF" font-size="70" font-weight="bold"></a-text>
+                    </a-box>
+                </a-entity>
             </a-entity>
         </a-entity>
 
         <!-- ============ ESCENA 2: SELECCIÓN DE TABLAS ============ -->
         <a-entity id="escena-menu-tablas" visible="false">
-            <!-- Título -->
-            <a-entity position="7 6 -15" animation="property: rotation; to: 0 360 0; dur: 20000; easing: linear; loop: true">
-                <a-text value="SELECCIONA UNA TABLA" align="center" position="0 0 0" width="20" color="#00E5FF" font-size="140" font-weight="bold"></a-text>
+            <a-entity position="7 6 -15">
+                <a-text value="SELECCIONA UNA TABLA" align="center" width="20" color="#00E5FF" font-size="140" font-weight="bold"></a-text>
+            </a-entity>
+            <a-entity id="menu-tablas" position="7 3 -4"></a-entity>
+            <a-entity position="7 0 -4">
+                <a-box interactable class="clickable" color="#FF6B00" depth="0.5" width="3.5" height="0.8" data-action="volver">
+                    <a-text value="← VOLVER" align="center" position="0 0 0.3" width="6" color="#FFF" font-size="70" font-weight="bold"></a-text>
+                </a-box>
+            </a-entity>
+        </a-entity>
+
+        <!-- ============ ESCENA 5: CONSTRUCTOR DE CONSULTAS ============ -->
+        <a-entity id="escena-query-builder" visible="false" position="7 0 -10">
+            <!-- Pantalla de la Query -->
+            <a-entity position="0 6 -5">
+                <a-box color="#111" depth="0.5" height="2" width="14" opacity="0.9"></a-box>
+                <a-text value="QUERY ACTUAL:" position="-6.5 0.5 0.3" color="#FF00FF" width="8" font-size="60"></a-text>
+                <a-text id="query-display" value="Esperando instrucción..." position="-6.5 -0.2 0.3" color="#00E5FF" width="12" font-size="80" font-family="monoid"></a-text>
             </a-entity>
 
-            <!-- Contenedor de botones de tablas -->
-            <a-entity id="menu-tablas" position="7 3 -4"></a-entity>
+            <!-- Instrucción del paso actual -->
+            <a-entity position="0 4 -2">
+                <a-text id="query-step-title" value="PASO 1: SELECCIONA OPERACIÓN" align="center" color="#FFF" width="10" font-size="80" font-weight="bold"></a-text>
+            </a-entity>
 
-            <!-- Botón volver -->
-            <a-entity position="7 0 -4">
-                <a-box interactable class="clickable" color="#FF6B00" depth="0.5" width="3.5" height="0.8" 
-                       data-action="volver"
-                       animation="property: scale; to: 1.08; dur: 250; startEvents: mouseenter; dir: alternate" shadow>
-                    <a-text value="← VOLVER" align="center" position="0 0 0.3" width="6" color="#FFF" font-size="70" font-weight="bold"></a-text>
+            <!-- Opciones Dinámicas -->
+            <a-entity id="query-options-container" position="0 2 -2"></a-entity>
+
+            <!-- Botón Cancelar (Bajado para evitar solapamiento) -->
+            <a-entity position="0 -1.5 -2">
+                <a-box interactable class="clickable" color="#FF6B00" depth="0.5" width="3.5" height="0.8" data-action="volver">
+                    <a-text value="← CANCELAR" align="center" position="0 0 0.3" width="6" color="#FFF" font-size="70" font-weight="bold"></a-text>
                 </a-box>
             </a-entity>
         </a-entity>
 
         <!-- ============ ESCENA 3: VISUALIZACIÓN DE TABLA ============ -->
         <a-entity id="escena-tabla" visible="false" position="7 0 -15">
-            
-            <!-- Título de tabla -->
             <a-entity position="0 6 0">
                 <a-box color="#0a0a0a" depth="0.4" height="1" width="12" opacity="0.95"></a-box>
-                <a-box color="#00E5FF" depth="0.41" height="0.99" width="11.9" opacity="0.15"></a-box>
                 <a-text id="texto-tabla" value="" align="center" position="0 0 0.25" width="15" color="#00E5FF" font-size="100" font-weight="bold"></a-text>
             </a-entity>
 
-            <!-- Panel de control lateral izquierdo -->
             <a-entity id="controles-lateral" position="-5.5 2.5 0">
                 <a-box color="#111" depth="0.3" height="6" width="1.8" opacity="0.8"></a-box>
-                <a-box color="#00E5FF" depth="0.31" height="5.99" width="1.79" opacity="0.08"></a-box>
-                
                 <a-text value="CONTROLES" position="0 2.2 0.2" align="center" color="#00E5FF" width="4" font-size="60" font-weight="bold"></a-text>
                 
-                <!-- Botón Anterior -->
                 <a-entity position="0 1.2 0.15">
-                    <a-box id="btn-anterior" interactable class="clickable" color="#222" width="1.6" height="0.7" depth="0.3" 
-                           data-action="cambiarPagina" data-param="-1"
-                           animation="property: scale; to: 1.08; dur: 250; easing: easeInOutQuad; startEvents: mouseenter; dir: alternate">
+                    <a-box id="btn-anterior" interactable class="clickable" color="#222" width="1.6" height="0.7" depth="0.3" data-action="cambiarPagina" data-param="-1">
                         <a-text value="ANTERIOR" align="center" position="0 0 0.2" width="4" color="#00E5FF" font-size="80"></a-text>
                     </a-box>
-                    <a-box color="#00E5FF" depth="0.31" height="0.69" width="1.59" opacity="0.1"></a-box>
                 </a-entity>
                 
-                <!-- Indicador de página -->
                 <a-entity position="0 0.3 0.2">
                     <a-text id="label-pagina" value="PÁG.\n1 / 1" align="center" color="#FFF" width="4.5" font-size="50"></a-text>
                 </a-entity>
 
-                <!-- Botón Siguiente -->
                 <a-entity position="0 -0.7 0.15">
-                    <a-box id="btn-siguiente" interactable class="clickable" color="#222" width="1.6" height="0.7" depth="0.3" 
-                           data-action="cambiarPagina" data-param="1"
-                           animation="property: scale; to: 1.08; dur: 250; easing: easeInOutQuad; startEvents: mouseenter; dir: alternate">
+                    <a-box id="btn-siguiente" interactable class="clickable" color="#222" width="1.6" height="0.7" depth="0.3" data-action="cambiarPagina" data-param="1">
                         <a-text value="SIGUIENTE" align="center" position="0 0 0.2" width="4" color="#00E5FF" font-size="80"></a-text>
                     </a-box>
-                    <a-box color="#00E5FF" depth="0.31" height="0.69" width="1.59" opacity="0.1"></a-box>
                 </a-entity>
 
-                <!-- Botón Analizar Edades -->
                 <a-entity id="btn-analizar-container" position="0 -1.7 0.15" visible="false">
-                    <a-box id="btn-analizar" interactable class="clickable" color="#9D4EDD" width="1.6" height="0.7" depth="0.3" 
-                           data-action="analizarEdades"
-                           animation="property: scale; to: 1.08; dur: 250; easing: easeInOutQuad; startEvents: mouseenter; dir: alternate">
-                        <a-text value="ANALIZAR" align="center" position="0 0.15 0.2" width="3.5" color="#00E5FF" font-size="50"></a-text>
-                        <a-text value="EDADES" align="center" position="0 -0.15 0.2" width="3.5" color="#00E5FF" font-size="50"></a-text>
+                    <a-box interactable class="clickable" color="#9D4EDD" width="1.6" height="0.7" depth="0.3" data-action="analizarEdades">
+                        <a-text value="ANALIZAR\nEDADES" align="center" position="0 0 0.2" width="3.5" color="#00E5FF" font-size="50"></a-text>
                     </a-box>
-                    <a-box color="#9D4EDD" depth="0.31" height="0.69" width="1.59" opacity="0.15"></a-box>
                 </a-entity>
             </a-entity>
 
-            <!-- TABLA 3D - Área de datos -->
             <a-entity id="area-datos" position="1.5 0 0">
                 <a-entity id="tabla-cabecera" position="0 5 0"></a-entity>
                 <a-entity id="tabla-cuerpo" position="0 4 0"></a-entity>
             </a-entity>
 
-            <!-- Botón Volver al menú de tablas -->
             <a-entity position="0 -2.5 0">
-                <a-box interactable class="clickable" color="#FF6B00" depth="0.3" width="3.5" height="0.7" 
-                       data-action="volver"
-                       animation="property: scale; to: 1.08; dur: 250; easing: easeInOutQuad; startEvents: mouseenter; dir: alternate">
+                <a-box interactable class="clickable" color="#FF6B00" depth="0.3" width="3.5" height="0.7" data-action="volver">
                     <a-text value="← VOLVER" align="center" position="0 0 0.2" width="6" color="#FFF" font-size="60" font-weight="bold"></a-text>
                 </a-box>
             </a-entity>
-
         </a-entity>
 
         <!-- ============ ESCENA 4: ANÁLISIS DE EDADES ============ -->
         <a-entity id="escena-analisis-edades" visible="false" position="7 0 -15">
-            
-            <!-- Título -->
             <a-entity position="0 6 0">
                 <a-box color="#0a0a0a" depth="0.4" height="1" width="14" opacity="0.95"></a-box>
-                <a-box color="#9D4EDD" depth="0.41" height="0.99" width="13.9" opacity="0.15"></a-box>
                 <a-text value="ANÁLISIS DE EDADES" align="center" position="0 0 0.25" width="18" color="#9D4EDD" font-size="100" font-weight="bold"></a-text>
             </a-entity>
-
-            <!-- Panel de estadísticas lateral derecho -->
             <a-entity id="panel-estadisticas" position="5.5 2.5 0">
                 <a-box color="#111" depth="0.3" height="4.5" width="1.8" opacity="0.8"></a-box>
-                <a-box color="#9D4EDD" depth="0.31" height="4.49" width="1.79" opacity="0.08"></a-box>
-                
                 <a-text value="ESTADÍSTICAS" position="0 1.8 0.2" align="center" color="#9D4EDD" width="4" font-size="55" font-weight="bold"></a-text>
-                
                 <a-text id="stat-edad-min" value="MIN: --" position="0 1.0 0.2" align="center" color="#00FF88" width="4" font-size="50"></a-text>
                 <a-text id="stat-edad-max" value="MÁX: --" position="0 0.4 0.2" align="center" color="#FF88FF" width="4" font-size="50"></a-text>
                 <a-text id="stat-edad-prom" value="PROM: --" position="0 -0.2 0.2" align="center" color="#00E5FF" width="4" font-size="50"></a-text>
                 <a-text id="stat-total" value="TOTAL: --" position="0 -0.8 0.2" align="center" color="#FFB700" width="4" font-size="50"></a-text>
             </a-entity>
-
-            <!-- Gráfico 3D -->
             <a-entity id="grafico-edades" position="0 2 0"></a-entity>
-
-            <!-- Botón Volver -->
-            <a-entity position="0 -1 0">
-                <a-box interactable class="clickable" color="#FF6B00" depth="0.3" width="3.5" height="0.7" 
-                       data-action="volver"
-                       animation="property: scale; to: 1.08; dur: 250; easing: easeInOutQuad; startEvents: mouseenter; dir: alternate">
+            <a-entity position="0 -0.5 0">
+                <a-box interactable class="clickable" color="#FF6B00" depth="0.3" width="3.5" height="0.7" data-action="volver">
                     <a-text value="← VOLVER" align="center" position="0 0 0.2" width="6" color="#FFF" font-size="60" font-weight="bold"></a-text>
                 </a-box>
             </a-entity>
-
         </a-entity>
 
-        <!-- RIG para movimiento en VR -->
         <a-entity id="rig" position="7 3 8">
             <a-entity id="camera" camera look-controls wasd-controls></a-entity>
             <a-entity id="rightController" laser-controls="hand: right" raycaster="objects: .clickable; far: 30" line="color: #00E5FF; opacity: 0.7"></a-entity>
             <a-entity id="leftController" laser-controls="hand: left" raycaster="objects: .clickable; far: 30" line="color: #00E5FF; opacity: 0.7"></a-entity>
         </a-entity>
-
     </a-scene>
 
     <script>
-        // Funciones del sistema (Variables globales)
+        // ============ GESTOR DE ESTADOS (NUEVO) ============
+        let queryState = { step: 0, operation: '', table: '', columns: [] };
+        const schemasMock = {
+            'estudiantes': ['id', 'nombre', 'edad', 'carrera'],
+            'profesores': ['id', 'nombre', 'departamento', 'salario'],
+            'asignaturas': ['id', 'nombre', 'creditos'],
+            'matriculas': ['id', 'id_estudiante', 'id_asignatura']
+        };
+
         function handleClickAction(action, param) {
             if (!puedeEjecutarAccion(action)) return;
-
             console.log('✅ Acción ejecutada:', action, 'Param:', param);
 
             if (action === 'mostrarMenuTablas') mostrarMenuTablas();
@@ -276,44 +245,185 @@
             if (action === 'cambiarPagina') cambiarPagina(parseInt(param));
             if (action === 'analizarEdades') analizarEdades();
             if (action === 'volver') nav.goBack();
+            
+            // Acciones del Query Builder
+            if (action === 'iniciarQueryBuilder') iniciarQueryBuilder();
+            if (action === 'querySelectOp') querySelectOp(param);
+            if (action === 'querySelectTable') querySelectTable(param);
+            if (action === 'querySelectCol') querySelectCol(param);
+            if (action === 'queryEjecutar') ejecutarQuery();
         }
 
-        // ============ GESTOR DE NAVEGACIÓN CON PILA ============
-        class NavigationManager {
-            constructor() {
-                this.stack = ['escena-bienvenida'];
+        // ============ LÓGICA DEL QUERY BUILDER ============
+        function iniciarQueryBuilder() {
+            nav.goTo('escena-query-builder');
+            queryState = { step: 1, operation: '', table: '', columns: [] };
+            actualizarDisplayQuery();
+            renderQueryOptions();
+        }
+
+        function actualizarDisplayQuery() {
+            let q = "";
+            if (queryState.operation) q += queryState.operation + " ";
+            if (queryState.columns.length > 0) {
+                q += queryState.columns.join(", ") + " ";
+            } else if (queryState.operation === 'SELECT') {
+                q += "... ";
+            }
+            if (queryState.table) q += "\nFROM " + queryState.table;
+            
+            document.getElementById('query-display').setAttribute('value', q || "Esperando instrucción...");
+        }
+
+        function querySelectOp(op) {
+            queryState.operation = op;
+            queryState.step = 2; // Pasar a elegir tabla
+            actualizarDisplayQuery();
+            renderQueryOptions();
+        }
+
+        async function querySelectTable(tabla) {
+            queryState.table = tabla;
+            
+            // Mostramos que estamos cargando las columnas reales
+            document.getElementById('query-step-title').setAttribute('value', 'CARGANDO COLUMNAS...');
+            document.getElementById('query-options-container').innerHTML = '';
+            
+            try {
+                // Hacemos una petición rápida a tu API para obtener los datos de esa tabla
+                const res = await fetch(`${API_URL}/${tabla}`);
+                const data = await res.json();
+                
+                // Si la tabla tiene datos, extraemos los nombres de las columnas del primer registro
+                if (data && data.length > 0) {
+                    schemasMock[tabla] = Object.keys(data[0]);
+                }
+            } catch (e) {
+                console.warn("No se pudo conectar a la API, usando datos por defecto.", e);
             }
 
+            queryState.step = 3; // Pasar a elegir columnas
+            actualizarDisplayQuery();
+            renderQueryOptions();
+        }
+
+        function querySelectCol(col) {
+            if (col === '*') {
+                queryState.columns = ['*'];
+                queryState.step = 4; // Listo para ejecutar
+            } else {
+                if (queryState.columns.includes('*')) queryState.columns = [];
+                if (!queryState.columns.includes(col)) queryState.columns.push(col);
+                queryState.step = 4; // Muestra botón ejecutar pero permite seguir sumando
+            }
+            actualizarDisplayQuery();
+            renderQueryOptions();
+        }
+
+        function ejecutarQuery() {
+            nav.goTo('escena-tabla');
+            document.getElementById('texto-tabla').setAttribute('value', `QUERY: ${queryState.table}`);
+            tablaActual = queryState.table;
+            paginaActual = 0;
+            
+            fetch(`${API_URL}/${queryState.table}`)
+                .then(res => res.json())
+                .catch(e => {
+                    console.warn("Usando datos Mock porque falló el fetch");
+                    return Array.from({length: 12}, (_, i) => ({
+                        id: i+1, nombre: `Persona ${i+1}`, edad: 18 + (i%5), carrera: 'Ingeniería', departamento: 'Ciencias'
+                    }));
+                })
+                .then(data => {
+                    if (queryState.columns[0] !== '*') {
+                        datosActuales = data.map(row => {
+                            let newRow = {};
+                            queryState.columns.forEach(c => newRow[c] = row[c] || 'N/A');
+                            return newRow;
+                        });
+                    } else {
+                        datosActuales = data;
+                    }
+                    
+                    document.getElementById('btn-analizar-container').setAttribute('visible', queryState.columns.includes('edad') || queryState.columns[0] === '*' ? 'true' : 'false');
+                    renderizar();
+                });
+        }
+
+        function renderQueryOptions() {
+            const container = document.getElementById('query-options-container');
+            const title = document.getElementById('query-step-title');
+            container.innerHTML = '';
+
+            let opciones = [];
+            let action = '';
+
+            if (queryState.step === 1) {
+                title.setAttribute('value', 'PASO 1: SELECCIONA OPERACION');
+                opciones = ['SELECT'];
+                action = 'querySelectOp';
+            } 
+            else if (queryState.step === 2) {
+                title.setAttribute('value', 'PASO 2: SELECCIONA TABLA');
+                opciones = tablas;
+                action = 'querySelectTable';
+            }
+            else if (queryState.step === 3 || queryState.step === 4) {
+                title.setAttribute('value', 'PASO 3: SELECCIONA COLUMNAS');
+                opciones = ['*'].concat(schemasMock[queryState.table] || ['id', 'nombre']);
+                action = 'querySelectCol';
+
+                // Si ya elegimos columnas, mostramos el botón de ejecutar
+                if (queryState.columns.length > 0) {
+                    const btnExec = document.createElement('a-entity');
+                    // Ajustado para que aparezca por encima del botón Cancelar
+                    btnExec.setAttribute('position', `0 -1.5 0`);
+                    btnExec.innerHTML = `
+                        <a-box interactable class="clickable" color="#00FF88" width="4" height="1" data-action="queryEjecutar">
+                            <a-text value="EJECUTAR QUERY" align="center" position="0 0 0.51" color="#000" font-weight="bold" font-size="60"></a-text>
+                        </a-box>`;
+                    container.appendChild(btnExec);
+                }
+            }
+
+            opciones.forEach((op, index) => {
+                const xPos = (index - (opciones.length-1)/2) * 3;
+                const btn = document.createElement('a-entity');
+                btn.setAttribute('position', `${xPos} 0 0`);
+                
+                const isSelected = queryState.columns.includes(op);
+                const color = isSelected ? '#FF00FF' : '#222';
+                
+                btn.innerHTML = `
+                    <a-box interactable class="clickable" width="2.5" height="1" depth="0.3" color="${color}" data-action="${action}" data-param="${op}">
+                        <a-text value="${op.toUpperCase()}" align="center" position="0 0 0.16" width="6" color="#00E5FF" font-size="50"></a-text>
+                    </a-box>`;
+                container.appendChild(btn);
+            });
+        }
+
+        // ============ GESTOR DE NAVEGACIÓN ============
+        class NavigationManager {
+            constructor() { this.stack = ['escena-bienvenida']; }
             goTo(escena) {
-                console.log(`📍 Navegando a: ${escena}`);
                 this.hideAll();
                 document.querySelector(`#${escena}`).setAttribute('visible', 'true');
-                if (this.stack[this.stack.length - 1] !== escena) {
-                    this.stack.push(escena);
-                }
+                if (this.stack[this.stack.length - 1] !== escena) this.stack.push(escena);
             }
-
             goBack() {
-                console.log(`🔙 Volviendo atrás desde: ${this.stack[this.stack.length - 1]}`);
                 if (this.stack.length > 1) {
                     this.stack.pop();
-                    const previousScene = this.stack[this.stack.length - 1];
-                    console.log(`✅ Volviendo a: ${previousScene}`);
+                    const prev = this.stack[this.stack.length - 1];
                     this.hideAll();
-                    document.querySelector(`#${previousScene}`).setAttribute('visible', 'true');
-                } else {
-                    console.warn('⚠️ No hay escena anterior en el stack');
+                    document.querySelector(`#${prev}`).setAttribute('visible', 'true');
                 }
             }
-
             hideAll() {
-                document.querySelector('#escena-bienvenida').setAttribute('visible', 'false');
-                document.querySelector('#escena-menu-tablas').setAttribute('visible', 'false');
-                document.querySelector('#escena-tabla').setAttribute('visible', 'false');
-                document.querySelector('#escena-analisis-edades').setAttribute('visible', 'false');
+                ['escena-bienvenida', 'escena-menu-tablas', 'escena-query-builder', 'escena-tabla', 'escena-analisis-edades'].forEach(id => {
+                    document.querySelector(`#${id}`).setAttribute('visible', 'false');
+                });
             }
         }
-
         const nav = new NavigationManager();
 
         const tablas = ['estudiantes', 'profesores', 'asignaturas', 'matriculas'];
@@ -323,32 +433,16 @@
         const filasPorPagina = 6;
         let tablaActual = '';
 
-        // ============ SISTEMA DE DEBOUNCE POR ACCIÓN =============
         const accionesEnProgreso = new Set();
-        const DEBOUNCE_MS = 300;
-
         function puedeEjecutarAccion(action) {
-            if (accionesEnProgreso.has(action)) {
-                console.warn(`⚠️ Acción "${action}" rechazada por debounce`);
-                return false;
-            }
+            if (accionesEnProgreso.has(action)) return false;
             accionesEnProgreso.add(action);
-            setTimeout(() => {
-                accionesEnProgreso.delete(action);
-            }, DEBOUNCE_MS);
+            setTimeout(() => accionesEnProgreso.delete(action), 300);
             return true;
         }
 
-        const colores = {
-            celda: '#1a1a2e',
-            celdaTexto: '#00E5FF',
-            cabecera: '#0f3460',
-            cabeceraTexto: '#00FF88',
-            fila_alt: '#16213e',
-            borde: '#00E5FF'
-        };
+        const colores = { celda: '#1a1a2e', celdaTexto: '#00E5FF', cabecera: '#0f3460', cabeceraTexto: '#00FF88', fila_alt: '#16213e', borde: '#00E5FF' };
 
-        // ===== GENERAR ESTRELLAS =====
         function generarEstrellas() {
             const starsContainer = document.querySelector('#stars');
             for (let i = 0; i < 100; i++) {
@@ -362,341 +456,115 @@
         }
         generarEstrellas();
 
-        // ===== MOVIMIENTO SUAVE DE CÁMARA =====
         const rig = document.querySelector('#rig');
         let rigPos = { x: 7, y: 3, z: 8 };
-        const moveSpeed = 0.1;
-        
-        let leftJoystick = { x: 0, y: 0 };
-        let rightJoystick = { x: 0, y: 0 };
-
-        document.querySelector('#leftController')?.addEventListener('thumbstickmoved', (e) => {
-            leftJoystick.x = e.detail.x;
-            leftJoystick.y = e.detail.y;
-        });
-
-        document.querySelector('#rightController')?.addEventListener('thumbstickmoved', (e) => {
-            rightJoystick.x = e.detail.x;
-            rightJoystick.y = e.detail.y;
-        });
-
+        let leftJoystick = { x: 0, y: 0 }, rightJoystick = { x: 0, y: 0 };
+        document.querySelector('#leftController')?.addEventListener('thumbstickmoved', (e) => { leftJoystick = e.detail; });
+        document.querySelector('#rightController')?.addEventListener('thumbstickmoved', (e) => { rightJoystick = e.detail; });
         setInterval(() => {
-            rigPos.x += leftJoystick.x * moveSpeed;
-            rigPos.z += leftJoystick.y * moveSpeed;
-            rigPos.y += rightJoystick.y * moveSpeed * 0.5;
+            rigPos.x += leftJoystick.x * 0.1; rigPos.z += leftJoystick.y * 0.1; rigPos.y += rightJoystick.y * 0.05;
             rig.setAttribute('position', `${rigPos.x} ${rigPos.y} ${rigPos.z}`);
         }, 30);
 
-        // ===== FUNCIONES DE ESCENA =====
         function mostrarMenuTablas() {
             nav.goTo('escena-menu-tablas');
-            
             const menu = document.getElementById('menu-tablas');
             menu.innerHTML = '';
-
             tablas.forEach((nombre, index) => {
                 const angle = (index / tablas.length) * Math.PI * 2;
-                const x = Math.cos(angle) * 8;
-                const z = Math.sin(angle) * 8;
-
                 const btn = document.createElement('a-entity');
-                btn.setAttribute('position', `${x} 3 ${z}`);
-                
-                btn.innerHTML = `
-                    <a-box interactable class="clickable" width="4" height="1.2" depth="0.5" color="#222" 
-                           data-action="cargarTabla" data-param="${nombre}"
-                           animation="property: scale; to: 1.1; dur: 300; startEvents: mouseenter; dir: alternate" shadow>
-                        <a-text value="${nombre.toUpperCase()}" align="center" position="0 0 0.3" width="8" color="#00E5FF" font-size="80" font-weight="bold"></a-text>
-                    </a-box>
-                    <a-sphere radius="0.1" color="#00E5FF" opacity="0.5" position="0 0 0"></a-sphere>`;
-                
+                btn.setAttribute('position', `${Math.cos(angle) * 8} 3 ${Math.sin(angle) * 8}`);
+                btn.innerHTML = `<a-box interactable class="clickable" width="4" height="1.2" depth="0.5" color="#222" data-action="cargarTabla" data-param="${nombre}"><a-text value="${nombre.toUpperCase()}" align="center" position="0 0 0.3" width="8" color="#00E5FF" font-size="80" font-weight="bold"></a-text></a-box>`;
                 menu.appendChild(btn);
             });
         }
 
         async function cargarTabla(nombre) {
             nav.goTo('escena-tabla');
-            
             document.getElementById('texto-tabla').setAttribute('value', nombre.toUpperCase());
             tablaActual = nombre;
             paginaActual = 0;
-            
-            const btnAnalizar = document.getElementById('btn-analizar-container');
-            if (nombre === 'estudiantes') {
-                btnAnalizar.setAttribute('visible', 'true');
-            } else {
-                btnAnalizar.setAttribute('visible', 'false');
-            }
-            
+            document.getElementById('btn-analizar-container').setAttribute('visible', nombre === 'estudiantes' ? 'true' : 'false');
             try {
                 const res = await fetch(`${API_URL}/${nombre}`);
                 datosActuales = await res.json();
                 renderizar();
-            } catch (e) { 
-                console.error("Error:", e);
-                alert("Error conectando al servidor en " + API_URL);
-            }
+            } catch (e) { console.error("Error:", e); }
         }
 
         function renderizar() {
             const cuerpo = document.getElementById('tabla-cuerpo');
             const cabecera = document.getElementById('tabla-cabecera');
-            cuerpo.innerHTML = '';
-            cabecera.innerHTML = '';
-
+            cuerpo.innerHTML = ''; cabecera.innerHTML = '';
             if (!datosActuales.length) return;
 
             const columnas = Object.keys(datosActuales[0]);
             const espaciadoX = 3.2;
-            const altoFila = 0.9;
-
-            // ===== RENDER CABECERAS =====
             const cabeceraBG = document.createElement('a-entity');
             cabeceraBG.setAttribute('position', '0 0 -0.3');
             
             columnas.forEach((col, index) => {
                 const caja = document.createElement('a-box');
-                caja.setAttribute('width', '3');
-                caja.setAttribute('height', '0.85');
-                caja.setAttribute('depth', '0.4');
-                caja.setAttribute('position', `${index * espaciadoX} 0 0`);
-                caja.setAttribute('color', colores.cabecera);
-                caja.setAttribute('shadow', '');
-                
+                caja.setAttribute('width', '3'); caja.setAttribute('height', '0.85'); caja.setAttribute('depth', '0.4'); caja.setAttribute('position', `${index * espaciadoX} 0 0`); caja.setAttribute('color', colores.cabecera);
                 const txt = document.createElement('a-text');
-                txt.setAttribute('value', col.toUpperCase());
-                txt.setAttribute('position', `${index * espaciadoX} 0 0.25`);
-                txt.setAttribute('color', colores.cabeceraTexto);
-                txt.setAttribute('width', '6');
-                txt.setAttribute('font-size', '70');
-                txt.setAttribute('font-weight', 'bold');
-                txt.setAttribute('align', 'center');
-
-                cabeceraBG.appendChild(caja);
-                cabecera.appendChild(txt);
+                txt.setAttribute('value', col.toUpperCase()); txt.setAttribute('position', `${index * espaciadoX} 0 0.25`); txt.setAttribute('color', colores.cabeceraTexto); txt.setAttribute('width', '6'); txt.setAttribute('font-size', '70'); txt.setAttribute('align', 'center');
+                cabeceraBG.appendChild(caja); cabecera.appendChild(txt);
             });
-            
             cabecera.appendChild(cabeceraBG);
 
-            // ===== RENDER FILAS =====
-            const inicio = paginaActual * filasPorPagina;
-            const slice = datosActuales.slice(inicio, inicio + filasPorPagina);
-
+            const slice = datosActuales.slice(paginaActual * filasPorPagina, (paginaActual + 1) * filasPorPagina);
             slice.forEach((fila, i) => {
                 const filaEnt = document.createElement('a-entity');
-                filaEnt.setAttribute('position', `0 ${-i * (altoFila + 0.2)} 0`);
-
-                const filaBG = document.createElement('a-entity');
-                filaBG.setAttribute('position', '0 0 -0.3');
-                
-                const esAlternada = i % 2 === 0;
-                const colorFila = esAlternada ? colores.celda : colores.fila_alt;
-
+                filaEnt.setAttribute('position', `0 ${-i * 1.1} 0`);
                 columnas.forEach((col, index) => {
                     const cajaFila = document.createElement('a-box');
-                    cajaFila.setAttribute('width', '3');
-                    cajaFila.setAttribute('height', altoFila);
-                    cajaFila.setAttribute('depth', '0.4');
-                    cajaFila.setAttribute('position', `${index * espaciadoX} 0 0`);
-                    cajaFila.setAttribute('color', colorFila);
-                    cajaFila.setAttribute('shadow', '');
-                    
-                    const borde = document.createElement('a-box');
-                    borde.setAttribute('width', '3.05');
-                    borde.setAttribute('height', altoFila + 0.05);
-                    borde.setAttribute('depth', '0.41');
-                    borde.setAttribute('position', `${index * espaciadoX} 0 0`);
-                    borde.setAttribute('color', colores.borde);
-                    borde.setAttribute('opacity', '0.1');
-
-                    filaBG.appendChild(cajaFila);
-                    filaBG.appendChild(borde);
-
+                    cajaFila.setAttribute('width', '3'); cajaFila.setAttribute('height', '0.9'); cajaFila.setAttribute('depth', '0.4'); cajaFila.setAttribute('position', `${index * espaciadoX} 0 0`); cajaFila.setAttribute('color', i % 2 === 0 ? colores.celda : colores.fila_alt);
                     const celda = document.createElement('a-text');
-                    let valor = String(fila[col] || "-");
-                    if (valor.length > 20) valor = valor.substring(0, 17) + "...";
-                    
-                    celda.setAttribute('value', valor);
-                    celda.setAttribute('position', `${index * espaciadoX} 0 0.25`);
-                    celda.setAttribute('width', '5.5');
-                    celda.setAttribute('color', colores.celdaTexto);
-                    celda.setAttribute('font-size', '60');
-                    celda.setAttribute('align', 'center');
-
-                    filaEnt.appendChild(celda);
+                    let val = String(fila[col] || "-"); if(val.length>20) val=val.substring(0,17)+"...";
+                    celda.setAttribute('value', val); celda.setAttribute('position', `${index * espaciadoX} 0 0.25`); celda.setAttribute('width', '5.5'); celda.setAttribute('color', colores.celdaTexto); celda.setAttribute('align', 'center');
+                    filaEnt.appendChild(cajaFila); filaEnt.appendChild(celda);
                 });
-
-                filaEnt.appendChild(filaBG);
                 cuerpo.appendChild(filaEnt);
             });
 
-            // Actualizar controles de paginación
             const total = Math.ceil(datosActuales.length / filasPorPagina);
             document.getElementById('label-pagina').setAttribute('value', `PÁG.\n${paginaActual + 1} / ${total}`);
-            
-            const btnAnt = document.getElementById('btn-anterior');
-            const btnSig = document.getElementById('btn-siguiente');
-            
-            btnAnt.setAttribute('color', paginaActual > 0 ? '#00E5FF' : '#111');
-            btnAnt.querySelector('a-text').setAttribute('color', paginaActual > 0 ? '#00E5FF' : '#444');
-            
-            btnSig.setAttribute('color', paginaActual < total - 1 ? '#00E5FF' : '#111');
-            btnSig.querySelector('a-text').setAttribute('color', paginaActual < total - 1 ? '#00E5FF' : '#444');
         }
 
         function cambiarPagina(n) {
             const total = Math.ceil(datosActuales.length / filasPorPagina);
             const nuevaPag = paginaActual + n;
-            if (nuevaPag >= 0 && nuevaPag < total) {
-                paginaActual = nuevaPag;
-                renderizar();
-            }
+            if (nuevaPag >= 0 && nuevaPag < total) { paginaActual = nuevaPag; renderizar(); }
         }
 
         // ===== ANÁLISIS DE EDADES =====
         function analizarEdades() {
             nav.goTo('escena-analisis-edades');
-            
-            const edades = datosActuales
-                .map(est => parseInt(est.edad))
-                .filter(edad => !isNaN(edad));
-            
-            if (edades.length === 0) {
-                alert('No hay datos de edad disponibles');
-                nav.goBack();
-                return;
-            }
-
-            const edadMin = Math.min(...edades);
-            const edadMax = Math.max(...edades);
-            const edadPromedio = (edades.reduce((a, b) => a + b, 0) / edades.length).toFixed(1);
-
-            const frecuencias = {};
-            edades.forEach(edad => {
-                frecuencias[edad] = (frecuencias[edad] || 0) + 1;
-            });
-
-            document.getElementById('stat-edad-min').setAttribute('value', `MIN: ${edadMin}`);
-            document.getElementById('stat-edad-max').setAttribute('value', `MÁX: ${edadMax}`);
-            document.getElementById('stat-edad-prom').setAttribute('value', `PROM: ${edadPromedio}`);
-            document.getElementById('stat-total').setAttribute('value', `TOTAL: ${edades.length}`);
-
-            renderizarGrafico(frecuencias, edadMax);
+            const edades = datosActuales.map(est => parseInt(est.edad)).filter(e => !isNaN(e));
+            if (edades.length === 0) { alert('No hay datos de edad'); nav.goBack(); return; }
+            const min = Math.min(...edades), max = Math.max(...edades), prom = (edades.reduce((a,b)=>a+b,0)/edades.length).toFixed(1);
+            const freq = {}; edades.forEach(e => freq[e] = (freq[e] || 0) + 1);
+            document.getElementById('stat-edad-min').setAttribute('value', `MIN: ${min}`); document.getElementById('stat-edad-max').setAttribute('value', `MÁX: ${max}`); document.getElementById('stat-edad-prom').setAttribute('value', `PROM: ${prom}`); document.getElementById('stat-total').setAttribute('value', `TOTAL: ${edades.length}`);
+            renderizarGrafico(freq, max);
         }
 
         function renderizarGrafico(frecuencias, edadMax) {
             const graficoCont = document.getElementById('grafico-edades');
-            graficoCont.innerHTML = '';
-            
-            // 🔧 Hacemos que todo el contenedor ignore colisiones 3D
-            graficoCont.setAttribute('ignore-raycast', '');
-
-            const edadesSortedArray = Object.keys(frecuencias).sort((a, b) => a - b);
-            const maxFrecuencia = Math.max(...Object.values(frecuencias));
-            
-            const espaciadoX = 1.2;
-            const escalaAltura = 2.5 / maxFrecuencia;
-            
-            edadesSortedArray.forEach((edad, index) => {
-                const freq = frecuencias[edad];
-                const altura = freq * escalaAltura;
-                const xPos = (index - edadesSortedArray.length / 2) * espaciadoX;
-                
+            graficoCont.innerHTML = ''; graficoCont.setAttribute('ignore-raycast', '');
+            const edades = Object.keys(frecuencias).sort((a,b)=>a-b);
+            const maxFreq = Math.max(...Object.values(frecuencias));
+            edades.forEach((edad, i) => {
+                const alt = (frecuencias[edad] * 2.5) / maxFreq;
+                const x = (i - edades.length / 2) * 1.2;
                 const barra = document.createElement('a-entity');
-                barra.setAttribute('position', `${xPos} ${altura / 2} 0`);
-                barra.setAttribute('data-grafico', 'true');
-                barra.classList.add('no-click');
-
-                const hue = (index / edadesSortedArray.length) * 360;
-                const colorBarra = `hsl(${hue}, 100%, 50%)`;
-                
-                const cajaBar = document.createElement('a-box');
-                cajaBar.setAttribute('width', '0.9');
-                cajaBar.setAttribute('height', altura);
-                cajaBar.setAttribute('depth', '0.9');
-                cajaBar.setAttribute('color', colorBarra);
-                cajaBar.setAttribute('class', 'grafico-barra no-click');
-                cajaBar.setAttribute('data-grafico', 'true');
-                cajaBar.setAttribute('animation', `property: rotation; to: 0 360 0; dur: 8000; easing: linear; loop: true`);
-                
-                const etiqAge = document.createElement('a-text');
-                etiqAge.setAttribute('value', `${edad}`);
-                etiqAge.setAttribute('position', `0 ${-altura / 2 - 0.8} 0`);
-                etiqAge.setAttribute('color', '#00E5FF');
-                etiqAge.setAttribute('width', '2');
-                etiqAge.setAttribute('font-size', '50');
-                etiqAge.setAttribute('font-weight', 'bold');
-                etiqAge.setAttribute('align', 'center');
-                etiqAge.setAttribute('data-grafico', 'true');
-                etiqAge.classList.add('no-click');
-
-                const etiqFreq = document.createElement('a-text');
-                etiqFreq.setAttribute('value', `${freq}`);
-                etiqFreq.setAttribute('position', `0 ${altura / 2 + 0.6} 0`);
-                etiqFreq.setAttribute('color', '#FFB700');
-                etiqFreq.setAttribute('width', '2');
-                etiqFreq.setAttribute('font-size', '50');
-                etiqFreq.setAttribute('font-weight', 'bold');
-                etiqFreq.setAttribute('align', 'center');
-                etiqFreq.setAttribute('data-grafico', 'true');
-                etiqFreq.classList.add('no-click');
-
-                barra.appendChild(cajaBar);
-                barra.appendChild(etiqAge);
-                barra.appendChild(etiqFreq);
-                
+                barra.setAttribute('position', `${x} ${alt/2} 0`);
+                barra.innerHTML = `
+                    <a-box width="0.9" height="${alt}" depth="0.9" color="hsl(${(i/edades.length)*360}, 100%, 50%)" animation="property: rotation; to: 0 360 0; dur: 8000; easing: linear; loop: true" class="no-click" data-grafico="true"></a-box>
+                    <a-text value="${edad}" position="0 ${-alt/2 - 0.8} 0" color="#00E5FF" align="center" class="no-click" data-grafico="true"></a-text>
+                    <a-text value="${frecuencias[edad]}" position="0 ${alt/2 + 0.6} 0" color="#FFB700" align="center" class="no-click" data-grafico="true"></a-text>`;
                 graficoCont.appendChild(barra);
             });
-
-            // Ejes del gráfico
-            const ejeX = document.createElement('a-box');
-            ejeX.setAttribute('width', `${edadesSortedArray.length * espaciadoX + 2}`);
-            ejeX.setAttribute('height', '0.1');
-            ejeX.setAttribute('depth', '0.1');
-            ejeX.setAttribute('position', `0 -0.2 0`);
-            ejeX.setAttribute('color', '#00E5FF');
-            ejeX.setAttribute('opacity', '0.5');
-            ejeX.setAttribute('class', 'grafico-barra no-click');
-            ejeX.setAttribute('data-grafico', 'true');
-            graficoCont.appendChild(ejeX);
-
-            const ejeY = document.createElement('a-box');
-            ejeY.setAttribute('width', '0.1');
-            ejeY.setAttribute('height', '3');
-            ejeY.setAttribute('depth', '0.1');
-            ejeY.setAttribute('position', `${-(edadesSortedArray.length * espaciadoX) / 2 - 0.7} 1.4 0`);
-            ejeY.setAttribute('color', '#00E5FF');
-            ejeY.setAttribute('opacity', '0.5');
-            ejeY.setAttribute('class', 'grafico-barra no-click');
-            ejeY.setAttribute('data-grafico', 'true');
-            graficoCont.appendChild(ejeY);
-
-            const labelX = document.createElement('a-text');
-            labelX.setAttribute('value', 'EDAD');
-            labelX.setAttribute('position', `0 -1.3 0`);
-            labelX.setAttribute('color', '#00E5FF');
-            labelX.setAttribute('width', '3');
-            labelX.setAttribute('font-size', '60');
-            labelX.setAttribute('font-weight', 'bold');
-            labelX.setAttribute('align', 'center');
-            labelX.setAttribute('data-grafico', 'true');
-            labelX.classList.add('no-click');
-            graficoCont.appendChild(labelX);
-
-            const labelY = document.createElement('a-text');
-            labelY.setAttribute('value', 'CANTIDAD');
-            labelY.setAttribute('position', `${-(edadesSortedArray.length * espaciadoX) / 2 - 2.5} 1.4 0`);
-            labelY.setAttribute('rotation', '0 0 90');
-            labelY.setAttribute('color', '#00E5FF');
-            labelY.setAttribute('width', '3');
-            labelY.setAttribute('font-size', '60');
-            labelY.setAttribute('font-weight', 'bold');
-            labelY.setAttribute('align', 'center');
-            labelY.setAttribute('data-grafico', 'true');
-            labelY.classList.add('no-click');
-            graficoCont.appendChild(labelY);
         }
     </script>
-
 </body>
 </html>
