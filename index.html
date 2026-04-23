@@ -1,570 +1,1257 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <title>Visualizador Universidad - 3D VR Experience</title>
-    <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/aframe-extras@6.1.1/dist/aframe-extras.min.js"></script>
-    <style>
-        body {
-            margin: 0;
-            font-family: 'Arial', sans-serif;
-            background: #000;
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Visualizador Universidad - 3D VR Experience</title>
+
+  <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/aframe-extras@6.1.1/dist/aframe-extras.min.js"></script>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #000;
+    }
+  </style>
+
+  <script>
+    // =========================
+    // COMPONENTE INTERACTABLE
+    // =========================
+    AFRAME.registerComponent("interactable", {
+      init: function () {
+        this.el.addEventListener("click", (e) => {
+          let current = this.el;
+          let isVisible = true;
+          while (current && current.tagName !== "A-SCENE") {
+            const vis = current.getAttribute("visible");
+            if (vis === false || vis === "false") {
+              isVisible = false;
+              break;
+            }
+            current = current.parentElement;
+          }
+          if (!isVisible) return;
+          e.stopPropagation();
+
+          const action = this.el.getAttribute("data-action");
+          const param = this.el.getAttribute("data-param");
+          if (action) handleClickAction(action, param);
+        });
+      }
+    });
+
+    // =========================
+    // COMPONENTE SLOW ROTATION
+    // =========================
+    AFRAME.registerComponent("slow-rotate", {
+      schema: {
+        speed: { type: "number", default: 0.3 },
+        axis: { type: "string", default: "y" }
+      },
+      tick: function (time, delta) {
+        const rot = this.el.getAttribute("rotation") || { x: 0, y: 0, z: 0 };
+        const deg = (delta / 1000) * this.data.speed * 360;
+        if (this.data.axis === "y") rot.y += deg;
+        else if (this.data.axis === "x") rot.x += deg;
+        else rot.z += deg;
+        this.el.setAttribute("rotation", rot);
+      }
+    });
+
+    // =========================
+    // COMPONENTE FLOAT-BOB
+    // =========================
+    AFRAME.registerComponent("float-bob", {
+      schema: {
+        amp: { type: "number", default: 0.12 },
+        speed: { type: "number", default: 1.2 },
+        offset: { type: "number", default: 0 }
+      },
+      init: function () {
+        this.baseY = null;
+      },
+      tick: function (time) {
+        if (this.baseY === null) {
+          this.baseY = this.el.getAttribute("position").y;
         }
-    </style>
-    <script>
-        // ============ COMPONENTE PRO: IGNORAR RAYCAST ============
-        AFRAME.registerComponent('ignore-raycast', {
-            init: function () {
-                this.el.addEventListener('loaded', () => {
-                    if(this.el.object3D) {
-                        this.el.object3D.traverse(function(node) {
-                            node.raycast = function() {}; 
-                        });
-                    }
-                });
-            }
-        });
-
-        // ============ SISTEMA DE INTERACCIÓN A-FRAME ============
-        AFRAME.registerComponent('interactable', {
-            init: function () {
-                this.el.addEventListener('click', (e) => {
-                    let isVisible = true;
-                    let current = this.el;
-
-                    while (current && current.tagName !== 'A-SCENE') {
-                        const vis = current.getAttribute('visible');
-                        if (vis === false || vis === 'false') {
-                            isVisible = false;
-                            break;
-                        }
-                        current = current.parentElement;
-                    }
-                    if (!isVisible) return;
-
-                    const isGrafico = this.el.getAttribute('data-grafico') === 'true';
-                    if (!isGrafico) {
-                        e.stopPropagation();
-                    } else {
-                        return;
-                    }
-
-                    const action = this.el.getAttribute('data-action');
-                    const param = this.el.getAttribute('data-param');
-                    if (action) {
-                        handleClickAction(action, param);
-                    }
-                });
-            }
-        });
-    </script>
+        const y = this.baseY + Math.sin((time / 1000) * this.data.speed + this.data.offset) * this.data.amp;
+        const pos = this.el.getAttribute("position");
+        this.el.setAttribute("position", { x: pos.x, y: y, z: pos.z });
+      }
+    });
+  </script>
 </head>
 <body>
+  <a-scene
+    cursor="rayOrigin: mouse"
+    raycaster="objects: .clickable; recursive: true"
+    background="color: #000"
+    fog="type: linear; color: #000; far: 120; near: 0.1"
+  >
+    <!-- Luces -->
+    <a-light type="ambient" intensity="0.5" color="#fff"></a-light>
+    <a-light type="directional" intensity="1" color="#00E5FF" position="20 30 20"></a-light>
+    <a-light type="directional" intensity="0.6" color="#FF00FF" position="-20 20 -20"></a-light>
+    <a-light type="point" intensity="0.8" color="#00E5FF" position="7 10 5"></a-light>
+    <a-light type="point" intensity="0.6" color="#FF00FF" position="7 5 -10"></a-light>
 
-    <a-scene cursor="rayOrigin: mouse" raycaster="objects: .clickable; recursive: true" background="color: #000" fog="type: linear; color: #000; far: 100; near: 0.1">
-        
-        <!-- Luces dinámicas -->
-        <a-light type="ambient" intensity="0.5" color="#fff"></a-light>
-        <a-light type="directional" intensity="1" color="#00E5FF" position="20 30 20"></a-light>
-        <a-light type="directional" intensity="0.6" color="#FF00FF" position="-20 20 -20"></a-light>
-        <a-light type="point" intensity="0.8" color="#00E5FF" position="7 10 5"></a-light>
-        <a-light type="point" intensity="0.6" color="#FF00FF" position="7 5 -10"></a-light>
+    <!-- Piso y entorno -->
+    <a-plane position="7 -3 -4" rotation="-90 0 0" width="240" height="240" color="#0a0a0a"></a-plane>
+    <a-plane position="7 -2.97 -4" rotation="-90 0 0" width="240" height="240"
+             material="shader: flat; color: #00E5FF; opacity: 0.03"></a-plane>
+    <a-sky color="#050505"></a-sky>
+    <a-entity id="stars"></a-entity>
 
-        <!-- Piso con grid -->
-        <a-plane position="7 -3 -4" rotation="-90 0 0" width="200" height="200" color="#0a0a0a"></a-plane>
-        <a-plane position="7 -2.95 -4" rotation="-90 0 0" width="200" height="200" 
-                 material="shader: grid; gridSize: 10; gridColor: #00E5FF; opacity: 0.2"></a-plane>
+    <!-- ===================================================== -->
+    <!-- ESCENA 1: BIENVENIDA -->
+    <!-- ===================================================== -->
+    <a-entity id="escena-bienvenida" visible="true">
+      <a-entity position="7 5 -15" animation="property: rotation; to: 0 360 0; dur: 20000; easing: linear; loop: true">
+        <a-box color="#0a0a0a" depth="1" height="2.5" width="16" opacity="0.92"></a-box>
+        <a-text value="SISTEMA DE GESTIÓN" align="center" position="0 0.8 0.6" width="21" color="#00E5FF"></a-text>
+        <a-text value="UNIVERSITARIA" align="center" position="0 0.2 0.6" width="21" color="#00E5FF"></a-text>
+      </a-entity>
 
-        <a-sky color="#050505"></a-sky>
-        <a-entity id="stars"></a-entity>
+      <a-entity position="7 3 -10">
+        <a-sphere color="#00E5FF" radius="6" opacity="0.1" wireframe="true"
+                  animation="property: rotation; to: 0 360 0; dur: 10000; easing: linear; loop: true"></a-sphere>
 
-        <!-- ============ ESCENA 1: BIENVENIDA ============ -->
-        <a-entity id="escena-bienvenida" visible="true">
-            <a-entity position="7 5 -15" animation="property: rotation; to: 0 360 0; dur: 20000; easing: linear; loop: true">
-                <a-box color="#0a0a0a" depth="1" height="2.5" width="15" opacity="0.9" shadow></a-box>
-                <a-text value="SISTEMA DE GESTION" align="center" position="0 0.8 0.6" width="20" color="#00E5FF" font-size="120" font-weight="bold"></a-text>
-                <a-text value="UNIVERSITARIA" align="center" position="0 0.2 0.6" width="20" color="#00E5FF" font-size="120" font-weight="bold"></a-text>
-            </a-entity>
-
-            <!-- Esfera giratoria central y botones -->
-            <a-entity position="7 3 -10" 
-                      animation="property: position; to: 7 3.5 -10; dur: 2000; easing: easeInOutQuad; dir: alternate; loop: true">
-                
-                <!-- Esfera 3D molona -->
-                <a-sphere color="#00E5FF" radius="6" opacity="0.1" wireframe="true"
-                          animation="property: rotation; to: 0 360 0; dur: 10000; easing: linear; loop: true"></a-sphere>
-
-                <!-- Botón Ver Tablas -->
-                <a-entity position="-3 0 0">
-                    <a-box interactable class="clickable" color="#00E5FF" depth="0.8" height="1.2" width="4" 
-                           data-action="mostrarMenuTablas" shadow>
-                        <a-text value="VER TABLAS" align="center" position="0 0 0.5" width="6" color="#000" font-size="70" font-weight="bold"></a-text>
-                    </a-box>
-                </a-entity>
-
-                <!-- Botón Constructor de Consultas -->
-                <a-entity position="3 0 0">
-                    <a-box interactable class="clickable" color="#FF00FF" depth="0.8" height="1.2" width="5" 
-                           data-action="iniciarQueryBuilder" shadow>
-                        <a-text value="CONSTRUIR\nCONSULTA" align="center" position="0 0 0.5" width="6" color="#FFF" font-size="70" font-weight="bold"></a-text>
-                    </a-box>
-                </a-entity>
-            </a-entity>
+        <a-entity position="-5 0 0">
+          <a-box class="clickable" interactable color="#00E5FF" depth="0.8" height="1.2" width="4.2" data-action="mostrarMenuTablas">
+            <a-text value="VER TABLAS" align="center" position="0 0 0.5" width="6.2" color="#000"></a-text>
+          </a-box>
         </a-entity>
 
-        <!-- ============ ESCENA 2: SELECCIÓN DE TABLAS ============ -->
-        <a-entity id="escena-menu-tablas" visible="false">
-            <a-entity position="7 6 -15">
-                <a-text value="SELECCIONA UNA TABLA" align="center" width="20" color="#00E5FF" font-size="140" font-weight="bold"></a-text>
-            </a-entity>
-            <a-entity id="menu-tablas" position="7 3 -4"></a-entity>
-            <a-entity position="7 0 -4">
-                <a-box interactable class="clickable" color="#FF6B00" depth="0.5" width="3.5" height="0.8" data-action="volver">
-                    <a-text value="← VOLVER" align="center" position="0 0 0.3" width="6" color="#FFF" font-size="70" font-weight="bold"></a-text>
-                </a-box>
-            </a-entity>
+        <a-entity position="0 0 0">
+          <a-box class="clickable" interactable color="#FF00FF" depth="0.8" height="1.2" width="5.2" data-action="iniciarQueryBuilder">
+            <a-text value="CONSTRUIR\nCONSULTA" align="center" position="0 0 0.5" width="6.5" color="#FFF"></a-text>
+          </a-box>
         </a-entity>
 
-        <!-- ============ ESCENA 5: CONSTRUCTOR DE CONSULTAS ============ -->
-        <a-entity id="escena-query-builder" visible="false" position="7 0 -10">
-            <!-- Pantalla de la Query -->
-            <a-entity position="0 6 -5">
-                <a-box color="#111" depth="0.5" height="2" width="14" opacity="0.9"></a-box>
-                <a-text value="QUERY ACTUAL:" position="-6.5 0.5 0.3" color="#FF00FF" width="8" font-size="60"></a-text>
-                <a-text id="query-display" value="Esperando instrucción..." position="-6.5 -0.2 0.3" color="#00E5FF" width="12" font-size="80" font-family="monoid"></a-text>
-            </a-entity>
+        <a-entity position="5.3 0 0">
+          <a-box class="clickable" interactable color="#00FF88" depth="0.8" height="1.2" width="6" data-action="iniciarConsultasGuiadas">
+            <a-text value="CONSULTAS\nGUIADAS" align="center" position="0 0 0.5" width="7" color="#001A0E"></a-text>
+          </a-box>
+        </a-entity>
+      </a-entity>
+    </a-entity>
 
-            <!-- Instrucción del paso actual -->
-            <a-entity position="0 4 -2">
-                <a-text id="query-step-title" value="PASO 1: SELECCIONA OPERACIÓN" align="center" color="#FFF" width="10" font-size="80" font-weight="bold"></a-text>
-            </a-entity>
+    <!-- ===================================================== -->
+    <!-- ESCENA 2: MENÚ TABLAS -->
+    <!-- ===================================================== -->
+    <a-entity id="escena-menu-tablas" visible="false">
+      <a-entity position="7 6 -15">
+        <a-text value="SELECCIONA UNA TABLA" align="center" width="20" color="#00E5FF"></a-text>
+      </a-entity>
+      <a-entity id="menu-tablas" position="7 3 -4"></a-entity>
 
-            <!-- Opciones Dinámicas -->
-            <a-entity id="query-options-container" position="0 2 -2"></a-entity>
+      <a-entity position="7 0 -4">
+        <a-box class="clickable" interactable color="#FF6B00" depth="0.5" width="3.6" height="0.8" data-action="volver">
+          <a-text value="← VOLVER" align="center" position="0 0 0.3" width="6" color="#FFF"></a-text>
+        </a-box>
+      </a-entity>
+    </a-entity>
 
-            <!-- Botón Cancelar (Bajado para evitar solapamiento) -->
-            <a-entity position="0 -1.5 -2">
-                <a-box interactable class="clickable" color="#FF6B00" depth="0.5" width="3.5" height="0.8" data-action="volver">
-                    <a-text value="← CANCELAR" align="center" position="0 0 0.3" width="6" color="#FFF" font-size="70" font-weight="bold"></a-text>
-                </a-box>
-            </a-entity>
+    <!-- ===================================================== -->
+    <!-- ESCENA 5: QUERY BUILDER -->
+    <!-- ===================================================== -->
+    <a-entity id="escena-query-builder" visible="false" position="7 0 -10">
+      <a-entity position="0 6 -5">
+        <a-box color="#111" depth="0.5" height="3.2" width="19" opacity="0.92"></a-box>
+        <a-text value="QUERY ACTUAL:" position="-9 1.05 0.3" color="#FF00FF" width="8"></a-text>
+        <a-text id="query-display" value="Esperando instrucción..." position="-9 0 0.3" color="#00E5FF" width="16.8" wrap-count="40"></a-text>
+      </a-entity>
+
+      <a-entity position="0 3.8 -2">
+        <a-text id="query-step-title" value="PASO 1 · OPERACIÓN SQL" align="center" color="#FFF" width="12"></a-text>
+      </a-entity>
+
+      <a-entity id="query-options-container" position="0 2.2 -2"></a-entity>
+      <a-entity id="query-hint-container" position="0 0 -2"></a-entity>
+    </a-entity>
+
+    <!-- ===================================================== -->
+    <!-- ESCENA 6: CONSULTAS GUIADAS — REDISEÑADA -->
+    <!-- ===================================================== -->
+    <a-entity id="escena-consultas-guiadas" visible="false" position="7 0 -10">
+
+      <!-- Header panel -->
+      <a-entity position="0 7.2 -6">
+        <a-box color="#050D0A" depth="0.25" height="1.6" width="14"
+               material="color: #050D0A; emissive: #00FF88; emissiveIntensity: 0.06; opacity: 0.96"></a-box>
+        <!-- Línea decorativa superior -->
+        <a-box color="#00FF88" depth="0.26" height="0.04" width="14" position="0 0.78 0"
+               material="color: #00FF88; emissive: #00FF88; emissiveIntensity: 1; opacity: 0.9"></a-box>
+        <a-box color="#00FF88" depth="0.26" height="0.04" width="14" position="0 -0.78 0"
+               material="color: #00FF88; emissive: #00FF88; emissiveIntensity: 1; opacity: 0.9"></a-box>
+        <a-text value="ANÁLISIS · CONSULTAS GUIADAS" align="center" position="0 0.28 0.14"
+                width="13" color="#00FF88"></a-text>
+        <a-text value="Selecciona un análisis para visualizar datos en 3D"
+                align="center" position="0 -0.25 0.14" width="11" color="#4DFFBB"></a-text>
+      </a-entity>
+
+      <!-- Botón VOLVER arriba a la izquierda — visible y accesible -->
+      <a-entity position="-6.8 7.2 -6">
+        <a-box class="clickable" interactable depth="0.3" width="3.2" height="0.9"
+               material="color: #1A0800; emissive: #FF6B00; emissiveIntensity: 0.35"
+               data-action="volver">
+          <a-text value="← VOLVER" align="center" position="0 0 0.16" width="6" color="#FF9944"></a-text>
+        </a-box>
+      </a-entity>
+
+      <!-- Contenedor de tarjetas de consulta -->
+      <a-entity id="consultas-guiadas-container" position="0 4.6 -4"></a-entity>
+    </a-entity>
+
+    <!-- ===================================================== -->
+    <!-- ESCENA 3: TABLA (RESULTADOS) -->
+    <!-- ===================================================== -->
+    <a-entity id="escena-tabla" visible="false" position="7 0 -15">
+      <a-entity position="0 6 0">
+        <a-box color="#0a0a0a" depth="0.4" height="1" width="14" opacity="0.95"></a-box>
+        <a-text id="texto-tabla" value="" align="center" position="0 0 0.25" width="18" color="#00E5FF"></a-text>
+      </a-entity>
+
+      <a-entity id="controles-lateral" position="-6.2 2.5 0">
+        <a-box color="#111" depth="0.3" height="6.2" width="2" opacity="0.85"></a-box>
+        <a-text value="CONTROLES" position="0 2.3 0.2" align="center" color="#00E5FF" width="4"></a-text>
+
+        <a-entity position="0 1.3 0.15">
+          <a-box id="btn-anterior" class="clickable" interactable color="#222" width="1.8" height="0.7" depth="0.3" data-action="cambiarPagina" data-param="-1">
+            <a-text value="ANTERIOR" align="center" position="0 0 0.2" width="4.4" color="#00E5FF"></a-text>
+          </a-box>
         </a-entity>
 
-        <!-- ============ ESCENA 3: VISUALIZACIÓN DE TABLA ============ -->
-        <a-entity id="escena-tabla" visible="false" position="7 0 -15">
-            <a-entity position="0 6 0">
-                <a-box color="#0a0a0a" depth="0.4" height="1" width="12" opacity="0.95"></a-box>
-                <a-text id="texto-tabla" value="" align="center" position="0 0 0.25" width="15" color="#00E5FF" font-size="100" font-weight="bold"></a-text>
-            </a-entity>
-
-            <a-entity id="controles-lateral" position="-5.5 2.5 0">
-                <a-box color="#111" depth="0.3" height="6" width="1.8" opacity="0.8"></a-box>
-                <a-text value="CONTROLES" position="0 2.2 0.2" align="center" color="#00E5FF" width="4" font-size="60" font-weight="bold"></a-text>
-                
-                <a-entity position="0 1.2 0.15">
-                    <a-box id="btn-anterior" interactable class="clickable" color="#222" width="1.6" height="0.7" depth="0.3" data-action="cambiarPagina" data-param="-1">
-                        <a-text value="ANTERIOR" align="center" position="0 0 0.2" width="4" color="#00E5FF" font-size="80"></a-text>
-                    </a-box>
-                </a-entity>
-                
-                <a-entity position="0 0.3 0.2">
-                    <a-text id="label-pagina" value="PÁG.\n1 / 1" align="center" color="#FFF" width="4.5" font-size="50"></a-text>
-                </a-entity>
-
-                <a-entity position="0 -0.7 0.15">
-                    <a-box id="btn-siguiente" interactable class="clickable" color="#222" width="1.6" height="0.7" depth="0.3" data-action="cambiarPagina" data-param="1">
-                        <a-text value="SIGUIENTE" align="center" position="0 0 0.2" width="4" color="#00E5FF" font-size="80"></a-text>
-                    </a-box>
-                </a-entity>
-
-                <a-entity id="btn-analizar-container" position="0 -1.7 0.15" visible="false">
-                    <a-box interactable class="clickable" color="#9D4EDD" width="1.6" height="0.7" depth="0.3" data-action="analizarEdades">
-                        <a-text value="ANALIZAR\nEDADES" align="center" position="0 0 0.2" width="3.5" color="#00E5FF" font-size="50"></a-text>
-                    </a-box>
-                </a-entity>
-            </a-entity>
-
-            <a-entity id="area-datos" position="1.5 0 0">
-                <a-entity id="tabla-cabecera" position="0 5 0"></a-entity>
-                <a-entity id="tabla-cuerpo" position="0 4 0"></a-entity>
-            </a-entity>
-
-            <a-entity position="0 -2.5 0">
-                <a-box interactable class="clickable" color="#FF6B00" depth="0.3" width="3.5" height="0.7" data-action="volver">
-                    <a-text value="← VOLVER" align="center" position="0 0 0.2" width="6" color="#FFF" font-size="60" font-weight="bold"></a-text>
-                </a-box>
-            </a-entity>
+        <a-entity position="0 0.35 0.2">
+          <a-text id="label-pagina" value="PÁG.\n1 / 1" align="center" color="#FFF" width="4.8"></a-text>
         </a-entity>
 
-        <!-- ============ ESCENA 4: ANÁLISIS DE EDADES ============ -->
-        <a-entity id="escena-analisis-edades" visible="false" position="7 0 -15">
-            <a-entity position="0 6 0">
-                <a-box color="#0a0a0a" depth="0.4" height="1" width="14" opacity="0.95"></a-box>
-                <a-text value="ANÁLISIS DE EDADES" align="center" position="0 0 0.25" width="18" color="#9D4EDD" font-size="100" font-weight="bold"></a-text>
-            </a-entity>
-            <a-entity id="panel-estadisticas" position="5.5 2.5 0">
-                <a-box color="#111" depth="0.3" height="4.5" width="1.8" opacity="0.8"></a-box>
-                <a-text value="ESTADÍSTICAS" position="0 1.8 0.2" align="center" color="#9D4EDD" width="4" font-size="55" font-weight="bold"></a-text>
-                <a-text id="stat-edad-min" value="MIN: --" position="0 1.0 0.2" align="center" color="#00FF88" width="4" font-size="50"></a-text>
-                <a-text id="stat-edad-max" value="MÁX: --" position="0 0.4 0.2" align="center" color="#FF88FF" width="4" font-size="50"></a-text>
-                <a-text id="stat-edad-prom" value="PROM: --" position="0 -0.2 0.2" align="center" color="#00E5FF" width="4" font-size="50"></a-text>
-                <a-text id="stat-total" value="TOTAL: --" position="0 -0.8 0.2" align="center" color="#FFB700" width="4" font-size="50"></a-text>
-            </a-entity>
-            <a-entity id="grafico-edades" position="0 2 0"></a-entity>
-            <a-entity position="0 -0.5 0">
-                <a-box interactable class="clickable" color="#FF6B00" depth="0.3" width="3.5" height="0.7" data-action="volver">
-                    <a-text value="← VOLVER" align="center" position="0 0 0.2" width="6" color="#FFF" font-size="60" font-weight="bold"></a-text>
-                </a-box>
-            </a-entity>
+        <a-entity position="0 -0.6 0.15">
+          <a-box id="btn-siguiente" class="clickable" interactable color="#222" width="1.8" height="0.7" depth="0.3" data-action="cambiarPagina" data-param="1">
+            <a-text value="SIGUIENTE" align="center" position="0 0 0.2" width="4.4" color="#00E5FF"></a-text>
+          </a-box>
         </a-entity>
+      </a-entity>
 
-        <a-entity id="rig" position="7 3 8">
-            <a-entity id="camera" camera look-controls wasd-controls></a-entity>
-            <a-entity id="rightController" laser-controls="hand: right" raycaster="objects: .clickable; far: 30" line="color: #00E5FF; opacity: 0.7"></a-entity>
-            <a-entity id="leftController" laser-controls="hand: left" raycaster="objects: .clickable; far: 30" line="color: #00E5FF; opacity: 0.7"></a-entity>
-        </a-entity>
-    </a-scene>
+      <a-entity id="area-datos" position="0.8 0 0">
+        <a-entity id="tabla-cabecera" position="0 5 0"></a-entity>
+        <a-entity id="tabla-cuerpo" position="0 4 0"></a-entity>
+      </a-entity>
 
-    <script>
-        // ============ GESTOR DE ESTADOS (NUEVO) ============
-        let queryState = { step: 0, operation: '', table: '', columns: [] };
-        const schemasMock = {
-            'estudiantes': ['id', 'nombre', 'edad', 'carrera'],
-            'profesores': ['id', 'nombre', 'departamento', 'salario'],
-            'asignaturas': ['id', 'nombre', 'creditos'],
-            'matriculas': ['id', 'id_estudiante', 'id_asignatura']
+      <a-entity position="0 -2.5 0">
+        <a-box class="clickable" interactable color="#FF6B00" depth="0.3" width="3.8" height="0.7" data-action="volver">
+          <a-text value="← VOLVER" align="center" position="0 0 0.2" width="6.2" color="#FFF"></a-text>
+        </a-box>
+      </a-entity>
+    </a-entity>
+
+    <!-- ===================================================== -->
+    <!-- ESCENA 4: ANÁLISIS (GRÁFICAS 3D) -->
+    <!-- ===================================================== -->
+    <a-entity id="escena-analisis-edades" visible="false" position="7 0 -15">
+
+      <!-- Header -->
+      <a-entity position="0 6.8 0">
+        <a-box color="#0a0a0a" depth="0.4" height="1" width="16" opacity="0.95"></a-box>
+        <a-text id="titulo-analisis" value="ANÁLISIS" align="center" position="0 0 0.25" width="18" color="#9D4EDD"></a-text>
+      </a-entity>
+
+      <!-- BOTÓN VOLVER: arriba a la izquierda, encima del gráfico, siempre visible -->
+      <a-entity position="-7.2 6.8 0">
+        <a-box class="clickable" interactable depth="0.35" width="3.4" height="0.9"
+               material="color: #1A0800; emissive: #FF6B00; emissiveIntensity: 0.4"
+               data-action="volver">
+          <a-text value="← VOLVER" align="center" position="0 0 0.19" width="6.2" color="#FF9944"></a-text>
+        </a-box>
+      </a-entity>
+
+      <!-- Panel de estadísticas: al lado derecho -->
+      <a-entity id="panel-estadisticas" position="8.2 3.5 0">
+        <a-box color="#0A0F0A" depth="0.3" height="5.8" width="2.6"
+               material="color: #0A0F0A; emissive: #9D4EDD; emissiveIntensity: 0.06; opacity: 0.92"></a-box>
+        <!-- Línea lateral decorativa -->
+        <a-box depth="0.31" height="5.8" width="0.04" position="-1.3 0 0"
+               material="color: #9D4EDD; emissive: #9D4EDD; emissiveIntensity: 0.8; opacity: 0.7"></a-box>
+        <a-text value="ESTADÍSTICAS" position="0 2.4 0.17" align="center" color="#9D4EDD" width="4.6"></a-text>
+        <a-text id="stat-edad-min" value="MIN: --" position="0 1.5 0.17" align="center" color="#00FF88" width="4.6"></a-text>
+        <a-text id="stat-edad-max" value="MÁX: --" position="0 0.7 0.17" align="center" color="#FF88FF" width="4.6"></a-text>
+        <a-text id="stat-edad-prom" value="PROM: --" position="0 -0.1 0.17" align="center" color="#00E5FF" width="4.6"></a-text>
+        <a-text id="stat-total" value="TOTAL: --" position="0 -0.9 0.17" align="center" color="#FFB700" width="4.6"></a-text>
+      </a-entity>
+
+      <!-- Contenedor del gráfico — con rotación lenta -->
+      <a-entity id="grafico-wrapper" position="0 2.5 0">
+        <a-entity id="grafico-edades" slow-rotate="speed: 0.18; axis: y"></a-entity>
+      </a-entity>
+    </a-entity>
+
+    <!-- Rig -->
+    <a-entity id="rig" position="7 3 8">
+      <a-entity id="camera" camera look-controls wasd-controls></a-entity>
+      <a-entity id="rightController" laser-controls="hand: right" raycaster="objects: .clickable; far: 30" line="color: #00E5FF; opacity: 0.7"></a-entity>
+      <a-entity id="leftController" laser-controls="hand: left" raycaster="objects: .clickable; far: 30" line="color: #00E5FF; opacity: 0.7"></a-entity>
+    </a-entity>
+  </a-scene>
+
+  <script>
+    // ==============================
+    // CONFIG Y ESTADO GLOBAL
+    // ==============================
+    const API_URL = "http://192.168.1.136:3000";
+    const tablas = ["estudiantes", "profesores", "asignaturas", "matriculas"];
+
+    let queryState = {
+      step: 1,
+      operation: "",
+      table: "",
+      columns: [],
+      whereCol: "",
+      whereVal: "",
+      whereOptions: [],
+      orderCol: "",
+      orderDir: "ASC"
+    };
+
+    let datosActuales = [];
+    let paginaActual = 0;
+    const filasPorPagina = 6;
+    let tablaActual = "";
+    let ultimaEscenaDeAnalisis = "escena-consultas-guiadas";
+
+    const schemasMock = {
+      estudiantes: ["matricula", "nombre", "apellido", "telefono", "correoelectronico", "direccion", "edad"],
+      profesores: ["idprofesor", "nombre", "apellido", "correoelectronico", "departamento", "salario"],
+      asignaturas: ["idasignatura", "nombre", "creditos", "curso", "semestre", "idprofesor"],
+      matriculas: ["matricula", "idasignatura", "fechamatriculacion", "notanumerica", "notatexto"]
+    };
+
+    const accionesEnProgreso = new Set();
+
+    const colores = {
+      celda: "#1a1a2e",
+      celdaTexto: "#00E5FF",
+      cabecera: "#0f3460",
+      cabeceraTexto: "#00FF88",
+      fila_alt: "#16213e"
+    };
+
+    // Consultas guiadas con iconos y colores temáticos
+    const CONSULTAS_GUIADAS = [
+      {
+        id: "edad-distribucion",
+        label: "Distribución\nde Edades",
+        emoji: "◈",
+        color: "#00E5FF",
+        bg: "#001820"
+      },
+      {
+        id: "edad-prom-curso",
+        label: "Edad Promedio\nGlobal",
+        emoji: "◉",
+        color: "#00FF88",
+        bg: "#00180E"
+      },
+      {
+        id: "prof-departamento",
+        label: "Profesores por\nDepartamento",
+        emoji: "◆",
+        color: "#FF00FF",
+        bg: "#180018"
+      },
+      {
+        id: "salario-departamento",
+        label: "Salario Promedio\npor Depto.",
+        emoji: "◈",
+        color: "#FFB700",
+        bg: "#181000"
+      },
+      {
+        id: "asignaturas-curso",
+        label: "Asignaturas\npor Curso",
+        emoji: "◉",
+        color: "#9D4EDD",
+        bg: "#110018"
+      },
+      {
+        id: "nota-asignatura",
+        label: "Nota Promedio\npor Asignatura",
+        emoji: "◆",
+        color: "#FF6B6B",
+        bg: "#180A0A"
+      }
+    ];
+
+    // ==============================
+    // NAVEGACIÓN
+    // ==============================
+    class NavigationManager {
+      constructor() {
+        this.stack = ["escena-bienvenida"];
+      }
+      hideAll() {
+        [
+          "escena-bienvenida",
+          "escena-menu-tablas",
+          "escena-query-builder",
+          "escena-consultas-guiadas",
+          "escena-tabla",
+          "escena-analisis-edades"
+        ].forEach(id => {
+          document.getElementById(id).setAttribute("visible", "false");
+        });
+      }
+      goTo(escena) {
+        this.hideAll();
+        document.getElementById(escena).setAttribute("visible", "true");
+        if (this.stack[this.stack.length - 1] !== escena) this.stack.push(escena);
+      }
+      goBack() {
+        if (this.stack.length > 1) this.stack.pop();
+        const prev = this.stack[this.stack.length - 1];
+        this.hideAll();
+        document.getElementById(prev).setAttribute("visible", "true");
+      }
+    }
+    const nav = new NavigationManager();
+
+    // ==============================
+    // HELPERS
+    // ==============================
+    function puedeEjecutarAccion(action) {
+      if (accionesEnProgreso.has(action)) return false;
+      accionesEnProgreso.add(action);
+      setTimeout(() => accionesEnProgreso.delete(action), 250);
+      return true;
+    }
+
+    function limpiarEntidad(id) {
+      const el = document.getElementById(id);
+      if (el) el.innerHTML = "";
+      return el;
+    }
+
+    function normalizeText(v) {
+      return String(v ?? "").trim();
+    }
+
+    function hslToHex(h, s, l) {
+      s /= 100; l /= 100;
+      const a = s * Math.min(l, 1 - l);
+      const f = n => {
+        const k = (n + h / 30) % 12;
+        const c = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
+        return Math.round(255 * c).toString(16).padStart(2, "0");
+      };
+      return `#${f(0)}${f(8)}${f(4)}`;
+    }
+
+    function crearBoton(label, action, param, bg = "#111", color = "#FF00FF", width = 5) {
+      const e = document.createElement("a-entity");
+      const pAttr = param !== undefined ? `data-param="${String(param).replace(/"/g, "&quot;")}"` : "";
+      e.innerHTML = `
+        <a-box class="clickable" interactable width="${width}" height="1.1" depth="0.4"
+               material="color: ${bg}; emissive: ${color}; emissiveIntensity: 0.24"
+               data-action="${action}" ${pAttr}>
+          <a-text value="${label}" align="center" position="0 0 0.22" width="8" color="${color}" wrap-count="20"></a-text>
+        </a-box>
+      `;
+      return e;
+    }
+
+    function layoutBotones(cont, opciones, opts = {}) {
+      const gapX = opts.gapX || 3.4;
+      const gapY = opts.gapY || 1.5;
+      const maxCols = opts.maxCols || 4;
+      if (!opciones.length) return { rows: 0 };
+
+      const cols = Math.min(maxCols, opciones.length);
+      opciones.forEach((op, i) => {
+        const row = Math.floor(i / cols);
+        const col = i % cols;
+        const x = (col - (cols - 1) / 2) * gapX;
+        const y = -row * gapY;
+
+        const ent = document.createElement("a-entity");
+        ent.setAttribute("position", `${x} ${y} 0`);
+
+        ent.innerHTML = `
+          <a-box class="clickable" interactable width="${op.w || 3.2}" height="${op.h || 1.1}" depth="0.35"
+                 material="color: #0a1020; emissive: ${op.emissive || "#00E5FF"}; emissiveIntensity: ${op.emissive ? 0.22 : 0.12}"
+                 data-action="${op.action}" ${op.param !== undefined ? `data-param="${String(op.param).replace(/"/g, "&quot;")}"` : ""}>
+            <a-text value="${op.label}" align="center" position="0 0 0.19"
+                    width="${op.tw || 5}" color="${op.textColor || "#00E5FF"}" wrap-count="${op.wrap || 16}"></a-text>
+          </a-box>
+        `;
+        cont.appendChild(ent);
+      });
+
+      return { rows: Math.ceil(opciones.length / cols) };
+    }
+
+    function parseApiArray(raw) {
+      if (Array.isArray(raw)) return raw;
+      if (Array.isArray(raw?.data)) return raw.data;
+      if (Array.isArray(raw?.items)) return raw.items;
+      return [];
+    }
+
+    // ==============================
+    // ESTRELLAS + MOVIMIENTO RIG
+    // ==============================
+    function generarEstrellas() {
+      const starsContainer = document.querySelector("#stars");
+      for (let i = 0; i < 150; i++) {
+        const star = document.createElement("a-sphere");
+        star.setAttribute("radius", Math.random() * 0.12);
+        star.setAttribute("color", "#FFF");
+        star.setAttribute("position", `${Math.random() * 220 - 110} ${Math.random() * 120} ${Math.random() * 220 - 110}`);
+        star.setAttribute("opacity", Math.random() * 0.8 + 0.2);
+        starsContainer.appendChild(star);
+      }
+    }
+    generarEstrellas();
+
+    const rig = document.querySelector("#rig");
+    let rigPos = { x: 7, y: 3, z: 8 };
+    let leftJoystick = { x: 0, y: 0 };
+    let rightJoystick = { x: 0, y: 0 };
+
+    document.querySelector("#leftController")?.addEventListener("thumbstickmoved", (e) => { leftJoystick = e.detail; });
+    document.querySelector("#rightController")?.addEventListener("thumbstickmoved", (e) => { rightJoystick = e.detail; });
+
+    setInterval(() => {
+      rigPos.x += (leftJoystick.x || 0) * 0.1;
+      rigPos.z += (leftJoystick.y || 0) * 0.1;
+      rigPos.y += (rightJoystick.y || 0) * 0.05;
+      rig.setAttribute("position", `${rigPos.x} ${rigPos.y} ${rigPos.z}`);
+    }, 30);
+
+    // ==============================
+    // ROUTER DE ACCIONES
+    // ==============================
+    function handleClickAction(action, param) {
+      if (!puedeEjecutarAccion(action)) return;
+
+      if (action === "volver") return nav.goBack();
+
+      if (action === "mostrarMenuTablas") return mostrarMenuTablas();
+      if (action === "cargarTabla") return cargarTabla(param);
+      if (action === "cambiarPagina") return cambiarPagina(parseInt(param, 10));
+
+      if (action === "iniciarQueryBuilder") return iniciarQueryBuilder();
+      if (action === "qb_op") return qb_selOp(param);
+      if (action === "qb_tabla") return qb_selTabla(param);
+      if (action === "qb_col") return qb_selCol(param);
+      if (action === "qb_skip") return qb_skip();
+      if (action === "qb_where_col") return qb_selWhereCol(param);
+      if (action === "qb_where_val") return qb_selWhereVal(param);
+      if (action === "qb_order_col") return qb_selOrderCol(param);
+      if (action === "qb_toggle_order_dir") return qb_toggleOrderDir();
+      if (action === "qb_ejecutar") return qb_ejecutar();
+
+      if (action === "iniciarConsultasGuiadas") return iniciarConsultasGuiadas();
+      if (action === "ejecutarConsultaGuiada") return ejecutarConsultaGuiada(param);
+    }
+
+    // ==============================
+    // ESCENA MENÚ TABLAS
+    // ==============================
+    function mostrarMenuTablas() {
+      nav.goTo("escena-menu-tablas");
+      const menu = limpiarEntidad("menu-tablas");
+
+      tablas.forEach((nombre, index) => {
+        const angle = (index / tablas.length) * Math.PI * 2;
+        const x = Math.cos(angle) * 8;
+        const z = Math.sin(angle) * 8;
+
+        const btn = document.createElement("a-entity");
+        btn.setAttribute("position", `${x} 3 ${z}`);
+        btn.innerHTML = `
+          <a-box class="clickable" interactable width="4.2" height="1.2" depth="0.5" color="#222"
+                 data-action="cargarTabla" data-param="${nombre}">
+            <a-text value="${nombre.toUpperCase()}" align="center" position="0 0 0.26" width="7" color="#00E5FF"></a-text>
+          </a-box>
+        `;
+        menu.appendChild(btn);
+      });
+    }
+
+    // ==============================
+    // QUERY BUILDER
+    // ==============================
+    function iniciarQueryBuilder() {
+      nav.goTo("escena-query-builder");
+      queryState = {
+        step: 1,
+        operation: "",
+        table: "",
+        columns: [],
+        whereCol: "",
+        whereVal: "",
+        whereOptions: [],
+        orderCol: "",
+        orderDir: "ASC"
+      };
+      limpiarEntidad("query-hint-container");
+      actualizarDisplaySQL();
+      renderQBOpciones();
+    }
+
+    function actualizarDisplaySQL() {
+      let sql = "";
+      const s = queryState;
+
+      if (s.operation === "SELECT") {
+        const cols = s.columns.length ? s.columns.join(", ") : "*";
+        sql = `SELECT ${cols}`;
+        if (s.table) sql += `\nFROM ${s.table}`;
+        if (s.whereCol && s.whereVal !== "") sql += `\nWHERE ${s.whereCol} = '${s.whereVal}'`;
+        else if (s.whereCol && !s.whereVal) sql += `\nWHERE ${s.whereCol} = '...'`;
+        if (s.orderCol) sql += `\nORDER BY ${s.orderCol} ${s.orderDir}`;
+        sql += ";";
+      } else if (s.operation) {
+        sql = `${s.operation} ...`;
+      }
+
+      document.getElementById("query-display").setAttribute("value", sql || "-- Selecciona una operación");
+    }
+
+    function renderQBOpciones() {
+      const cont = limpiarEntidad("query-options-container");
+      const hint = limpiarEntidad("query-hint-container");
+      const titleEl = document.getElementById("query-step-title");
+
+      let opciones = [];
+      let extraButtons = [];
+
+      if (queryState.step === 1) {
+        titleEl.setAttribute("value", "PASO 1 · OPERACIÓN SQL");
+        opciones = ["SELECT", "INSERT", "UPDATE", "DELETE"].map((op, i) => ({
+          label: op,
+          action: "qb_op",
+          param: op,
+          emissive: ["#00E5FF", "#00FF88", "#FFB700", "#FF4444"][i],
+          textColor: ["#00E5FF", "#00FF88", "#FFB700", "#FF4444"][i]
+        }));
+      }
+      else if (queryState.step === 2) {
+        titleEl.setAttribute("value", "PASO 2 · TABLA PRINCIPAL");
+        opciones = tablas.map(t => ({ label: t.toUpperCase(), action: "qb_tabla", param: t }));
+      }
+      else if (queryState.step === 3 && queryState.operation === "SELECT") {
+        titleEl.setAttribute("value", "PASO 3 · COLUMNAS (selección múltiple)");
+        const cols = ["*", ...(schemasMock[queryState.table] || ["id", "nombre"])];
+        opciones = cols.map(c => ({
+          label: c.toUpperCase(),
+          action: "qb_col",
+          param: c,
+          emissive: queryState.columns.includes(c) ? "#FFB700" : "#00E5FF",
+          textColor: queryState.columns.includes(c) ? "#FFB700" : "#00E5FF"
+        }));
+        if (queryState.columns.length > 0) {
+          extraButtons.push({ label: "PASO 4 →", action: "qb_skip", bg: "#1A1A2E", color: "#00E5FF", w: 5 });
+        }
+      }
+      else if (queryState.step === 4) {
+        titleEl.setAttribute("value", "PASO 4 · FILTRO WHERE (opcional)");
+        const cols = schemasMock[queryState.table] || [];
+        opciones = cols.map(c => ({ label: `WHERE ${c}`, action: "qb_where_col", param: c }));
+        extraButtons.push({ label: "SALTAR WHERE", action: "qb_skip", bg: "#111", color: "#FF00FF", w: 5.3 });
+      }
+      else if (queryState.step === 4.5) {
+        titleEl.setAttribute("value", `PASO 4.5 · VALOR DE ${queryState.whereCol?.toUpperCase() || "WHERE"}`);
+        opciones = queryState.whereOptions.map((v, idx) => ({
+          label: `= '${String(v).length > 14 ? String(v).slice(0, 11) + "..." : String(v)}'`,
+          action: "qb_where_val",
+          param: String(idx)
+        }));
+        extraButtons.push({ label: "CANCELAR WHERE", action: "qb_skip", bg: "#111", color: "#FF00FF", w: 5.8 });
+      }
+      else if (queryState.step === 5) {
+        titleEl.setAttribute("value", "PASO 5 · ORDER BY (opcional)");
+        const cols = queryState.columns[0] === "*" ? (schemasMock[queryState.table] || []) : queryState.columns;
+        opciones = cols.map(c => ({ label: `ORDER ${c}`, action: "qb_order_col", param: c }));
+        extraButtons.push({
+          label: `DIRECCIÓN: ${queryState.orderDir}`,
+          action: "qb_toggle_order_dir",
+          bg: "#0E1C2B",
+          color: "#00E5FF",
+          w: 5.8
+        });
+        extraButtons.push({ label: "SALTAR ORDER", action: "qb_skip", bg: "#111", color: "#FF00FF", w: 5.2 });
+      }
+      else if (queryState.step === 6) {
+        titleEl.setAttribute("value", "✓ QUERY LISTA");
+        extraButtons.push({ label: "▶ EJECUTAR QUERY", action: "qb_ejecutar", bg: "#001800", color: "#00FF88", w: 6 });
+
+        const t = document.createElement("a-text");
+        t.setAttribute("value",
+          `Tabla: ${queryState.table.toUpperCase()}  Cols: ${queryState.columns.join(", ")}\n` +
+          `WHERE: ${queryState.whereCol || "ninguno"}  ORDER: ${queryState.orderCol ? `${queryState.orderCol} ${queryState.orderDir}` : "ninguno"}`
+        );
+        t.setAttribute("color", "#FFB700");
+        t.setAttribute("align", "center");
+        t.setAttribute("width", "10");
+        t.setAttribute("position", "0 -2 0");
+        hint.appendChild(t);
+      }
+
+      const layoutInfo = layoutBotones(cont, opciones, { maxCols: 4, gapX: 3.4, gapY: 1.5 });
+      let y = -(Math.max(layoutInfo.rows, 1) * 1.5) - 0.2;
+
+      extraButtons.forEach(btn => {
+        const b = crearBoton(btn.label, btn.action, undefined, btn.bg, btn.color, btn.w || 5);
+        b.setAttribute("position", `0 ${y} 0`);
+        cont.appendChild(b);
+        y -= 1.35;
+      });
+
+      const cancel = document.createElement("a-entity");
+      cancel.setAttribute("position", `0 ${y} 0`);
+      cancel.innerHTML = `
+        <a-box class="clickable" interactable color="#FF6B00" depth="0.4" width="4.1" height="0.8" data-action="volver">
+          <a-text value="← CANCELAR" align="center" position="0 0 0.22" width="6.1" color="#FFF"></a-text>
+        </a-box>
+      `;
+      cont.appendChild(cancel);
+    }
+
+    function qb_selOp(op) {
+      queryState.operation = op;
+      queryState.step = op === "SELECT" ? 2 : 6;
+      actualizarDisplaySQL();
+      renderQBOpciones();
+    }
+
+    async function qb_selTabla(tabla) {
+      queryState.table = tabla;
+      document.getElementById("query-step-title").setAttribute("value", "CARGANDO COLUMNAS...");
+      limpiarEntidad("query-options-container");
+
+      try {
+        const res = await fetch(`${API_URL}/${tabla}?limit=1`);
+        const raw = await res.json();
+        const arr = parseApiArray(raw);
+        if (arr.length) schemasMock[tabla] = Object.keys(arr[0]);
+      } catch (e) {
+        console.warn("No se pudieron cargar columnas en vivo. Se usa schema local.");
+      }
+
+      queryState.step = queryState.operation === "SELECT" ? 3 : 6;
+      actualizarDisplaySQL();
+      renderQBOpciones();
+    }
+
+    function qb_selCol(col) {
+      if (col === "*") {
+        queryState.columns = ["*"];
+      } else {
+        queryState.columns = queryState.columns.filter(c => c !== "*");
+        if (queryState.columns.includes(col)) queryState.columns = queryState.columns.filter(c => c !== col);
+        else queryState.columns.push(col);
+      }
+      actualizarDisplaySQL();
+      renderQBOpciones();
+    }
+
+    async function qb_selWhereCol(col) {
+      queryState.whereCol = col;
+      queryState.whereVal = "";
+      document.getElementById("query-step-title").setAttribute("value", "CARGANDO VALORES...");
+      limpiarEntidad("query-options-container");
+
+      try {
+        const url = `${API_URL}/${queryState.table}?select=${encodeURIComponent(col)}&${encodeURIComponent(col)}=not.is.null&limit=1000`;
+        const res = await fetch(url);
+        const raw = await res.json();
+        const arr = parseApiArray(raw);
+
+        const vals = [...new Set(
+          arr.map(r => normalizeText(r[col])).filter(v => v !== "")
+        )];
+
+        queryState.whereOptions = vals.slice(0, 20);
+      } catch {
+        queryState.whereOptions = [];
+      }
+
+      if (!queryState.whereOptions.length) queryState.whereOptions = ["Sin datos"];
+      queryState.step = 4.5;
+      actualizarDisplaySQL();
+      renderQBOpciones();
+    }
+
+    function qb_selWhereVal(idxStr) {
+      const idx = parseInt(idxStr, 10);
+      queryState.whereVal = queryState.whereOptions[idx] ?? "";
+      queryState.step = 5;
+      actualizarDisplaySQL();
+      renderQBOpciones();
+    }
+
+    function qb_selOrderCol(col) {
+      queryState.orderCol = col;
+      queryState.step = 6;
+      actualizarDisplaySQL();
+      renderQBOpciones();
+    }
+
+    function qb_toggleOrderDir() {
+      queryState.orderDir = queryState.orderDir === "ASC" ? "DESC" : "ASC";
+      actualizarDisplaySQL();
+      renderQBOpciones();
+    }
+
+    function qb_skip() {
+      if (queryState.step === 4.5) {
+        queryState.whereCol = "";
+        queryState.whereVal = "";
+        queryState.step = 5;
+      } else {
+        queryState.step = Math.min(queryState.step + 1, 6);
+      }
+      actualizarDisplaySQL();
+      renderQBOpciones();
+    }
+
+    async function qb_ejecutar() {
+      nav.goTo("escena-tabla");
+      paginaActual = 0;
+      tablaActual = queryState.table;
+
+      const titulo = `${queryState.operation} ${queryState.table.toUpperCase()}`;
+      document.getElementById("texto-tabla").setAttribute("value", titulo);
+
+      try {
+        const params = new URLSearchParams();
+
+        if (queryState.columns.length && queryState.columns[0] !== "*") {
+          params.set("select", queryState.columns.join(","));
+        }
+
+        if (queryState.whereCol && queryState.whereVal !== "" && queryState.whereVal !== undefined) {
+          params.set(queryState.whereCol, `eq.${queryState.whereVal}`);
+        }
+
+        if (queryState.orderCol) {
+          params.set("order", `${queryState.orderCol}.${queryState.orderDir.toLowerCase()}`);
+        }
+
+        params.set("limit", "1000");
+
+        const url = `${API_URL}/${queryState.table}?${params.toString()}`;
+        const res = await fetch(url);
+        const raw = await res.json();
+
+        if (!res.ok) {
+          console.error("Error PostgREST:", raw);
+          datosActuales = [];
+        } else {
+          datosActuales = parseApiArray(raw);
+        }
+      } catch (e) {
+        console.error("Error de red:", e);
+        datosActuales = [];
+      }
+
+      renderizarTabla();
+    }
+
+    // ==============================
+    // CONSULTAS GUIADAS — REDISEÑADO
+    // ==============================
+    function iniciarConsultasGuiadas() {
+      nav.goTo("escena-consultas-guiadas");
+      const cont = limpiarEntidad("consultas-guiadas-container");
+
+      // Layout 3 columnas × 2 filas para las 6 tarjetas
+      const cols = 3;
+      const gapX = 5.8;
+      const gapY = 3.2;
+
+      CONSULTAS_GUIADAS.forEach((q, i) => {
+        const row = Math.floor(i / cols);
+        const col = i % cols;
+        const x = (col - (cols - 1) / 2) * gapX;
+        const y = -row * gapY;
+
+        const card = document.createElement("a-entity");
+        card.setAttribute("position", `${x} ${y} 0`);
+        // Flotación suave con offset diferente por tarjeta
+        card.setAttribute("float-bob", `amp: 0.1; speed: 0.9; offset: ${i * 1.1}`);
+
+        card.innerHTML = `
+          <!-- Fondo de la tarjeta -->
+          <a-box class="clickable" interactable
+                 width="5.2" height="2.6" depth="0.28"
+                 material="color: ${q.bg}; emissive: ${q.color}; emissiveIntensity: 0.10; opacity: 0.96"
+                 data-action="ejecutarConsultaGuiada"
+                 data-param="${q.id}">
+          </a-box>
+
+          <!-- Borde superior de color -->
+          <a-box width="5.2" height="0.06" depth="0.30" position="0 1.27 0"
+                 material="color: ${q.color}; emissive: ${q.color}; emissiveIntensity: 1; opacity: 0.85"></a-box>
+
+          <!-- Icono / símbolo decorativo -->
+          <a-text value="${q.emoji}" align="center" position="0 0.62 0.16"
+                  width="3.4" color="${q.color}"></a-text>
+
+          <!-- Título -->
+          <a-text value="${q.label}" align="center" position="0 -0.12 0.16"
+                  width="6.8" color="#FFFFFF" wrap-count="22"></a-text>
+
+          <!-- Línea decorativa inferior sutil -->
+          <a-box width="3.2" height="0.03" depth="0.29" position="0 -1.06 0"
+                 material="color: ${q.color}; emissive: ${q.color}; emissiveIntensity: 0.5; opacity: 0.35"></a-box>
+        `;
+
+        cont.appendChild(card);
+      });
+    }
+
+    // ==============================
+    // DATA HELPERS
+    // ==============================
+    async function fetchAll(endpoint, select = "*") {
+      try {
+        const url = `${API_URL}/${endpoint}?select=${encodeURIComponent(select)}&limit=2000`;
+        const res = await fetch(url);
+        const raw = await res.json();
+        if (!res.ok) throw new Error(JSON.stringify(raw));
+        return parseApiArray(raw);
+      } catch (e) {
+        console.error(`Error fetchAll(${endpoint}):`, e);
+        return [];
+      }
+    }
+
+    function toNum(v) {
+      const n = Number(v);
+      return Number.isFinite(n) ? n : NaN;
+    }
+
+    function groupCount(rows, key) {
+      const out = {};
+      rows.forEach(r => {
+        const k = normalizeText(r[key]) || "N/D";
+        out[k] = (out[k] || 0) + 1;
+      });
+      return out;
+    }
+
+    function groupAvg(rows, keyGroup, keyValue) {
+      const acc = {};
+      rows.forEach(r => {
+        const g = normalizeText(r[keyGroup]) || "N/D";
+        const n = toNum(r[keyValue]);
+        if (!Number.isFinite(n)) return;
+        if (!acc[g]) acc[g] = { sum: 0, count: 0 };
+        acc[g].sum += n;
+        acc[g].count += 1;
+      });
+      const out = {};
+      Object.keys(acc).forEach(g => {
+        out[g] = Number((acc[g].sum / acc[g].count).toFixed(2));
+      });
+      return out;
+    }
+
+    function statsFromValues(values) {
+      const nums = values.map(toNum).filter(n => Number.isFinite(n));
+      if (!nums.length) {
+        return { min: "--", max: "--", avg: "--", total: 0 };
+      }
+      const min = Math.min(...nums);
+      const max = Math.max(...nums);
+      const avg = (nums.reduce((a, b) => a + b, 0) / nums.length).toFixed(2);
+      return { min, max, avg, total: nums.length };
+    }
+
+    async function ejecutarConsultaGuiada(tipo) {
+      ultimaEscenaDeAnalisis = "escena-consultas-guiadas";
+      nav.goTo("escena-analisis-edades");
+
+      let titulo = "ANÁLISIS";
+      let datosGrafico = {};
+      let stats = { min: "--", max: "--", avg: "--", total: 0 };
+      let tipoValor = "count";
+
+      if (tipo === "edad-distribucion") {
+        titulo = "DISTRIBUCIÓN DE EDADES";
+        const rows = await fetchAll("estudiantes", "edad");
+        datosGrafico = groupCount(rows, "edad");
+        const s = statsFromValues(rows.map(r => r.edad));
+        stats = { ...s, total: rows.length };
+        tipoValor = "count";
+      }
+      else if (tipo === "edad-prom-curso") {
+        titulo = "EDAD (MIN / MAX / PROM)";
+        const rows = await fetchAll("estudiantes", "edad");
+        const s = statsFromValues(rows.map(r => r.edad));
+        datosGrafico = {
+          "MIN": Number.isFinite(Number(s.min)) ? Number(s.min) : 0,
+          "PROM": Number.isFinite(Number(s.avg)) ? Number(s.avg) : 0,
+          "MAX": Number.isFinite(Number(s.max)) ? Number(s.max) : 0
         };
+        stats = { ...s, total: rows.length };
+        tipoValor = "num";
+      }
+      else if (tipo === "prof-departamento") {
+        titulo = "PROFESORES POR DEPARTAMENTO";
+        const rows = await fetchAll("profesores", "departamento");
+        datosGrafico = groupCount(rows, "departamento");
+        const counts = Object.values(datosGrafico);
+        const s = statsFromValues(counts);
+        stats = { ...s, total: rows.length };
+        tipoValor = "count";
+      }
+      else if (tipo === "salario-departamento") {
+        titulo = "SALARIO PROMEDIO POR DEPTO.";
+        const rows = await fetchAll("profesores", "departamento,salario");
+        datosGrafico = groupAvg(rows, "departamento", "salario");
+        const vals = Object.values(datosGrafico);
+        const s = statsFromValues(vals);
+        stats = { ...s, total: rows.length };
+        tipoValor = "num";
+      }
+      else if (tipo === "asignaturas-curso") {
+        titulo = "ASIGNATURAS POR CURSO";
+        const rows = await fetchAll("asignaturas", "curso");
+        datosGrafico = groupCount(rows, "curso");
+        const vals = Object.values(datosGrafico);
+        const s = statsFromValues(vals);
+        stats = { ...s, total: rows.length };
+        tipoValor = "count";
+      }
+      else if (tipo === "nota-asignatura") {
+        titulo = "NOTA PROMEDIO POR ASIGNATURA";
+        const rows = await fetchAll("matriculas", "idasignatura,notanumerica");
+        datosGrafico = groupAvg(rows, "idasignatura", "notanumerica");
+        const vals = Object.values(datosGrafico);
+        const s = statsFromValues(vals);
+        stats = { ...s, total: rows.length };
+        tipoValor = "num";
+      }
 
-        function handleClickAction(action, param) {
-            if (!puedeEjecutarAccion(action)) return;
-            console.log('✅ Acción ejecutada:', action, 'Param:', param);
+      if (!Object.keys(datosGrafico).length) {
+        datosGrafico = { "SIN DATOS": 0 };
+      }
 
-            if (action === 'mostrarMenuTablas') mostrarMenuTablas();
-            if (action === 'cargarTabla') cargarTabla(param);
-            if (action === 'cambiarPagina') cambiarPagina(parseInt(param));
-            if (action === 'analizarEdades') analizarEdades();
-            if (action === 'volver') nav.goBack();
-            
-            // Acciones del Query Builder
-            if (action === 'iniciarQueryBuilder') iniciarQueryBuilder();
-            if (action === 'querySelectOp') querySelectOp(param);
-            if (action === 'querySelectTable') querySelectTable(param);
-            if (action === 'querySelectCol') querySelectCol(param);
-            if (action === 'queryEjecutar') ejecutarQuery();
-        }
+      document.getElementById("titulo-analisis").setAttribute("value", titulo);
+      document.getElementById("stat-edad-min").setAttribute("value", `MIN: ${stats.min}`);
+      document.getElementById("stat-edad-max").setAttribute("value", `MÁX: ${stats.max}`);
+      document.getElementById("stat-edad-prom").setAttribute("value", `PROM: ${stats.avg}`);
+      document.getElementById("stat-total").setAttribute("value", `TOTAL: ${stats.total}`);
 
-        // ============ LÓGICA DEL QUERY BUILDER ============
-        function iniciarQueryBuilder() {
-            nav.goTo('escena-query-builder');
-            queryState = { step: 1, operation: '', table: '', columns: [] };
-            actualizarDisplayQuery();
-            renderQueryOptions();
-        }
+      renderGrafico3D("grafico-edades", datosGrafico, tipoValor);
+    }
 
-        function actualizarDisplayQuery() {
-            let q = "";
-            if (queryState.operation) q += queryState.operation + " ";
-            if (queryState.columns.length > 0) {
-                q += queryState.columns.join(", ") + " ";
-            } else if (queryState.operation === 'SELECT') {
-                q += "... ";
-            }
-            if (queryState.table) q += "\nFROM " + queryState.table;
-            
-            document.getElementById('query-display').setAttribute('value', q || "Esperando instrucción...");
-        }
+    // ==============================
+    // CARGA TABLA DIRECTA
+    // ==============================
+    async function cargarTabla(nombre) {
+      nav.goTo("escena-tabla");
+      tablaActual = nombre;
+      paginaActual = 0;
+      document.getElementById("texto-tabla").setAttribute("value", `SELECT ${nombre.toUpperCase()}`);
 
-        function querySelectOp(op) {
-            queryState.operation = op;
-            queryState.step = 2; // Pasar a elegir tabla
-            actualizarDisplayQuery();
-            renderQueryOptions();
-        }
+      try {
+        const res = await fetch(`${API_URL}/${nombre}?limit=1000`);
+        const raw = await res.json();
+        if (!res.ok) throw new Error(JSON.stringify(raw));
+        datosActuales = parseApiArray(raw);
+      } catch (e) {
+        console.error(e);
+        datosActuales = [];
+      }
 
-        async function querySelectTable(tabla) {
-            queryState.table = tabla;
-            
-            // Mostramos que estamos cargando las columnas reales
-            document.getElementById('query-step-title').setAttribute('value', 'CARGANDO COLUMNAS...');
-            document.getElementById('query-options-container').innerHTML = '';
-            
-            try {
-                // Hacemos una petición rápida a tu API para obtener los datos de esa tabla
-                const res = await fetch(`${API_URL}/${tabla}`);
-                const data = await res.json();
-                
-                // Si la tabla tiene datos, extraemos los nombres de las columnas del primer registro
-                if (data && data.length > 0) {
-                    schemasMock[tabla] = Object.keys(data[0]);
-                }
-            } catch (e) {
-                console.warn("No se pudo conectar a la API, usando datos por defecto.", e);
-            }
+      renderizarTabla();
+    }
 
-            queryState.step = 3; // Pasar a elegir columnas
-            actualizarDisplayQuery();
-            renderQueryOptions();
-        }
+    function renderizarTabla() {
+      const cuerpo = limpiarEntidad("tabla-cuerpo");
+      const cabecera = limpiarEntidad("tabla-cabecera");
 
-        function querySelectCol(col) {
-            if (col === '*') {
-                queryState.columns = ['*'];
-                queryState.step = 4; // Listo para ejecutar
-            } else {
-                if (queryState.columns.includes('*')) queryState.columns = [];
-                if (!queryState.columns.includes(col)) queryState.columns.push(col);
-                queryState.step = 4; // Muestra botón ejecutar pero permite seguir sumando
-            }
-            actualizarDisplayQuery();
-            renderQueryOptions();
-        }
+      let columnas = [];
+      if (datosActuales.length) columnas = Object.keys(datosActuales[0]);
+      else if (queryState.columns.length && queryState.columns[0] !== "*") columnas = queryState.columns;
+      else columnas = schemasMock[tablaActual] || [];
 
-        function ejecutarQuery() {
-            nav.goTo('escena-tabla');
-            document.getElementById('texto-tabla').setAttribute('value', `QUERY: ${queryState.table}`);
-            tablaActual = queryState.table;
-            paginaActual = 0;
-            
-            fetch(`${API_URL}/${queryState.table}`)
-                .then(res => res.json())
-                .catch(e => {
-                    console.warn("Usando datos Mock porque falló el fetch");
-                    return Array.from({length: 12}, (_, i) => ({
-                        id: i+1, nombre: `Persona ${i+1}`, edad: 18 + (i%5), carrera: 'Ingeniería', departamento: 'Ciencias'
-                    }));
-                })
-                .then(data => {
-                    if (queryState.columns[0] !== '*') {
-                        datosActuales = data.map(row => {
-                            let newRow = {};
-                            queryState.columns.forEach(c => newRow[c] = row[c] || 'N/A');
-                            return newRow;
-                        });
-                    } else {
-                        datosActuales = data;
-                    }
-                    
-                    document.getElementById('btn-analizar-container').setAttribute('visible', queryState.columns.includes('edad') || queryState.columns[0] === '*' ? 'true' : 'false');
-                    renderizar();
-                });
-        }
+      if (!columnas.length) return;
 
-        function renderQueryOptions() {
-            const container = document.getElementById('query-options-container');
-            const title = document.getElementById('query-step-title');
-            container.innerHTML = '';
+      const espaciadoX = 3.2;
+      const cabeceraBG = document.createElement("a-entity");
+      cabeceraBG.setAttribute("position", "0 0 -0.3");
 
-            let opciones = [];
-            let action = '';
+      columnas.forEach((col, i) => {
+        const box = document.createElement("a-box");
+        box.setAttribute("width", "3");
+        box.setAttribute("height", "0.85");
+        box.setAttribute("depth", "0.4");
+        box.setAttribute("position", `${i * espaciadoX} 0 0`);
+        box.setAttribute("color", colores.cabecera);
+        box.setAttribute("opacity", "0.9");
 
-            if (queryState.step === 1) {
-                title.setAttribute('value', 'PASO 1: SELECCIONA OPERACION');
-                opciones = ['SELECT'];
-                action = 'querySelectOp';
-            } 
-            else if (queryState.step === 2) {
-                title.setAttribute('value', 'PASO 2: SELECCIONA TABLA');
-                opciones = tablas;
-                action = 'querySelectTable';
-            }
-            else if (queryState.step === 3 || queryState.step === 4) {
-                title.setAttribute('value', 'PASO 3: SELECCIONA COLUMNAS');
-                opciones = ['*'].concat(schemasMock[queryState.table] || ['id', 'nombre']);
-                action = 'querySelectCol';
+        const txt = document.createElement("a-text");
+        txt.setAttribute("value", col.toUpperCase());
+        txt.setAttribute("position", `${i * espaciadoX} 0 0.25`);
+        txt.setAttribute("color", colores.cabeceraTexto);
+        txt.setAttribute("width", "6.6");
+        txt.setAttribute("align", "center");
 
-                // Si ya elegimos columnas, mostramos el botón de ejecutar
-                if (queryState.columns.length > 0) {
-                    const btnExec = document.createElement('a-entity');
-                    // Ajustado para que aparezca por encima del botón Cancelar
-                    btnExec.setAttribute('position', `0 -1.5 0`);
-                    btnExec.innerHTML = `
-                        <a-box interactable class="clickable" color="#00FF88" width="4" height="1" data-action="queryEjecutar">
-                            <a-text value="EJECUTAR QUERY" align="center" position="0 0 0.51" color="#000" font-weight="bold" font-size="60"></a-text>
-                        </a-box>`;
-                    container.appendChild(btnExec);
-                }
-            }
+        cabeceraBG.appendChild(box);
+        cabecera.appendChild(txt);
+      });
+      cabecera.appendChild(cabeceraBG);
 
-            opciones.forEach((op, index) => {
-                const xPos = (index - (opciones.length-1)/2) * 3;
-                const btn = document.createElement('a-entity');
-                btn.setAttribute('position', `${xPos} 0 0`);
-                
-                const isSelected = queryState.columns.includes(op);
-                const color = isSelected ? '#FF00FF' : '#222';
-                
-                btn.innerHTML = `
-                    <a-box interactable class="clickable" width="2.5" height="1" depth="0.3" color="${color}" data-action="${action}" data-param="${op}">
-                        <a-text value="${op.toUpperCase()}" align="center" position="0 0 0.16" width="6" color="#00E5FF" font-size="50"></a-text>
-                    </a-box>`;
-                container.appendChild(btn);
-            });
-        }
+      if (!datosActuales.length) {
+        const msg = document.createElement("a-text");
+        msg.setAttribute("value", "0 RESULTADOS");
+        msg.setAttribute("position", `${((columnas.length - 1) * espaciadoX) / 2} -1.5 0.25`);
+        msg.setAttribute("color", "#FF4444");
+        msg.setAttribute("width", "10");
+        msg.setAttribute("align", "center");
+        cuerpo.appendChild(msg);
+        document.getElementById("label-pagina").setAttribute("value", "PÁG.\n0 / 0");
+        return;
+      }
 
-        // ============ GESTOR DE NAVEGACIÓN ============
-        class NavigationManager {
-            constructor() { this.stack = ['escena-bienvenida']; }
-            goTo(escena) {
-                this.hideAll();
-                document.querySelector(`#${escena}`).setAttribute('visible', 'true');
-                if (this.stack[this.stack.length - 1] !== escena) this.stack.push(escena);
-            }
-            goBack() {
-                if (this.stack.length > 1) {
-                    this.stack.pop();
-                    const prev = this.stack[this.stack.length - 1];
-                    this.hideAll();
-                    document.querySelector(`#${prev}`).setAttribute('visible', 'true');
-                }
-            }
-            hideAll() {
-                ['escena-bienvenida', 'escena-menu-tablas', 'escena-query-builder', 'escena-tabla', 'escena-analisis-edades'].forEach(id => {
-                    document.querySelector(`#${id}`).setAttribute('visible', 'false');
-                });
-            }
-        }
-        const nav = new NavigationManager();
+      const totalPages = Math.max(1, Math.ceil(datosActuales.length / filasPorPagina));
+      if (paginaActual >= totalPages) paginaActual = totalPages - 1;
 
-        const tablas = ['estudiantes', 'profesores', 'asignaturas', 'matriculas'];
-        const API_URL = "http://192.168.1.136:3000";
-        let datosActuales = [];
-        let paginaActual = 0;
-        const filasPorPagina = 6;
-        let tablaActual = '';
+      const slice = datosActuales.slice(paginaActual * filasPorPagina, (paginaActual + 1) * filasPorPagina);
 
-        const accionesEnProgreso = new Set();
-        function puedeEjecutarAccion(action) {
-            if (accionesEnProgreso.has(action)) return false;
-            accionesEnProgreso.add(action);
-            setTimeout(() => accionesEnProgreso.delete(action), 300);
-            return true;
-        }
+      slice.forEach((fila, rowI) => {
+        const filaEnt = document.createElement("a-entity");
+        filaEnt.setAttribute("position", `0 ${-rowI * 1.08} 0`);
 
-        const colores = { celda: '#1a1a2e', celdaTexto: '#00E5FF', cabecera: '#0f3460', cabeceraTexto: '#00FF88', fila_alt: '#16213e', borde: '#00E5FF' };
+        columnas.forEach((col, colI) => {
+          const box = document.createElement("a-box");
+          box.setAttribute("width", "3");
+          box.setAttribute("height", "0.9");
+          box.setAttribute("depth", "0.4");
+          box.setAttribute("position", `${colI * espaciadoX} 0 0`);
+          box.setAttribute("color", rowI % 2 === 0 ? colores.celda : colores.fila_alt);
+          box.setAttribute("opacity", "0.86");
 
-        function generarEstrellas() {
-            const starsContainer = document.querySelector('#stars');
-            for (let i = 0; i < 100; i++) {
-                const star = document.createElement('a-sphere');
-                star.setAttribute('radius', Math.random() * 0.2);
-                star.setAttribute('color', '#FFF');
-                star.setAttribute('position', `${Math.random() * 200 - 100} ${Math.random() * 100} ${Math.random() * 200 - 100}`);
-                star.setAttribute('opacity', Math.random() * 0.8 + 0.2);
-                starsContainer.appendChild(star);
-            }
-        }
-        generarEstrellas();
+          const txt = document.createElement("a-text");
+          let val = fila[col] ?? "-";
+          val = String(val);
+          if (val.length > 20) val = val.slice(0, 17) + "...";
+          txt.setAttribute("value", val);
+          txt.setAttribute("position", `${colI * espaciadoX} 0 0.25`);
+          txt.setAttribute("width", "5.6");
+          txt.setAttribute("color", colores.celdaTexto);
+          txt.setAttribute("align", "center");
 
-        const rig = document.querySelector('#rig');
-        let rigPos = { x: 7, y: 3, z: 8 };
-        let leftJoystick = { x: 0, y: 0 }, rightJoystick = { x: 0, y: 0 };
-        document.querySelector('#leftController')?.addEventListener('thumbstickmoved', (e) => { leftJoystick = e.detail; });
-        document.querySelector('#rightController')?.addEventListener('thumbstickmoved', (e) => { rightJoystick = e.detail; });
-        setInterval(() => {
-            rigPos.x += leftJoystick.x * 0.1; rigPos.z += leftJoystick.y * 0.1; rigPos.y += rightJoystick.y * 0.05;
-            rig.setAttribute('position', `${rigPos.x} ${rigPos.y} ${rigPos.z}`);
-        }, 30);
+          filaEnt.appendChild(box);
+          filaEnt.appendChild(txt);
+        });
 
-        function mostrarMenuTablas() {
-            nav.goTo('escena-menu-tablas');
-            const menu = document.getElementById('menu-tablas');
-            menu.innerHTML = '';
-            tablas.forEach((nombre, index) => {
-                const angle = (index / tablas.length) * Math.PI * 2;
-                const btn = document.createElement('a-entity');
-                btn.setAttribute('position', `${Math.cos(angle) * 8} 3 ${Math.sin(angle) * 8}`);
-                btn.innerHTML = `<a-box interactable class="clickable" width="4" height="1.2" depth="0.5" color="#222" data-action="cargarTabla" data-param="${nombre}"><a-text value="${nombre.toUpperCase()}" align="center" position="0 0 0.3" width="8" color="#00E5FF" font-size="80" font-weight="bold"></a-text></a-box>`;
-                menu.appendChild(btn);
-            });
-        }
+        cuerpo.appendChild(filaEnt);
+      });
 
-        async function cargarTabla(nombre) {
-            nav.goTo('escena-tabla');
-            document.getElementById('texto-tabla').setAttribute('value', nombre.toUpperCase());
-            tablaActual = nombre;
-            paginaActual = 0;
-            document.getElementById('btn-analizar-container').setAttribute('visible', nombre === 'estudiantes' ? 'true' : 'false');
-            try {
-                const res = await fetch(`${API_URL}/${nombre}`);
-                datosActuales = await res.json();
-                renderizar();
-            } catch (e) { console.error("Error:", e); }
-        }
+      document.getElementById("label-pagina").setAttribute("value", `PÁG.\n${paginaActual + 1} / ${totalPages}`);
+    }
 
-        function renderizar() {
-            const cuerpo = document.getElementById('tabla-cuerpo');
-            const cabecera = document.getElementById('tabla-cabecera');
-            cuerpo.innerHTML = ''; cabecera.innerHTML = '';
-            if (!datosActuales.length) return;
+    function cambiarPagina(delta) {
+      const totalPages = Math.ceil(datosActuales.length / filasPorPagina);
+      if (!totalPages) return;
+      const next = paginaActual + delta;
+      if (next >= 0 && next < totalPages) {
+        paginaActual = next;
+        renderizarTabla();
+      }
+    }
 
-            const columnas = Object.keys(datosActuales[0]);
-            const espaciadoX = 3.2;
-            const cabeceraBG = document.createElement('a-entity');
-            cabeceraBG.setAttribute('position', '0 0 -0.3');
-            
-            columnas.forEach((col, index) => {
-                const caja = document.createElement('a-box');
-                caja.setAttribute('width', '3'); caja.setAttribute('height', '0.85'); caja.setAttribute('depth', '0.4'); caja.setAttribute('position', `${index * espaciadoX} 0 0`); caja.setAttribute('color', colores.cabecera);
-                const txt = document.createElement('a-text');
-                txt.setAttribute('value', col.toUpperCase()); txt.setAttribute('position', `${index * espaciadoX} 0 0.25`); txt.setAttribute('color', colores.cabeceraTexto); txt.setAttribute('width', '6'); txt.setAttribute('font-size', '70'); txt.setAttribute('align', 'center');
-                cabeceraBG.appendChild(caja); cabecera.appendChild(txt);
-            });
-            cabecera.appendChild(cabeceraBG);
+    // ==============================
+    // GRÁFICA 3D — con animación por barra
+    // ==============================
+    function renderGrafico3D(containerId, datos, tipo = "count") {
+      const cont = document.getElementById(containerId);
+      if (!cont) return;
+      cont.innerHTML = "";
 
-            const slice = datosActuales.slice(paginaActual * filasPorPagina, (paginaActual + 1) * filasPorPagina);
-            slice.forEach((fila, i) => {
-                const filaEnt = document.createElement('a-entity');
-                filaEnt.setAttribute('position', `0 ${-i * 1.1} 0`);
-                columnas.forEach((col, index) => {
-                    const cajaFila = document.createElement('a-box');
-                    cajaFila.setAttribute('width', '3'); cajaFila.setAttribute('height', '0.9'); cajaFila.setAttribute('depth', '0.4'); cajaFila.setAttribute('position', `${index * espaciadoX} 0 0`); cajaFila.setAttribute('color', i % 2 === 0 ? colores.celda : colores.fila_alt);
-                    const celda = document.createElement('a-text');
-                    let val = String(fila[col] || "-"); if(val.length>20) val=val.substring(0,17)+"...";
-                    celda.setAttribute('value', val); celda.setAttribute('position', `${index * espaciadoX} 0 0.25`); celda.setAttribute('width', '5.5'); celda.setAttribute('color', colores.celdaTexto); celda.setAttribute('align', 'center');
-                    filaEnt.appendChild(cajaFila); filaEnt.appendChild(celda);
-                });
-                cuerpo.appendChild(filaEnt);
-            });
+      const claves = Object.keys(datos);
+      const valores = Object.values(datos).map(v => Number(v) || 0);
 
-            const total = Math.ceil(datosActuales.length / filasPorPagina);
-            document.getElementById('label-pagina').setAttribute('value', `PÁG.\n${paginaActual + 1} / ${total}`);
-        }
+      if (!claves.length) return;
 
-        function cambiarPagina(n) {
-            const total = Math.ceil(datosActuales.length / filasPorPagina);
-            const nuevaPag = paginaActual + n;
-            if (nuevaPag >= 0 && nuevaPag < total) { paginaActual = nuevaPag; renderizar(); }
-        }
+      const maxVal = Math.max(...valores, 1);
+      const altMax = 4.8;
+      const radius = Math.max(3.2, claves.length * 0.52);
 
-        // ===== ANÁLISIS DE EDADES =====
-        function analizarEdades() {
-            nav.goTo('escena-analisis-edades');
-            const edades = datosActuales.map(est => parseInt(est.edad)).filter(e => !isNaN(e));
-            if (edades.length === 0) { alert('No hay datos de edad'); nav.goBack(); return; }
-            const min = Math.min(...edades), max = Math.max(...edades), prom = (edades.reduce((a,b)=>a+b,0)/edades.length).toFixed(1);
-            const freq = {}; edades.forEach(e => freq[e] = (freq[e] || 0) + 1);
-            document.getElementById('stat-edad-min').setAttribute('value', `MIN: ${min}`); document.getElementById('stat-edad-max').setAttribute('value', `MÁX: ${max}`); document.getElementById('stat-edad-prom').setAttribute('value', `PROM: ${prom}`); document.getElementById('stat-total').setAttribute('value', `TOTAL: ${edades.length}`);
-            renderizarGrafico(freq, max);
-        }
+      claves.forEach((clave, i) => {
+        const val = Number(datos[clave]) || 0;
+        const altBarra = Math.max(0.08, (val / maxVal) * altMax);
 
-        function renderizarGrafico(frecuencias, edadMax) {
-            const graficoCont = document.getElementById('grafico-edades');
-            graficoCont.innerHTML = ''; graficoCont.setAttribute('ignore-raycast', '');
-            const edades = Object.keys(frecuencias).sort((a,b)=>a-b);
-            const maxFreq = Math.max(...Object.values(frecuencias));
-            edades.forEach((edad, i) => {
-                const alt = (frecuencias[edad] * 2.5) / maxFreq;
-                const x = (i - edades.length / 2) * 1.2;
-                const barra = document.createElement('a-entity');
-                barra.setAttribute('position', `${x} ${alt/2} 0`);
-                barra.innerHTML = `
-                    <a-box width="0.9" height="${alt}" depth="0.9" color="hsl(${(i/edades.length)*360}, 100%, 50%)" animation="property: rotation; to: 0 360 0; dur: 8000; easing: linear; loop: true" class="no-click" data-grafico="true"></a-box>
-                    <a-text value="${edad}" position="0 ${-alt/2 - 0.8} 0" color="#00E5FF" align="center" class="no-click" data-grafico="true"></a-text>
-                    <a-text value="${frecuencias[edad]}" position="0 ${alt/2 + 0.6} 0" color="#FFB700" align="center" class="no-click" data-grafico="true"></a-text>`;
-                graficoCont.appendChild(barra);
-            });
-        }
-    </script>
+        const angle = (i / claves.length) * Math.PI * 2;
+        const x = Math.cos(angle) * radius;
+        const z = Math.sin(angle) * radius;
+        const y = altBarra / 2 - 2;
+
+        const hue = Math.round((i / claves.length) * 360);
+        const colorHex = hslToHex(hue, 88, 58);
+
+        // Velocidad y offset de flotación únicos por barra
+        const bobSpeed = 0.6 + (i % 3) * 0.25;
+        const bobAmp = 0.06 + (i % 2) * 0.04;
+        const bobOffset = i * 0.8;
+
+        const ent = document.createElement("a-entity");
+        ent.setAttribute("position", `${x} ${y} ${z}`);
+        ent.setAttribute("float-bob", `amp: ${bobAmp}; speed: ${bobSpeed}; offset: ${bobOffset}`);
+
+        ent.innerHTML = `
+          <!-- Barra principal -->
+          <a-box width="0.78" height="${altBarra}" depth="0.78"
+                 material="color: ${colorHex}; emissive: ${colorHex}; emissiveIntensity: 0.30; opacity: 0.90"></a-box>
+
+          <!-- Tapa brillante arriba -->
+          <a-box width="0.86" height="0.07" depth="0.86"
+                 position="0 ${altBarra / 2} 0"
+                 material="color: #ffffff; emissive: ${colorHex}; emissiveIntensity: 0.9; opacity: 0.95"></a-box>
+
+          <!-- Resplandor de base -->
+          <a-cylinder radius="0.55" height="0.04"
+                      position="0 ${-altBarra / 2} 0"
+                      material="color: ${colorHex}; emissive: ${colorHex}; emissiveIntensity: 0.7; opacity: 0.4"></a-cylinder>
+
+          <!-- Etiqueta debajo -->
+          <a-text value="${String(clave).length > 10 ? String(clave).slice(0, 9) + '…' : clave}"
+                  position="0 ${-altBarra / 2 - 0.62} 0"
+                  color="#00E5FF" align="center" width="4.2"></a-text>
+
+          <!-- Valor encima -->
+          <a-text value="${tipo === 'num' ? Number(val).toFixed(2) : val}"
+                  position="0 ${altBarra / 2 + 0.52} 0"
+                  color="#FFB700" align="center" width="4.2"></a-text>
+        `;
+
+        cont.appendChild(ent);
+      });
+
+      // Plataforma base circular (estática, no rota con el grupo)
+      const base = document.createElement("a-cylinder");
+      base.setAttribute("radius", radius + 0.8);
+      base.setAttribute("height", "0.04");
+      base.setAttribute("position", "0 -2 0");
+      base.setAttribute("material", "color: #00E5FF; opacity: 0.05; wireframe: true");
+      cont.appendChild(base);
+
+      // Anillo exterior decorativo
+      const ring = document.createElement("a-torus");
+      ring.setAttribute("radius", radius + 0.8);
+      ring.setAttribute("radius-tubular", "0.03");
+      ring.setAttribute("position", "0 -2 0");
+      ring.setAttribute("material", `color: #00E5FF; emissive: #00E5FF; emissiveIntensity: 0.5; opacity: 0.3`);
+      cont.appendChild(ring);
+    }
+  </script>
 </body>
 </html>
