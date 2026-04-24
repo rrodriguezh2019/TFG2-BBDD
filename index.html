@@ -87,7 +87,7 @@
 <body>
   <a-scene
     cursor="rayOrigin: mouse"
-    raycaster="objects: .clickable; recursive: true"
+    raycaster="objects: .clickable; recursive: true; far: 60"
     background="color: #000"
     fog="type: linear; color: #000; far: 120; near: 0.1"
   >
@@ -105,9 +105,7 @@
     <a-sky color="#050505"></a-sky>
     <a-entity id="stars"></a-entity>
 
-    <!-- ===================================================== -->
     <!-- ESCENA 1: BIENVENIDA -->
-    <!-- ===================================================== -->
     <a-entity id="escena-bienvenida" visible="true">
       <a-entity position="7 5 -15" animation="property: rotation; to: 0 360 0; dur: 20000; easing: linear; loop: true">
         <a-box color="#0a0a0a" depth="1" height="2.5" width="16" opacity="0.92"></a-box>
@@ -139,9 +137,7 @@
       </a-entity>
     </a-entity>
 
-    <!-- ===================================================== -->
     <!-- ESCENA 2: MENÚ TABLAS -->
-    <!-- ===================================================== -->
     <a-entity id="escena-menu-tablas" visible="false">
       <a-entity position="7 6 -15">
         <a-text value="SELECCIONA UNA TABLA" align="center" width="20" color="#00E5FF"></a-text>
@@ -155,9 +151,7 @@
       </a-entity>
     </a-entity>
 
-    <!-- ===================================================== -->
     <!-- ESCENA 5: QUERY BUILDER -->
-    <!-- ===================================================== -->
     <a-entity id="escena-query-builder" visible="false" position="7 0 -10">
       <a-entity position="0 6 -5">
         <a-box color="#111" depth="0.5" height="3.2" width="19" opacity="0.92"></a-box>
@@ -173,28 +167,22 @@
       <a-entity id="query-hint-container" position="0 0 -2"></a-entity>
     </a-entity>
 
-    <!-- ===================================================== -->
-    <!-- ESCENA 6: CONSULTAS GUIADAS — REDISEÑADA -->
-    <!-- ===================================================== -->
+    <!-- ESCENA 6: CONSULTAS GUIADAS -->
     <a-entity id="escena-consultas-guiadas" visible="false" position="7 0 -10">
-
-      <!-- Header panel -->
       <a-entity position="0 7.2 -6">
         <a-box color="#050D0A" depth="0.25" height="1.6" width="14"
                material="color: #050D0A; emissive: #00FF88; emissiveIntensity: 0.06; opacity: 0.96"></a-box>
-        <!-- Línea decorativa superior -->
         <a-box color="#00FF88" depth="0.26" height="0.04" width="14" position="0 0.78 0"
                material="color: #00FF88; emissive: #00FF88; emissiveIntensity: 1; opacity: 0.9"></a-box>
         <a-box color="#00FF88" depth="0.26" height="0.04" width="14" position="0 -0.78 0"
                material="color: #00FF88; emissive: #00FF88; emissiveIntensity: 1; opacity: 0.9"></a-box>
         <a-text value="ANÁLISIS · CONSULTAS GUIADAS" align="center" position="0 0.28 0.14"
                 width="13" color="#00FF88"></a-text>
-        <a-text value="Selecciona un análisis para visualizar datos en 3D"
+        <a-text value="Selecciona un análisis para visualizar datos en 3D o 2D"
                 align="center" position="0 -0.25 0.14" width="11" color="#4DFFBB"></a-text>
       </a-entity>
 
-      <!-- Botón VOLVER arriba a la izquierda — visible y accesible -->
-      <a-entity position="-6.8 7.2 -6">
+      <a-entity position="-7.5 6.8 -6">
         <a-box class="clickable" interactable depth="0.3" width="3.2" height="0.9"
                material="color: #1A0800; emissive: #FF6B00; emissiveIntensity: 0.35"
                data-action="volver">
@@ -202,13 +190,10 @@
         </a-box>
       </a-entity>
 
-      <!-- Contenedor de tarjetas de consulta -->
       <a-entity id="consultas-guiadas-container" position="0 4.6 -4"></a-entity>
     </a-entity>
 
-    <!-- ===================================================== -->
-    <!-- ESCENA 3: TABLA (RESULTADOS) -->
-    <!-- ===================================================== -->
+    <!-- ESCENA 3: TABLA -->
     <a-entity id="escena-tabla" visible="false" position="7 0 -15">
       <a-entity position="0 6 0">
         <a-box color="#0a0a0a" depth="0.4" height="1" width="14" opacity="0.95"></a-box>
@@ -248,19 +233,15 @@
       </a-entity>
     </a-entity>
 
-    <!-- ===================================================== -->
-    <!-- ESCENA 4: ANÁLISIS (GRÁFICAS 3D) -->
-    <!-- ===================================================== -->
+    <!-- ESCENA 4: ANÁLISIS -->
     <a-entity id="escena-analisis-edades" visible="false" position="7 0 -15">
-
-      <!-- Header -->
       <a-entity position="0 6.8 0">
         <a-box color="#0a0a0a" depth="0.4" height="1" width="16" opacity="0.95"></a-box>
         <a-text id="titulo-analisis" value="ANÁLISIS" align="center" position="0 0 0.25" width="18" color="#9D4EDD"></a-text>
       </a-entity>
 
-      <!-- BOTÓN VOLVER: arriba a la izquierda, encima del gráfico, siempre visible -->
-      <a-entity position="-7.2 6.8 0">
+      <!-- VOLVER -->
+      <a-entity position="-10 6.8 0">
         <a-box class="clickable" interactable depth="0.35" width="3.4" height="0.9"
                material="color: #1A0800; emissive: #FF6B00; emissiveIntensity: 0.4"
                data-action="volver">
@@ -268,11 +249,28 @@
         </a-box>
       </a-entity>
 
-      <!-- Panel de estadísticas: al lado derecho -->
+      <!-- Switch de vista DEBAJO de VOLVER -->
+      <a-entity id="switch-vista-analisis" position="-10 5.6 0.05">
+        <a-entity class="clickable" position="0 -1.1 0">
+          <a-box class="clickable" interactable width="3.4" height="0.75" depth="0.32"
+                 material="color: #0A1020; emissive: #00E5FF; emissiveIntensity: 0.35; opacity: 0.98"
+                 data-action="analisis_ver_3d">
+            <a-text value="VER 3D" align="center" position="0 0 0.18" width="5.4" color="#00E5FF"></a-text>
+          </a-box>
+        </a-entity>
+
+        <a-entity class="clickable" position="0 -2.05 0">
+          <a-box class="clickable" interactable width="3.4" height="0.75" depth="0.32"
+                 material="color: #201008; emissive: #FFB700; emissiveIntensity: 0.35; opacity: 0.98"
+                 data-action="analisis_ver_2d">
+            <a-text value="VER 2D" align="center" position="0 0 0.18" width="5.4" color="#FFB700"></a-text>
+          </a-box>
+        </a-entity>
+      </a-entity>
+
       <a-entity id="panel-estadisticas" position="8.2 3.5 0">
         <a-box color="#0A0F0A" depth="0.3" height="5.8" width="2.6"
                material="color: #0A0F0A; emissive: #9D4EDD; emissiveIntensity: 0.06; opacity: 0.92"></a-box>
-        <!-- Línea lateral decorativa -->
         <a-box depth="0.31" height="5.8" width="0.04" position="-1.3 0 0"
                material="color: #9D4EDD; emissive: #9D4EDD; emissiveIntensity: 0.8; opacity: 0.7"></a-box>
         <a-text value="ESTADÍSTICAS" position="0 2.4 0.17" align="center" color="#9D4EDD" width="4.6"></a-text>
@@ -282,7 +280,6 @@
         <a-text id="stat-total" value="TOTAL: --" position="0 -0.9 0.17" align="center" color="#FFB700" width="4.6"></a-text>
       </a-entity>
 
-      <!-- Contenedor del gráfico — con rotación lenta -->
       <a-entity id="grafico-wrapper" position="0 2.5 0">
         <a-entity id="grafico-edades" slow-rotate="speed: 0.18; axis: y"></a-entity>
       </a-entity>
@@ -291,28 +288,19 @@
     <!-- Rig -->
     <a-entity id="rig" position="7 3 8">
       <a-entity id="camera" camera look-controls wasd-controls></a-entity>
-      <a-entity id="rightController" laser-controls="hand: right" raycaster="objects: .clickable; far: 30" line="color: #00E5FF; opacity: 0.7"></a-entity>
-      <a-entity id="leftController" laser-controls="hand: left" raycaster="objects: .clickable; far: 30" line="color: #00E5FF; opacity: 0.7"></a-entity>
+      <a-entity id="rightController" laser-controls="hand: right" raycaster="objects: .clickable; far: 60" line="color: #00E5FF; opacity: 0.7"></a-entity>
+      <a-entity id="leftController" laser-controls="hand: left" raycaster="objects: .clickable; far: 60" line="color: #00E5FF; opacity: 0.7"></a-entity>
     </a-entity>
   </a-scene>
 
   <script>
-    // ==============================
-    // CONFIG Y ESTADO GLOBAL
-    // ==============================
     const API_URL = "http://192.168.1.136:3000";
     const tablas = ["estudiantes", "profesores", "asignaturas", "matriculas"];
 
     let queryState = {
-      step: 1,
-      operation: "",
-      table: "",
-      columns: [],
-      whereCol: "",
-      whereVal: "",
-      whereOptions: [],
-      orderCol: "",
-      orderDir: "ASC"
+      step: 1, operation: "", table: "", columns: [],
+      whereCol: "", whereVal: "", whereOptions: [],
+      orderCol: "", orderDir: "ASC"
     };
 
     let datosActuales = [];
@@ -320,6 +308,13 @@
     const filasPorPagina = 6;
     let tablaActual = "";
     let ultimaEscenaDeAnalisis = "escena-consultas-guiadas";
+
+    let analisisActual = {
+      titulo: "",
+      datos: {},
+      tipoValor: "count",
+      vista: "3d"
+    };
 
     const schemasMock = {
       estudiantes: ["matricula", "nombre", "apellido", "telefono", "correoelectronico", "direccion", "edad"],
@@ -329,64 +324,23 @@
     };
 
     const accionesEnProgreso = new Set();
-
     const colores = {
-      celda: "#1a1a2e",
-      celdaTexto: "#00E5FF",
-      cabecera: "#0f3460",
-      cabeceraTexto: "#00FF88",
-      fila_alt: "#16213e"
+      celda:"#1a1a2e",
+      celdaTexto:"#00E5FF",
+      cabecera:"#0f3460",
+      cabeceraTexto:"#00FF88",
+      fila_alt:"#16213e"
     };
 
-    // Consultas guiadas con iconos y colores temáticos
     const CONSULTAS_GUIADAS = [
-      {
-        id: "edad-distribucion",
-        label: "Distribución\nde Edades",
-        emoji: "◈",
-        color: "#00E5FF",
-        bg: "#001820"
-      },
-      {
-        id: "edad-prom-curso",
-        label: "Edad Promedio\nGlobal",
-        emoji: "◉",
-        color: "#00FF88",
-        bg: "#00180E"
-      },
-      {
-        id: "prof-departamento",
-        label: "Profesores por\nDepartamento",
-        emoji: "◆",
-        color: "#FF00FF",
-        bg: "#180018"
-      },
-      {
-        id: "salario-departamento",
-        label: "Salario Promedio\npor Depto.",
-        emoji: "◈",
-        color: "#FFB700",
-        bg: "#181000"
-      },
-      {
-        id: "asignaturas-curso",
-        label: "Asignaturas\npor Curso",
-        emoji: "◉",
-        color: "#9D4EDD",
-        bg: "#110018"
-      },
-      {
-        id: "nota-asignatura",
-        label: "Nota Promedio\npor Asignatura",
-        emoji: "◆",
-        color: "#FF6B6B",
-        bg: "#180A0A"
-      }
+      { id:"edad-distribucion", label:"Distribución\nde Edades", emoji:"◈", color:"#00E5FF", bg:"#001820" },
+      { id:"edad-prom-curso", label:"Edad Promedio\nGlobal", emoji:"◉", color:"#00FF88", bg:"#00180E" },
+      { id:"prof-departamento", label:"Profesores por\nDepartamento", emoji:"◆", color:"#FF00FF", bg:"#180018" },
+      { id:"salario-departamento", label:"Salario Promedio\npor Depto.", emoji:"◈", color:"#FFB700", bg:"#181000" },
+      { id:"asignaturas-curso", label:"Asignaturas\npor Curso", emoji:"◉", color:"#9D4EDD", bg:"#110018" },
+      { id:"nota-asignatura", label:"Nota Promedio\npor Asignatura", emoji:"◆", color:"#FF6B6B", bg:"#180A0A" }
     ];
 
-    // ==============================
-    // NAVEGACIÓN
-    // ==============================
     class NavigationManager {
       constructor() {
         this.stack = ["escena-bienvenida"];
@@ -399,9 +353,7 @@
           "escena-consultas-guiadas",
           "escena-tabla",
           "escena-analisis-edades"
-        ].forEach(id => {
-          document.getElementById(id).setAttribute("visible", "false");
-        });
+        ].forEach(id => document.getElementById(id).setAttribute("visible", "false"));
       }
       goTo(escena) {
         this.hideAll();
@@ -417,9 +369,6 @@
     }
     const nav = new NavigationManager();
 
-    // ==============================
-    // HELPERS
-    // ==============================
     function puedeEjecutarAccion(action) {
       if (accionesEnProgreso.has(action)) return false;
       accionesEnProgreso.add(action);
@@ -448,7 +397,7 @@
       return `#${f(0)}${f(8)}${f(4)}`;
     }
 
-    function crearBoton(label, action, param, bg = "#111", color = "#FF00FF", width = 5) {
+    function crearBoton(label, action, param, bg="#111", color="#FF00FF", width=5) {
       const e = document.createElement("a-entity");
       const pAttr = param !== undefined ? `data-param="${String(param).replace(/"/g, "&quot;")}"` : "";
       e.innerHTML = `
@@ -498,9 +447,6 @@
       return [];
     }
 
-    // ==============================
-    // ESTRELLAS + MOVIMIENTO RIG
-    // ==============================
     function generarEstrellas() {
       const starsContainer = document.querySelector("#stars");
       for (let i = 0; i < 150; i++) {
@@ -529,9 +475,6 @@
       rig.setAttribute("position", `${rigPos.x} ${rigPos.y} ${rigPos.z}`);
     }, 30);
 
-    // ==============================
-    // ROUTER DE ACCIONES
-    // ==============================
     function handleClickAction(action, param) {
       if (!puedeEjecutarAccion(action)) return;
 
@@ -554,11 +497,11 @@
 
       if (action === "iniciarConsultasGuiadas") return iniciarConsultasGuiadas();
       if (action === "ejecutarConsultaGuiada") return ejecutarConsultaGuiada(param);
+
+      if (action === "analisis_ver_3d") return setVistaAnalisis("3d");
+      if (action === "analisis_ver_2d") return setVistaAnalisis("2d");
     }
 
-    // ==============================
-    // ESCENA MENÚ TABLAS
-    // ==============================
     function mostrarMenuTablas() {
       nav.goTo("escena-menu-tablas");
       const menu = limpiarEntidad("menu-tablas");
@@ -570,6 +513,7 @@
 
         const btn = document.createElement("a-entity");
         btn.setAttribute("position", `${x} 3 ${z}`);
+        btn.setAttribute("float-bob", `amp: 0.08; speed: 0.9; offset: ${index * 0.9}`);
         btn.innerHTML = `
           <a-box class="clickable" interactable width="4.2" height="1.2" depth="0.5" color="#222"
                  data-action="cargarTabla" data-param="${nombre}">
@@ -578,23 +522,16 @@
         `;
         menu.appendChild(btn);
       });
+
+      menu.setAttribute("slow-rotate", "speed: 0.04; axis: y");
     }
 
-    // ==============================
-    // QUERY BUILDER
-    // ==============================
     function iniciarQueryBuilder() {
       nav.goTo("escena-query-builder");
       queryState = {
-        step: 1,
-        operation: "",
-        table: "",
-        columns: [],
-        whereCol: "",
-        whereVal: "",
-        whereOptions: [],
-        orderCol: "",
-        orderDir: "ASC"
+        step: 1, operation: "", table: "", columns: [],
+        whereCol: "", whereVal: "", whereOptions: [],
+        orderCol: "", orderDir: "ASC"
       };
       limpiarEntidad("query-hint-container");
       actualizarDisplaySQL();
@@ -861,14 +798,10 @@
       renderizarTabla();
     }
 
-    // ==============================
-    // CONSULTAS GUIADAS — REDISEÑADO
-    // ==============================
     function iniciarConsultasGuiadas() {
       nav.goTo("escena-consultas-guiadas");
       const cont = limpiarEntidad("consultas-guiadas-container");
 
-      // Layout 3 columnas × 2 filas para las 6 tarjetas
       const cols = 3;
       const gapX = 5.8;
       const gapY = 3.2;
@@ -881,11 +814,9 @@
 
         const card = document.createElement("a-entity");
         card.setAttribute("position", `${x} ${y} 0`);
-        // Flotación suave con offset diferente por tarjeta
         card.setAttribute("float-bob", `amp: 0.1; speed: 0.9; offset: ${i * 1.1}`);
 
         card.innerHTML = `
-          <!-- Fondo de la tarjeta -->
           <a-box class="clickable" interactable
                  width="5.2" height="2.6" depth="0.28"
                  material="color: ${q.bg}; emissive: ${q.color}; emissiveIntensity: 0.10; opacity: 0.96"
@@ -893,19 +824,15 @@
                  data-param="${q.id}">
           </a-box>
 
-          <!-- Borde superior de color -->
           <a-box width="5.2" height="0.06" depth="0.30" position="0 1.27 0"
                  material="color: ${q.color}; emissive: ${q.color}; emissiveIntensity: 1; opacity: 0.85"></a-box>
 
-          <!-- Icono / símbolo decorativo -->
           <a-text value="${q.emoji}" align="center" position="0 0.62 0.16"
                   width="3.4" color="${q.color}"></a-text>
 
-          <!-- Título -->
           <a-text value="${q.label}" align="center" position="0 -0.12 0.16"
                   width="6.8" color="#FFFFFF" wrap-count="22"></a-text>
 
-          <!-- Línea decorativa inferior sutil -->
           <a-box width="3.2" height="0.03" depth="0.29" position="0 -1.06 0"
                  material="color: ${q.color}; emissive: ${q.color}; emissiveIntensity: 0.5; opacity: 0.35"></a-box>
         `;
@@ -914,9 +841,6 @@
       });
     }
 
-    // ==============================
-    // DATA HELPERS
-    // ==============================
     async function fetchAll(endpoint, select = "*") {
       try {
         const url = `${API_URL}/${endpoint}?select=${encodeURIComponent(select)}&limit=2000`;
@@ -963,9 +887,7 @@
 
     function statsFromValues(values) {
       const nums = values.map(toNum).filter(n => Number.isFinite(n));
-      if (!nums.length) {
-        return { min: "--", max: "--", avg: "--", total: 0 };
-      }
+      if (!nums.length) return { min: "--", max: "--", avg: "--", total: 0 };
       const min = Math.min(...nums);
       const max = Math.max(...nums);
       const avg = (nums.reduce((a, b) => a + b, 0) / nums.length).toFixed(2);
@@ -1048,12 +970,31 @@
       document.getElementById("stat-edad-prom").setAttribute("value", `PROM: ${stats.avg}`);
       document.getElementById("stat-total").setAttribute("value", `TOTAL: ${stats.total}`);
 
-      renderGrafico3D("grafico-edades", datosGrafico, tipoValor);
+      analisisActual.titulo = titulo;
+      analisisActual.datos = datosGrafico;
+      analisisActual.tipoValor = tipoValor;
+
+      setVistaAnalisis(analisisActual.vista || "3d");
     }
 
-    // ==============================
-    // CARGA TABLA DIRECTA
-    // ==============================
+    function setVistaAnalisis(vista) {
+	analisisActual.vista = vista;
+	const graf = document.getElementById("grafico-edades");
+	if (!graf) return;
+
+	if (vista === "2d") {
+		graf.removeAttribute("slow-rotate");
+    		// 👇 importante: dejar el panel mirando al frente
+ 		graf.setAttribute("rotation", "0 0 0");
+    		renderGrafico2D("grafico-edades", analisisActual.datos, analisisActual.tipoValor);
+  	} else {
+    	// 👇 reinicia por si venía del 2D
+    	graf.setAttribute("rotation", "0 0 0");
+    	graf.setAttribute("slow-rotate", "speed: 0.18; axis: y");
+    	renderGrafico3D("grafico-edades", analisisActual.datos, analisisActual.tipoValor);
+  	}
+    }
+
     async function cargarTabla(nombre) {
       nav.goTo("escena-tabla");
       tablaActual = nombre;
@@ -1169,9 +1110,6 @@
       }
     }
 
-    // ==============================
-    // GRÁFICA 3D — con animación por barra
-    // ==============================
     function renderGrafico3D(containerId, datos, tipo = "count") {
       const cont = document.getElementById(containerId);
       if (!cont) return;
@@ -1198,7 +1136,6 @@
         const hue = Math.round((i / claves.length) * 360);
         const colorHex = hslToHex(hue, 88, 58);
 
-        // Velocidad y offset de flotación únicos por barra
         const bobSpeed = 0.6 + (i % 3) * 0.25;
         const bobAmp = 0.06 + (i % 2) * 0.04;
         const bobOffset = i * 0.8;
@@ -1208,26 +1145,21 @@
         ent.setAttribute("float-bob", `amp: ${bobAmp}; speed: ${bobSpeed}; offset: ${bobOffset}`);
 
         ent.innerHTML = `
-          <!-- Barra principal -->
           <a-box width="0.78" height="${altBarra}" depth="0.78"
                  material="color: ${colorHex}; emissive: ${colorHex}; emissiveIntensity: 0.30; opacity: 0.90"></a-box>
 
-          <!-- Tapa brillante arriba -->
           <a-box width="0.86" height="0.07" depth="0.86"
                  position="0 ${altBarra / 2} 0"
                  material="color: #ffffff; emissive: ${colorHex}; emissiveIntensity: 0.9; opacity: 0.95"></a-box>
 
-          <!-- Resplandor de base -->
           <a-cylinder radius="0.55" height="0.04"
                       position="0 ${-altBarra / 2} 0"
                       material="color: ${colorHex}; emissive: ${colorHex}; emissiveIntensity: 0.7; opacity: 0.4"></a-cylinder>
 
-          <!-- Etiqueta debajo -->
           <a-text value="${String(clave).length > 10 ? String(clave).slice(0, 9) + '…' : clave}"
                   position="0 ${-altBarra / 2 - 0.62} 0"
                   color="#00E5FF" align="center" width="4.2"></a-text>
 
-          <!-- Valor encima -->
           <a-text value="${tipo === 'num' ? Number(val).toFixed(2) : val}"
                   position="0 ${altBarra / 2 + 0.52} 0"
                   color="#FFB700" align="center" width="4.2"></a-text>
@@ -1236,7 +1168,6 @@
         cont.appendChild(ent);
       });
 
-      // Plataforma base circular (estática, no rota con el grupo)
       const base = document.createElement("a-cylinder");
       base.setAttribute("radius", radius + 0.8);
       base.setAttribute("height", "0.04");
@@ -1244,13 +1175,86 @@
       base.setAttribute("material", "color: #00E5FF; opacity: 0.05; wireframe: true");
       cont.appendChild(base);
 
-      // Anillo exterior decorativo
       const ring = document.createElement("a-torus");
       ring.setAttribute("radius", radius + 0.8);
       ring.setAttribute("radius-tubular", "0.03");
       ring.setAttribute("position", "0 -2 0");
       ring.setAttribute("material", `color: #00E5FF; emissive: #00E5FF; emissiveIntensity: 0.5; opacity: 0.3`);
       cont.appendChild(ring);
+    }
+
+    function renderGrafico2D(containerId, datos, tipo = "count") {
+      const cont = document.getElementById(containerId);
+      if (!cont) return;
+      cont.innerHTML = "";
+
+      const claves = Object.keys(datos);
+      const valores = Object.values(datos).map(v => Number(v) || 0);
+      if (!claves.length) return;
+
+      const maxVal = Math.max(...valores, 1);
+      const chartWidth = 12;
+      const chartHeight = 4.8;
+      const gap = 0.35;
+      const barW = Math.max(0.35, (chartWidth - gap * (claves.length - 1)) / claves.length);
+
+      const panel = document.createElement("a-plane");
+      panel.setAttribute("width", String(chartWidth + 1.2));
+      panel.setAttribute("height", "6.2");
+      panel.setAttribute("position", "0 0.6 -0.02");
+      panel.setAttribute("material", "color: #070B12; opacity: 0.65; side: double");
+      cont.appendChild(panel);
+
+      const ejeX = document.createElement("a-box");
+      ejeX.setAttribute("width", String(chartWidth + 0.2));
+      ejeX.setAttribute("height", "0.03");
+      ejeX.setAttribute("depth", "0.03");
+      ejeX.setAttribute("position", "0 -2 0");
+      ejeX.setAttribute("color", "#00E5FF");
+      cont.appendChild(ejeX);
+
+      const ejeY = document.createElement("a-box");
+      ejeY.setAttribute("width", "0.03");
+      ejeY.setAttribute("height", String(chartHeight + 0.2));
+      ejeY.setAttribute("depth", "0.03");
+      ejeY.setAttribute("position", `${-(chartWidth/2)} ${-2 + chartHeight/2} 0`);
+      ejeY.setAttribute("color", "#00E5FF");
+      cont.appendChild(ejeY);
+
+      claves.forEach((k, i) => {
+        const v = Number(datos[k]) || 0;
+        const h = Math.max(0.05, (v / maxVal) * chartHeight);
+
+        const x = -(chartWidth / 2) + (barW / 2) + i * (barW + gap);
+        const y = -2 + h / 2;
+
+        const hue = Math.round((i / claves.length) * 360);
+        const colorHex = hslToHex(hue, 88, 58);
+
+        const bar = document.createElement("a-box");
+        bar.setAttribute("width", String(barW));
+        bar.setAttribute("height", String(h));
+        bar.setAttribute("depth", "0.08");
+        bar.setAttribute("position", `${x} ${y} 0.02`);
+        bar.setAttribute("material", `color: ${colorHex}; emissive: ${colorHex}; emissiveIntensity: 0.2; opacity: 0.95`);
+        cont.appendChild(bar);
+
+        const label = document.createElement("a-text");
+        label.setAttribute("value", String(k).length > 8 ? String(k).slice(0, 8) + "…" : k);
+        label.setAttribute("position", `${x} -2.35 0.03`);
+        label.setAttribute("align", "center");
+        label.setAttribute("width", "3.2");
+        label.setAttribute("color", "#00E5FF");
+        cont.appendChild(label);
+
+        const valLabel = document.createElement("a-text");
+        valLabel.setAttribute("value", tipo === "num" ? Number(v).toFixed(2) : String(v));
+        valLabel.setAttribute("position", `${x} ${y + h/2 + 0.28} 0.03`);
+        valLabel.setAttribute("align", "center");
+        valLabel.setAttribute("width", "3.2");
+        valLabel.setAttribute("color", "#FFB700");
+        cont.appendChild(valLabel);
+      });
     }
   </script>
 </body>
