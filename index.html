@@ -221,7 +221,29 @@
         </a-entity>
       </a-entity>
 
-      <a-entity id="area-datos" position="0.8 0 0">
+      <!-- SWITCH 2D / 3D PARA TABLA -->
+      <a-entity id="switch-vista-tabla" position="-6.2 0.7 0.15">
+        <a-text value="VISTA" position="0 0.9 0.2" align="center" color="#FFF" width="3.8"></a-text>
+
+        <a-entity class="clickable" position="0 0 0">
+          <a-box class="clickable" interactable width="1.8" height="0.62" depth="0.3"
+                 material="color: #0A1020; emissive: #00E5FF; emissiveIntensity: 0.35; opacity: 0.98"
+                 data-action="tabla_ver_3d">
+            <a-text value="VER 3D" align="center" position="0 0 0.18" width="3.8" color="#00E5FF"></a-text>
+          </a-box>
+        </a-entity>
+
+        <a-entity class="clickable" position="0 -0.84 0">
+          <a-box class="clickable" interactable width="1.8" height="0.62" depth="0.3"
+                 material="color: #201008; emissive: #FFB700; emissiveIntensity: 0.35; opacity: 0.98"
+                 data-action="tabla_ver_2d">
+            <a-text value="VER 2D" align="center" position="0 0 0.18" width="3.8" color="#FFB700"></a-text>
+          </a-box>
+        </a-entity>
+      </a-entity>
+
+      <!-- CORREGIDO: antes estaba en 0.8 0 0 -->
+      <a-entity id="area-datos" position="6 0 0">
         <a-entity id="tabla-cabecera" position="0 5 0"></a-entity>
         <a-entity id="tabla-cuerpo" position="0 4 0"></a-entity>
       </a-entity>
@@ -308,6 +330,9 @@
     const filasPorPagina = 6;
     let tablaActual = "";
     let ultimaEscenaDeAnalisis = "escena-consultas-guiadas";
+
+    // vista de tabla
+    let tablaVista = "2d"; // "2d" | "3d"
 
     let analisisActual = {
       titulo: "",
@@ -484,6 +509,9 @@
       if (action === "cargarTabla") return cargarTabla(param);
       if (action === "cambiarPagina") return cambiarPagina(parseInt(param, 10));
 
+      if (action === "tabla_ver_3d") return setVistaTabla("3d");
+      if (action === "tabla_ver_2d") return setVistaTabla("2d");
+
       if (action === "iniciarQueryBuilder") return iniciarQueryBuilder();
       if (action === "qb_op") return qb_selOp(param);
       if (action === "qb_tabla") return qb_selTabla(param);
@@ -500,6 +528,11 @@
 
       if (action === "analisis_ver_3d") return setVistaAnalisis("3d");
       if (action === "analisis_ver_2d") return setVistaAnalisis("2d");
+    }
+
+    function setVistaTabla(vista) {
+      tablaVista = vista;
+      renderizarTabla();
     }
 
     function mostrarMenuTablas() {
@@ -759,6 +792,7 @@
       nav.goTo("escena-tabla");
       paginaActual = 0;
       tablaActual = queryState.table;
+      tablaVista = "2d";
 
       const titulo = `${queryState.operation} ${queryState.table.toUpperCase()}`;
       document.getElementById("texto-tabla").setAttribute("value", titulo);
@@ -978,27 +1012,26 @@
     }
 
     function setVistaAnalisis(vista) {
-	analisisActual.vista = vista;
-	const graf = document.getElementById("grafico-edades");
-	if (!graf) return;
+      analisisActual.vista = vista;
+      const graf = document.getElementById("grafico-edades");
+      if (!graf) return;
 
-	if (vista === "2d") {
-		graf.removeAttribute("slow-rotate");
-    		// 👇 importante: dejar el panel mirando al frente
- 		graf.setAttribute("rotation", "0 0 0");
-    		renderGrafico2D("grafico-edades", analisisActual.datos, analisisActual.tipoValor);
-  	} else {
-    	// 👇 reinicia por si venía del 2D
-    	graf.setAttribute("rotation", "0 0 0");
-    	graf.setAttribute("slow-rotate", "speed: 0.18; axis: y");
-    	renderGrafico3D("grafico-edades", analisisActual.datos, analisisActual.tipoValor);
-  	}
+      if (vista === "2d") {
+        graf.removeAttribute("slow-rotate");
+        graf.setAttribute("rotation", "0 0 0");
+        renderGrafico2D("grafico-edades", analisisActual.datos, analisisActual.tipoValor);
+      } else {
+        graf.setAttribute("rotation", "0 0 0");
+        graf.setAttribute("slow-rotate", "speed: 0.18; axis: y");
+        renderGrafico3D("grafico-edades", analisisActual.datos, analisisActual.tipoValor);
+      }
     }
 
     async function cargarTabla(nombre) {
       nav.goTo("escena-tabla");
       tablaActual = nombre;
       paginaActual = 0;
+      tablaVista = "2d";
       document.getElementById("texto-tabla").setAttribute("value", `SELECT ${nombre.toUpperCase()}`);
 
       try {
@@ -1015,6 +1048,12 @@
     }
 
     function renderizarTabla() {
+      if (tablaVista === "3d") return renderizarTabla3D();
+      return renderizarTabla2D();
+    }
+
+    // CORREGIDA: 2D centrada
+    function renderizarTabla2D() {
       const cuerpo = limpiarEntidad("tabla-cuerpo");
       const cabecera = limpiarEntidad("tabla-cabecera");
 
@@ -1026,21 +1065,25 @@
       if (!columnas.length) return;
 
       const espaciadoX = 3.2;
+      const totalW = (columnas.length - 1) * espaciadoX;
+
       const cabeceraBG = document.createElement("a-entity");
       cabeceraBG.setAttribute("position", "0 0 -0.3");
 
       columnas.forEach((col, i) => {
+        const x = i * espaciadoX - totalW / 2;
+
         const box = document.createElement("a-box");
         box.setAttribute("width", "3");
         box.setAttribute("height", "0.85");
         box.setAttribute("depth", "0.4");
-        box.setAttribute("position", `${i * espaciadoX} 0 0`);
+        box.setAttribute("position", `${x} 0 0`);
         box.setAttribute("color", colores.cabecera);
         box.setAttribute("opacity", "0.9");
 
         const txt = document.createElement("a-text");
         txt.setAttribute("value", col.toUpperCase());
-        txt.setAttribute("position", `${i * espaciadoX} 0 0.25`);
+        txt.setAttribute("position", `${x} 0 0.25`);
         txt.setAttribute("color", colores.cabeceraTexto);
         txt.setAttribute("width", "6.6");
         txt.setAttribute("align", "center");
@@ -1053,7 +1096,7 @@
       if (!datosActuales.length) {
         const msg = document.createElement("a-text");
         msg.setAttribute("value", "0 RESULTADOS");
-        msg.setAttribute("position", `${((columnas.length - 1) * espaciadoX) / 2} -1.5 0.25`);
+        msg.setAttribute("position", `0 -1.5 0.25`);
         msg.setAttribute("color", "#FF4444");
         msg.setAttribute("width", "10");
         msg.setAttribute("align", "center");
@@ -1072,11 +1115,13 @@
         filaEnt.setAttribute("position", `0 ${-rowI * 1.08} 0`);
 
         columnas.forEach((col, colI) => {
+          const x = colI * espaciadoX - totalW / 2;
+
           const box = document.createElement("a-box");
           box.setAttribute("width", "3");
           box.setAttribute("height", "0.9");
           box.setAttribute("depth", "0.4");
-          box.setAttribute("position", `${colI * espaciadoX} 0 0`);
+          box.setAttribute("position", `${x} 0 0`);
           box.setAttribute("color", rowI % 2 === 0 ? colores.celda : colores.fila_alt);
           box.setAttribute("opacity", "0.86");
 
@@ -1085,7 +1130,7 @@
           val = String(val);
           if (val.length > 20) val = val.slice(0, 17) + "...";
           txt.setAttribute("value", val);
-          txt.setAttribute("position", `${colI * espaciadoX} 0 0.25`);
+          txt.setAttribute("position", `${x} 0 0.25`);
           txt.setAttribute("width", "5.6");
           txt.setAttribute("color", colores.celdaTexto);
           txt.setAttribute("align", "center");
@@ -1095,6 +1140,83 @@
         });
 
         cuerpo.appendChild(filaEnt);
+      });
+
+      document.getElementById("label-pagina").setAttribute("value", `PÁG.\n${paginaActual + 1} / ${totalPages}`);
+    }
+
+    // CORREGIDA: 3D centrada
+    function renderizarTabla3D() {
+      const cuerpo = limpiarEntidad("tabla-cuerpo");
+      const cabecera = limpiarEntidad("tabla-cabecera");
+
+      let columnas = [];
+      if (datosActuales.length) columnas = Object.keys(datosActuales[0]);
+      else if (queryState.columns.length && queryState.columns[0] !== "*") columnas = queryState.columns;
+      else columnas = schemasMock[tablaActual] || [];
+
+      if (!columnas.length) return;
+
+      const espX = 2.6;
+      const totalW = (columnas.length - 1) * espX;
+
+      columnas.forEach((col, i) => {
+        const x = i * espX - totalW / 2;
+        const h = document.createElement("a-entity");
+        h.setAttribute("position", `${x} 0 0`);
+        h.innerHTML = `
+          <a-box width="2.3" height="0.72" depth="0.52"
+                 material="color:#091428; emissive:#00E5FF; emissiveIntensity:0.26; opacity:0.96"></a-box>
+          <a-box width="2.33" height="0.05" depth="0.55" position="0 0.36 0"
+                 material="color:#00E5FF; emissive:#00E5FF; emissiveIntensity:0.8; opacity:0.7"></a-box>
+          <a-text value="${col.toUpperCase()}" align="center" position="0 0 0.30"
+                  width="5.2" color="#00FF88"></a-text>
+        `;
+        cabecera.appendChild(h);
+      });
+
+      if (!datosActuales.length) {
+        const msg = document.createElement("a-text");
+        msg.setAttribute("value", "0 RESULTADOS");
+        msg.setAttribute("position", "0 -1.3 0.35");
+        msg.setAttribute("color", "#FF4444");
+        msg.setAttribute("width", "8");
+        msg.setAttribute("align", "center");
+        cuerpo.appendChild(msg);
+        document.getElementById("label-pagina").setAttribute("value", "PÁG.\n0 / 0");
+        return;
+      }
+
+      const totalPages = Math.max(1, Math.ceil(datosActuales.length / filasPorPagina));
+      if (paginaActual >= totalPages) paginaActual = totalPages - 1;
+      const slice = datosActuales.slice(paginaActual * filasPorPagina, (paginaActual + 1) * filasPorPagina);
+
+      slice.forEach((fila, rowI) => {
+        const row = document.createElement("a-entity");
+        row.setAttribute("position", `0 ${-rowI * 1.07} 0`);
+        row.setAttribute("float-bob", `amp: 0.03; speed: ${0.8 + rowI * 0.08}; offset: ${rowI * 0.9}`);
+
+        columnas.forEach((col, colI) => {
+          const x = colI * espX - totalW / 2;
+          let val = String(fila[col] ?? "-");
+          if (val.length > 14) val = val.slice(0, 12) + "...";
+
+          const colorBase = rowI % 2 === 0 ? "#121a2e" : "#1a2542";
+
+          const cell = document.createElement("a-entity");
+          cell.setAttribute("position", `${x} 0 0`);
+          cell.innerHTML = `
+            <a-box width="2.3" height="0.8" depth="0.48"
+                   material="color:${colorBase}; emissive:#00E5FF; emissiveIntensity:0.08; opacity:0.94"></a-box>
+            <a-box width="2.3" height="0.03" depth="0.50" position="0 -0.4 0"
+                   material="color:#00E5FF; emissive:#00E5FF; emissiveIntensity:0.5; opacity:0.18"></a-box>
+            <a-text value="${val}" align="center" position="0 0 0.27"
+                    width="4.6" color="#CFFBFF"></a-text>
+          `;
+          row.appendChild(cell);
+        });
+
+        cuerpo.appendChild(row);
       });
 
       document.getElementById("label-pagina").setAttribute("value", `PÁG.\n${paginaActual + 1} / ${totalPages}`);
