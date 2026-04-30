@@ -16,6 +16,35 @@
     }
   </style>
 
+  <!-- Botón reset vista - esquina inferior izquierda (espejo del botón VR) -->
+  <button id="btn-reset-vista" onclick="resetVista()" title="Recentrar cámara (R)">↺</button>
+  <style>
+    #btn-reset-vista {
+      position: fixed;
+      bottom: 16px;
+      left: 16px;
+      z-index: 9999;
+      background: rgba(0, 20, 30, 0.75);
+      border: 1.5px solid #00E5FF;
+      color: #00E5FF;
+      font-size: 20px;
+      width: 34px;
+      height: 34px;
+      border-radius: 6px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      line-height: 1;
+      transition: background 0.2s, box-shadow 0.2s;
+    }
+    #btn-reset-vista:hover {
+      background: rgba(0, 229, 255, 0.18);
+      box-shadow: 0 0 10px #00E5FF88;
+    }
+  </style>
+
   <script>
     // =========================
     // COMPONENTE INTERACTABLE
@@ -223,7 +252,7 @@
 
       <!-- SWITCH 2D / 3D PARA TABLA -->
       <a-entity id="switch-vista-tabla" position="-6.2 0.7 0.15">
-        <a-text value="VISTA" position="0 0.9 0.2" align="center" color="#FFF" width="3.8"></a-text>
+       
 
         <a-entity class="clickable" position="0 0 0">
           <a-box class="clickable" interactable width="1.8" height="0.62" depth="0.3"
@@ -309,7 +338,9 @@
 
     <!-- Rig -->
     <a-entity id="rig" position="7 3 8">
-      <a-entity id="camera" camera look-controls wasd-controls></a-entity>
+      <a-entity id="camera" camera look-controls wasd-controls>
+
+      </a-entity>
       <a-entity id="rightController" laser-controls="hand: right" raycaster="objects: .clickable; far: 60" line="color: #00E5FF; opacity: 0.7"></a-entity>
       <a-entity id="leftController" laser-controls="hand: left" raycaster="objects: .clickable; far: 60" line="color: #00E5FF; opacity: 0.7"></a-entity>
     </a-entity>
@@ -489,6 +520,21 @@
     let rigPos = { x: 7, y: 3, z: 8 };
     let leftJoystick = { x: 0, y: 0 };
     let rightJoystick = { x: 0, y: 0 };
+	    // =========================
+	// TECLADO: SUBIR / BAJAR (NAV)
+	// Q = bajar | E = subir
+	// =========================
+	const teclas = { subir: false, bajar: false };
+
+	window.addEventListener("keydown", (e) => {
+	  if (e.code === "KeyE") teclas.subir = true;
+	  if (e.code === "KeyQ") teclas.bajar = true;
+	});
+
+	window.addEventListener("keyup", (e) => {
+	  if (e.code === "KeyE") teclas.subir = false;
+	  if (e.code === "KeyQ") teclas.bajar = false;
+	});
 
     document.querySelector("#leftController")?.addEventListener("thumbstickmoved", (e) => { leftJoystick = e.detail; });
     document.querySelector("#rightController")?.addEventListener("thumbstickmoved", (e) => { rightJoystick = e.detail; });
@@ -497,8 +543,89 @@
       rigPos.x += (leftJoystick.x || 0) * 0.1;
       rigPos.z += (leftJoystick.y || 0) * 0.1;
       rigPos.y += (rightJoystick.y || 0) * 0.05;
+      // Teclado (navegador)
+      const stepY = 0.08; // velocidad vertical; ajusta si quieres más rápido/lento
+      if (teclas.subir) rigPos.y += stepY;
+      if (teclas.bajar) rigPos.y -= stepY;
       rig.setAttribute("position", `${rigPos.x} ${rigPos.y} ${rigPos.z}`);
     }, 30);
+
+    // =========================
+    // RESET DE VISTA (recentrar cámara)
+    // Teclado: R  |  VR: botón de menú/start del mando
+    // =========================
+    const RESET_POS = { x: 7, y: 3, z: 8 };
+
+    function resetVista() {
+      // 1. Volver a la posición inicial del rig
+      rigPos.x = RESET_POS.x;
+      rigPos.y = RESET_POS.y;
+      rigPos.z = RESET_POS.z;
+      rig.setAttribute("position", `${rigPos.x} ${rigPos.y} ${rigPos.z}`);
+
+      // 2. Resetear la rotación acumulada del look-controls de la cámara
+      const camEl = document.querySelector("#camera");
+      if (camEl && camEl.components["look-controls"]) {
+        const lc = camEl.components["look-controls"];
+        // Forzar yaw y pitch a cero
+        if (lc.yawObject)   lc.yawObject.rotation.set(0, 0, 0);
+        if (lc.pitchObject) lc.pitchObject.rotation.set(0, 0, 0);
+        camEl.setAttribute("rotation", "0 0 0");
+      }
+
+      // Feedback visual breve en el HUD
+      mostrarToastHUD("↺ VISTA RECENTRADA");
+    }
+
+    // Tecla R en navegador
+    window.addEventListener("keydown", (e) => {
+      if (e.code === "KeyR" && !e.repeat) resetVista();
+    });
+
+    // Botón de menú/start del mando VR (buttondown evento "menu" o "start")
+    ["rightController", "leftController"].forEach(id => {
+      const ctrl = document.querySelector(`#${id}`);
+      if (!ctrl) return;
+      // "menudown" = botón ☰ en Oculus/Meta; "startdown" = algunos WMR
+      ["menudown", "startdown", "abuttondown"].forEach(evt => {
+        ctrl.addEventListener(evt, () => resetVista());
+      });
+    });
+
+    // =========================
+    // HUD de feedback (toast 2D sobre la escena)
+    // =========================
+    let _toastTimeout = null;
+    function mostrarToastHUD(texto) {
+      let toast = document.getElementById("hud-toast");
+      if (!toast) {
+        toast = document.createElement("div");
+        toast.id = "hud-toast";
+        Object.assign(toast.style, {
+          position: "fixed",
+          bottom: "32px",
+          left: "50%",
+          transform: "translateX(-50%)",
+          background: "rgba(0,229,255,0.18)",
+          border: "1.5px solid #00E5FF",
+          color: "#00E5FF",
+          fontFamily: "Arial, sans-serif",
+          fontSize: "15px",
+          letterSpacing: "2px",
+          padding: "10px 28px",
+          borderRadius: "6px",
+          pointerEvents: "none",
+          zIndex: "9999",
+          transition: "opacity 0.3s",
+          opacity: "0"
+        });
+        document.body.appendChild(toast);
+      }
+      toast.textContent = texto;
+      toast.style.opacity = "1";
+      clearTimeout(_toastTimeout);
+      _toastTimeout = setTimeout(() => { toast.style.opacity = "0"; }, 1800);
+    }
 
     function handleClickAction(action, param) {
       if (!puedeEjecutarAccion(action)) return;
@@ -528,6 +655,8 @@
 
       if (action === "analisis_ver_3d") return setVistaAnalisis("3d");
       if (action === "analisis_ver_2d") return setVistaAnalisis("2d");
+
+      if (action === "resetVista") return resetVista();
     }
 
     function setVistaTabla(vista) {
@@ -600,7 +729,7 @@
 
       if (queryState.step === 1) {
         titleEl.setAttribute("value", "PASO 1 · OPERACIÓN SQL");
-        opciones = ["SELECT", "INSERT", "UPDATE", "DELETE"].map((op, i) => ({
+        opciones = ["SELECT"].map((op, i) => ({
           label: op,
           action: "qb_op",
           param: op,
