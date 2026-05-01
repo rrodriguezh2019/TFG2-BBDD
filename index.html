@@ -16,7 +16,7 @@
     }
   </style>
 
-  <!-- Botón reset vista - esquina inferior izquierda (espejo del botón VR) -->
+  <!-- Botón reset vista - esquina inferior izquierda -->
   <button id="btn-reset-vista" onclick="resetVista()" title="Recentrar cámara (R)">↺</button>
   <style>
     #btn-reset-vista {
@@ -47,10 +47,90 @@
 
   <script>
     // =========================
+    // AUDIO SFX (tick / click)
+    // =========================
+    let sfxCtx = null;
+    function playSfx(type) {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (!AudioCtx) return;
+      if (!sfxCtx) sfxCtx = new AudioCtx();
+      if (sfxCtx.state === "suspended") sfxCtx.resume();
+
+      const now = sfxCtx.currentTime;
+      const osc = sfxCtx.createOscillator();
+      const gain = sfxCtx.createGain();
+
+      const isHover = type === "hover";
+      osc.type = isHover ? "triangle" : "sine";
+      osc.frequency.value = isHover ? 980 : 520;
+
+      const dur = isHover ? 0.04 : 0.08;
+      gain.gain.setValueAtTime(0.0001, now);
+      gain.gain.exponentialRampToValueAtTime(0.16, now + 0.01);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + dur);
+
+      osc.connect(gain).connect(sfxCtx.destination);
+      osc.start(now);
+      osc.stop(now + dur + 0.02);
+    }
+
+    function isEntityVisible(el) {
+      let current = el;
+      while (current && current.tagName !== "A-SCENE") {
+        const vis = current.getAttribute("visible");
+        if (vis === false || vis === "false") return false;
+        current = current.parentElement;
+      }
+      return true;
+    }
+
+    // =========================
     // COMPONENTE INTERACTABLE
     // =========================
     AFRAME.registerComponent("interactable", {
       init: function () {
+        this.isHovering = false;
+        this.baseScale = null;
+        this.baseEmissive = null;
+
+        this.onHoverStart = () => {
+          if (this.isHovering) return;
+          if (!isEntityVisible(this.el)) return;
+          this.isHovering = true;
+
+          if (!this.baseScale) {
+            const s = this.el.getAttribute("scale") || { x: 1, y: 1, z: 1 };
+            this.baseScale = { x: s.x, y: s.y, z: s.z };
+          }
+
+          if (this.baseEmissive === null || this.baseEmissive === undefined) {
+            const mat = this.el.getAttribute("material") || {};
+            this.baseEmissive = typeof mat.emissiveIntensity === "number" ? mat.emissiveIntensity : 0;
+          }
+
+          this.el.setAttribute("scale", {
+            x: this.baseScale.x * 1.08,
+            y: this.baseScale.y * 1.08,
+            z: this.baseScale.z * 1.08
+          });
+          this.el.setAttribute("material", "emissiveIntensity", this.baseEmissive + 0.35);
+          playSfx("hover");
+        };
+
+        this.onHoverEnd = () => {
+          if (!this.isHovering) return;
+          this.isHovering = false;
+          if (this.baseScale) this.el.setAttribute("scale", this.baseScale);
+          if (this.baseEmissive !== null && this.baseEmissive !== undefined) {
+            this.el.setAttribute("material", "emissiveIntensity", this.baseEmissive);
+          }
+        };
+
+        this.el.addEventListener("mouseenter", this.onHoverStart);
+        this.el.addEventListener("mouseleave", this.onHoverEnd);
+        this.el.addEventListener("raycaster-intersected", this.onHoverStart);
+        this.el.addEventListener("raycaster-intersected-cleared", this.onHoverEnd);
+
         this.el.addEventListener("click", (e) => {
           let current = this.el;
           let isVisible = true;
@@ -67,8 +147,17 @@
 
           const action = this.el.getAttribute("data-action");
           const param = this.el.getAttribute("data-param");
-          if (action) handleClickAction(action, param);
+          if (action) {
+            playSfx("click");
+            handleClickAction(action, param);
+          }
         });
+      },
+      remove: function () {
+        this.el.removeEventListener("mouseenter", this.onHoverStart);
+        this.el.removeEventListener("mouseleave", this.onHoverEnd);
+        this.el.removeEventListener("raycaster-intersected", this.onHoverStart);
+        this.el.removeEventListener("raycaster-intersected-cleared", this.onHoverEnd);
       }
     });
 
@@ -111,6 +200,25 @@
         this.el.setAttribute("position", { x: pos.x, y: y, z: pos.z });
       }
     });
+
+    // =========================
+    // TAMAÑO DINÁMICO DE BOTONES (MÁS GRANDES)
+    // =========================
+    function calcButtonSize(label, opts = {}) {
+      const text = String(label || "");
+      const lines = text.split("\n");
+      const longest = Math.max(...lines.map(l => l.length), 1);
+
+      const minW = opts.minW ?? 3.4;
+      const maxW = opts.maxW ?? 8.5;
+      const charW = opts.charW ?? 0.24;
+
+      const width = Math.min(maxW, Math.max(minW, longest * charW + 1.3));
+      const height = opts.height ?? (0.9 + lines.length * 0.55);
+      const wrap = Math.max(10, Math.floor(width * 4.0));
+
+      return { width, height, wrap, lines: lines.length };
+    }
   </script>
 </head>
 <body>
@@ -128,7 +236,7 @@
     <a-light type="point" intensity="0.6" color="#FF00FF" position="7 5 -10"></a-light>
 
     <!-- Piso y entorno -->
-    <a-plane position="7 -3 -4" rotation="-90 0 0" width="240" height="240" color="#0a0a0a"></a-plane>
+    <a-plane id="teleport-surface" position="7 -3 -4" rotation="-90 0 0" width="240" height="240" color="#0a0a0a"></a-plane>
     <a-plane position="7 -2.97 -4" rotation="-90 0 0" width="240" height="240"
              material="shader: flat; color: #00E5FF; opacity: 0.03"></a-plane>
     <a-sky color="#050505"></a-sky>
@@ -182,6 +290,9 @@
 
     <!-- ESCENA 5: QUERY BUILDER -->
     <a-entity id="escena-query-builder" visible="false" position="7 0 -10">
+      <!-- Botones de control fijos ENCIMA del query display -->
+      <a-entity id="query-control-buttons" position="0 8.5 -5"></a-entity>
+
       <a-entity position="0 6 -5">
         <a-box color="#111" depth="0.5" height="3.2" width="19" opacity="0.92"></a-box>
         <a-text value="QUERY ACTUAL:" position="-9 1.05 0.3" color="#FF00FF" width="8"></a-text>
@@ -252,8 +363,6 @@
 
       <!-- SWITCH 2D / 3D PARA TABLA -->
       <a-entity id="switch-vista-tabla" position="-6.2 0.7 0.15">
-       
-
         <a-entity class="clickable" position="0 0 0">
           <a-box class="clickable" interactable width="1.8" height="0.62" depth="0.3"
                  material="color: #0A1020; emissive: #00E5FF; emissiveIntensity: 0.35; opacity: 0.98"
@@ -271,7 +380,6 @@
         </a-entity>
       </a-entity>
 
-      <!-- CORREGIDO: antes estaba en 0.8 0 0 -->
       <a-entity id="area-datos" position="6 0 0">
         <a-entity id="tabla-cabecera" position="0 5 0"></a-entity>
         <a-entity id="tabla-cuerpo" position="0 4 0"></a-entity>
@@ -291,7 +399,6 @@
         <a-text id="titulo-analisis" value="ANÁLISIS" align="center" position="0 0 0.25" width="18" color="#9D4EDD"></a-text>
       </a-entity>
 
-      <!-- VOLVER -->
       <a-entity position="-10 6.8 0">
         <a-box class="clickable" interactable depth="0.35" width="3.4" height="0.9"
                material="color: #1A0800; emissive: #FF6B00; emissiveIntensity: 0.4"
@@ -300,7 +407,6 @@
         </a-box>
       </a-entity>
 
-      <!-- Switch de vista DEBAJO de VOLVER -->
       <a-entity id="switch-vista-analisis" position="-10 5.6 0.05">
         <a-entity class="clickable" position="0 -1.1 0">
           <a-box class="clickable" interactable width="3.4" height="0.75" depth="0.32"
@@ -338,11 +444,14 @@
 
     <!-- Rig -->
     <a-entity id="rig" position="7 3 8">
-      <a-entity id="camera" camera look-controls wasd-controls>
-
-      </a-entity>
+      <a-entity id="camera" camera look-controls wasd-controls></a-entity>
       <a-entity id="rightController" laser-controls="hand: right" raycaster="objects: .clickable; far: 60" line="color: #00E5FF; opacity: 0.7"></a-entity>
-      <a-entity id="leftController" laser-controls="hand: left" raycaster="objects: .clickable; far: 60" line="color: #00E5FF; opacity: 0.7"></a-entity>
+      <a-entity id="leftController"
+                laser-controls="hand: left"
+                raycaster="objects: .clickable; far: 60"
+                line="color: #00E5FF; opacity: 0.7"
+                teleport-controls="cameraRig: #rig; teleportOrigin: #camera; collisionEntities: #teleport-surface; startEvents: triggerdown; endEvents: triggerup; curveShootingSpeed: 8; hitCylinderColor: #00E5FF">
+      </a-entity>
     </a-entity>
   </a-scene>
 
@@ -362,7 +471,6 @@
     let tablaActual = "";
     let ultimaEscenaDeAnalisis = "escena-consultas-guiadas";
 
-    // vista de tabla
     let tablaVista = "2d"; // "2d" | "3d"
 
     let analisisActual = {
@@ -453,47 +561,78 @@
       return `#${f(0)}${f(8)}${f(4)}`;
     }
 
-    function crearBoton(label, action, param, bg="#111", color="#FF00FF", width=5) {
+    function crearBoton(label, action, param, bg="#111", color="#FF00FF", width) {
       const e = document.createElement("a-entity");
       const pAttr = param !== undefined ? `data-param="${String(param).replace(/"/g, "&quot;")}"` : "";
+      const size = calcButtonSize(label, { maxW: width ?? 7.6 });
+
       e.innerHTML = `
-        <a-box class="clickable" interactable width="${width}" height="1.1" depth="0.4"
+        <a-box class="clickable" interactable width="${size.width}" height="${size.height}" depth="0.4"
                material="color: ${bg}; emissive: ${color}; emissiveIntensity: 0.24"
                data-action="${action}" ${pAttr}>
-          <a-text value="${label}" align="center" position="0 0 0.22" width="8" color="${color}" wrap-count="20"></a-text>
+          <a-text value="${label}" align="center" position="0 0 0.22"
+                  width="${size.width * 1.25}" wrap-count="${size.wrap}"
+                  color="${color}"></a-text>
         </a-box>
       `;
       return e;
     }
 
     function layoutBotones(cont, opciones, opts = {}) {
-      const gapX = opts.gapX || 3.4;
-      const gapY = opts.gapY || 1.5;
-      const maxCols = opts.maxCols || 4;
-      if (!opciones.length) return { rows: 0 };
+      const maxWidth = opts.maxWidth || 18;
+      const maxCols = opts.maxCols || 3;
+      const gapX = opts.gapX || 1.8;
+      const gapY = opts.gapY || 2.4;
 
-      const cols = Math.min(maxCols, opciones.length);
-      opciones.forEach((op, i) => {
-        const row = Math.floor(i / cols);
-        const col = i % cols;
-        const x = (col - (cols - 1) / 2) * gapX;
-        const y = -row * gapY;
+      let rows = [];
+      let current = [];
+      let rowWidth = 0;
 
-        const ent = document.createElement("a-entity");
-        ent.setAttribute("position", `${x} ${y} 0`);
+      opciones.forEach((op) => {
+        const size = (op.w && op.h)
+          ? { width: op.w, height: op.h, wrap: Math.max(10, Math.floor(op.w * 4.0)) }
+          : calcButtonSize(op.label, { maxW: op.w || 7.6 });
+        const w = size.width;
 
-        ent.innerHTML = `
-          <a-box class="clickable" interactable width="${op.w || 3.2}" height="${op.h || 1.1}" depth="0.35"
-                 material="color: #0a1020; emissive: ${op.emissive || "#00E5FF"}; emissiveIntensity: ${op.emissive ? 0.22 : 0.12}"
-                 data-action="${op.action}" ${op.param !== undefined ? `data-param="${String(op.param).replace(/"/g, "&quot;")}"` : ""}>
-            <a-text value="${op.label}" align="center" position="0 0 0.19"
-                    width="${op.tw || 5}" color="${op.textColor || "#00E5FF"}" wrap-count="${op.wrap || 16}"></a-text>
-          </a-box>
-        `;
-        cont.appendChild(ent);
+        const nextWidth = current.length === 0 ? w : rowWidth + gapX + w;
+        const withinWidth = nextWidth <= maxWidth;
+        const withinCols = current.length < maxCols;
+
+        if (current.length === 0 || (withinWidth && withinCols)) {
+          current.push({ ...op, _w: w, _h: op.h || size.height, _wrap: size.wrap });
+          rowWidth = nextWidth;
+        } else {
+          rows.push(current);
+          current = [{ ...op, _w: w, _h: op.h || size.height, _wrap: size.wrap }];
+          rowWidth = w;
+        }
+      });
+      if (current.length) rows.push(current);
+
+      rows.forEach((row, rowIndex) => {
+        const totalRowWidth = row.reduce((acc, b) => acc + b._w, 0) + gapX * (row.length - 1);
+        let x = -totalRowWidth / 2;
+
+        row.forEach((op) => {
+          const ent = document.createElement("a-entity");
+          ent.setAttribute("position", `${x + op._w / 2} ${-rowIndex * gapY} 0`);
+
+          ent.innerHTML = `
+            <a-box class="clickable" interactable
+                   width="${op._w}" height="${op._h}" depth="0.35"
+                   material="color: #0a1020; emissive: ${op.emissive || "#00E5FF"}; emissiveIntensity: ${op.emissive ? 0.22 : 0.12}"
+                   data-action="${op.action}" ${op.param !== undefined ? `data-param="${String(op.param).replace(/"/g, "&quot;")}"` : ""}>
+              <a-text value="${op.label}" align="center" position="0 0 0.19"
+                      width="${op._w * 1.25}" wrap-count="${op.wrap || op._wrap}"
+                      color="${op.textColor || "#00E5FF"}"></a-text>
+            </a-box>
+          `;
+          cont.appendChild(ent);
+          x += op._w + gapX;
+        });
       });
 
-      return { rows: Math.ceil(opciones.length / cols) };
+      return { rows: rows.length };
     }
 
     function parseApiArray(raw) {
@@ -520,21 +659,18 @@
     let rigPos = { x: 7, y: 3, z: 8 };
     let leftJoystick = { x: 0, y: 0 };
     let rightJoystick = { x: 0, y: 0 };
-	    // =========================
-	// TECLADO: SUBIR / BAJAR (NAV)
-	// Q = bajar | E = subir
-	// =========================
-	const teclas = { subir: false, bajar: false };
 
-	window.addEventListener("keydown", (e) => {
-	  if (e.code === "KeyE") teclas.subir = true;
-	  if (e.code === "KeyQ") teclas.bajar = true;
-	});
+    const teclas = { subir: false, bajar: false };
 
-	window.addEventListener("keyup", (e) => {
-	  if (e.code === "KeyE") teclas.subir = false;
-	  if (e.code === "KeyQ") teclas.bajar = false;
-	});
+    window.addEventListener("keydown", (e) => {
+      if (e.code === "KeyE") teclas.subir = true;
+      if (e.code === "KeyQ") teclas.bajar = true;
+    });
+
+    window.addEventListener("keyup", (e) => {
+      if (e.code === "KeyE") teclas.subir = false;
+      if (e.code === "KeyQ") teclas.bajar = false;
+    });
 
     document.querySelector("#leftController")?.addEventListener("thumbstickmoved", (e) => { leftJoystick = e.detail; });
     document.querySelector("#rightController")?.addEventListener("thumbstickmoved", (e) => { rightJoystick = e.detail; });
@@ -543,58 +679,43 @@
       rigPos.x += (leftJoystick.x || 0) * 0.1;
       rigPos.z += (leftJoystick.y || 0) * 0.1;
       rigPos.y += (rightJoystick.y || 0) * 0.05;
-      // Teclado (navegador)
-      const stepY = 0.08; // velocidad vertical; ajusta si quieres más rápido/lento
+      const stepY = 0.08;
       if (teclas.subir) rigPos.y += stepY;
       if (teclas.bajar) rigPos.y -= stepY;
       rig.setAttribute("position", `${rigPos.x} ${rigPos.y} ${rigPos.z}`);
     }, 30);
 
-    // =========================
-    // RESET DE VISTA (recentrar cámara)
-    // Teclado: R  |  VR: botón de menú/start del mando
-    // =========================
     const RESET_POS = { x: 7, y: 3, z: 8 };
 
     function resetVista() {
-      // 1. Volver a la posición inicial del rig
       rigPos.x = RESET_POS.x;
       rigPos.y = RESET_POS.y;
       rigPos.z = RESET_POS.z;
       rig.setAttribute("position", `${rigPos.x} ${rigPos.y} ${rigPos.z}`);
 
-      // 2. Resetear la rotación acumulada del look-controls de la cámara
       const camEl = document.querySelector("#camera");
       if (camEl && camEl.components["look-controls"]) {
         const lc = camEl.components["look-controls"];
-        // Forzar yaw y pitch a cero
         if (lc.yawObject)   lc.yawObject.rotation.set(0, 0, 0);
         if (lc.pitchObject) lc.pitchObject.rotation.set(0, 0, 0);
         camEl.setAttribute("rotation", "0 0 0");
       }
 
-      // Feedback visual breve en el HUD
       mostrarToastHUD("↺ VISTA RECENTRADA");
     }
 
-    // Tecla R en navegador
     window.addEventListener("keydown", (e) => {
       if (e.code === "KeyR" && !e.repeat) resetVista();
     });
 
-    // Botón de menú/start del mando VR (buttondown evento "menu" o "start")
     ["rightController", "leftController"].forEach(id => {
       const ctrl = document.querySelector(`#${id}`);
       if (!ctrl) return;
-      // "menudown" = botón ☰ en Oculus/Meta; "startdown" = algunos WMR
       ["menudown", "startdown", "abuttondown"].forEach(evt => {
         ctrl.addEventListener(evt, () => resetVista());
       });
     });
 
-    // =========================
-    // HUD de feedback (toast 2D sobre la escena)
-    // =========================
     let _toastTimeout = null;
     function mostrarToastHUD(texto) {
       let toast = document.getElementById("hud-toast");
@@ -722,6 +843,7 @@
     function renderQBOpciones() {
       const cont = limpiarEntidad("query-options-container");
       const hint = limpiarEntidad("query-hint-container");
+      const ctrlCont = limpiarEntidad("query-control-buttons");
       const titleEl = document.getElementById("query-step-title");
 
       let opciones = [];
@@ -748,6 +870,8 @@
           label: c.toUpperCase(),
           action: "qb_col",
           param: c,
+          w: 5.5,
+          h: 1.0,
           emissive: queryState.columns.includes(c) ? "#FFB700" : "#00E5FF",
           textColor: queryState.columns.includes(c) ? "#FFB700" : "#00E5FF"
         }));
@@ -759,7 +883,7 @@
         titleEl.setAttribute("value", "PASO 4 · FILTRO WHERE (opcional)");
         const cols = schemasMock[queryState.table] || [];
         opciones = cols.map(c => ({ label: `WHERE ${c}`, action: "qb_where_col", param: c }));
-        extraButtons.push({ label: "SALTAR WHERE", action: "qb_skip", bg: "#111", color: "#FF00FF", w: 5.3 });
+        extraButtons.push({ label: "SALTAR WHERE", action: "qb_skip", bg: "#111", color: "#FF00FF", w: 5.8 });
       }
       else if (queryState.step === 4.5) {
         titleEl.setAttribute("value", `PASO 4.5 · VALOR DE ${queryState.whereCol?.toUpperCase() || "WHERE"}`);
@@ -768,7 +892,7 @@
           action: "qb_where_val",
           param: String(idx)
         }));
-        extraButtons.push({ label: "CANCELAR WHERE", action: "qb_skip", bg: "#111", color: "#FF00FF", w: 5.8 });
+        extraButtons.push({ label: "CANCELAR WHERE", action: "qb_skip", bg: "#111", color: "#FF00FF", w: 6.0 });
       }
       else if (queryState.step === 5) {
         titleEl.setAttribute("value", "PASO 5 · ORDER BY (opcional)");
@@ -779,13 +903,13 @@
           action: "qb_toggle_order_dir",
           bg: "#0E1C2B",
           color: "#00E5FF",
-          w: 5.8
+          w: 6.0
         });
-        extraButtons.push({ label: "SALTAR ORDER", action: "qb_skip", bg: "#111", color: "#FF00FF", w: 5.2 });
+        extraButtons.push({ label: "SALTAR ORDER", action: "qb_skip", bg: "#111", color: "#FF00FF", w: 5.6 });
       }
       else if (queryState.step === 6) {
         titleEl.setAttribute("value", "✓ QUERY LISTA");
-        extraButtons.push({ label: "▶ EJECUTAR QUERY", action: "qb_ejecutar", bg: "#001800", color: "#00FF88", w: 6 });
+        extraButtons.push({ label: "▶ EJECUTAR QUERY", action: "qb_ejecutar", bg: "#001800", color: "#00FF88", w: 6.5 });
 
         const t = document.createElement("a-text");
         t.setAttribute("value",
@@ -799,24 +923,27 @@
         hint.appendChild(t);
       }
 
-      const layoutInfo = layoutBotones(cont, opciones, { maxCols: 4, gapX: 3.4, gapY: 1.5 });
-      let y = -(Math.max(layoutInfo.rows, 1) * 1.5) - 0.2;
+      layoutBotones(cont, opciones, { maxCols: 3, gapX: 1.5, gapY: 2.2, maxWidth: 20 });
 
-      extraButtons.forEach(btn => {
-        const b = crearBoton(btn.label, btn.action, undefined, btn.bg, btn.color, btn.w || 5);
-        b.setAttribute("position", `0 ${y} 0`);
-        cont.appendChild(b);
-        y -= 1.35;
+      // ✅ Botones de control: línea horizontal fija ENCIMA del query display
+      const controlBtns = [
+        ...extraButtons.map(btn => ({
+          label: btn.label, action: btn.action,
+          bg: btn.bg, color: btn.color, w: btn.w || 6
+        })),
+        { label: "← CANCELAR", action: "volver", bg: "#FF6B00", color: "#FFF", w: 5.0 }
+      ];
+
+      const gapControl = 1.2;
+      const totalControlW = controlBtns.reduce((a, b) => a + b.w, 0) + gapControl * (controlBtns.length - 1);
+      let cx = -totalControlW / 2;
+
+      controlBtns.forEach(btn => {
+        const b = crearBoton(btn.label, btn.action, undefined, btn.bg, btn.color, btn.w);
+        b.setAttribute("position", `${cx + btn.w / 2} 0 0`);
+        ctrlCont.appendChild(b);
+        cx += btn.w + gapControl;
       });
-
-      const cancel = document.createElement("a-entity");
-      cancel.setAttribute("position", `0 ${y} 0`);
-      cancel.innerHTML = `
-        <a-box class="clickable" interactable color="#FF6B00" depth="0.4" width="4.1" height="0.8" data-action="volver">
-          <a-text value="← CANCELAR" align="center" position="0 0 0.22" width="6.1" color="#FFF"></a-text>
-        </a-box>
-      `;
-      cont.appendChild(cancel);
     }
 
     function qb_selOp(op) {
@@ -1181,7 +1308,6 @@
       return renderizarTabla2D();
     }
 
-    // CORREGIDA: 2D centrada
     function renderizarTabla2D() {
       const cuerpo = limpiarEntidad("tabla-cuerpo");
       const cabecera = limpiarEntidad("tabla-cabecera");
@@ -1274,7 +1400,6 @@
       document.getElementById("label-pagina").setAttribute("value", `PÁG.\n${paginaActual + 1} / ${totalPages}`);
     }
 
-    // CORREGIDA: 3D centrada
     function renderizarTabla3D() {
       const cuerpo = limpiarEntidad("tabla-cuerpo");
       const cabecera = limpiarEntidad("tabla-cabecera");
