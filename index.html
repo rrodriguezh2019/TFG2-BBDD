@@ -577,6 +577,77 @@
       </a-entity>
     </a-entity>
 
+    <!-- ESCENA 7: RESULTADO QUERY BUILDER (tabla original + gráfico 3D izquierda) -->
+    <a-entity id="escena-query-resultado" visible="false" position="7 0 -15">
+
+      <!-- Título (igual que escena-tabla) -->
+      <a-entity position="0 6 0">
+        <a-box color="#0a0a0a" depth="0.4" height="1" width="14" opacity="0.95"></a-box>
+        <a-text id="qr-titulo" value="" align="center" position="0 0 0.25" width="18" color="#00E5FF"></a-text>
+      </a-entity>
+
+      <!-- GRÁFICO 3D ROTATIVO — a la izquierda del todo -->
+      <a-entity id="qr-grafico-wrapper" position="-14 2.5 0">
+        <a-entity id="qr-grafico" slow-rotate="speed: 0.10; axis: y"></a-entity>
+      </a-entity>
+
+      <!-- CONTROLES LATERALES (idénticos a escena-tabla) -->
+      <a-entity id="qr-controles-lateral" position="-6.2 2.5 0">
+        <a-box color="#111" depth="0.3" height="6.2" width="2" opacity="0.85"></a-box>
+        <a-text value="CONTROLES" position="0 2.3 0.2" align="center" color="#00E5FF" width="4"></a-text>
+
+        <a-entity position="0 1.3 0.15">
+          <a-box class="clickable" interactable color="#222" width="1.8" height="0.7" depth="0.3"
+                 data-action="cambiarPagina" data-param="-1">
+            <a-text value="ANTERIOR" align="center" position="0 0 0.2" width="4.4" color="#00E5FF"></a-text>
+          </a-box>
+        </a-entity>
+
+        <a-entity position="0 0.35 0.2">
+          <a-text id="qr-label-pagina" value="PÁG.\n1 / 1" align="center" color="#FFF" width="4.8"></a-text>
+        </a-entity>
+
+        <a-entity position="0 -0.6 0.15">
+          <a-box class="clickable" interactable color="#222" width="1.8" height="0.7" depth="0.3"
+                 data-action="cambiarPagina" data-param="1">
+            <a-text value="SIGUIENTE" align="center" position="0 0 0.2" width="4.4" color="#00E5FF"></a-text>
+          </a-box>
+        </a-entity>
+      </a-entity>
+
+      <!-- SWITCH 2D / 3D (idéntico a escena-tabla) -->
+      <a-entity id="qr-switch-vista" position="-6.2 0.7 0.15">
+        <a-entity class="clickable" position="0 0 0">
+          <a-box class="clickable" interactable width="1.8" height="0.62" depth="0.3"
+                 material="color: #0A1020; emissive: #00E5FF; emissiveIntensity: 0.35; opacity: 0.98"
+                 data-action="tabla_ver_3d">
+            <a-text value="VER 3D" align="center" position="0 0 0.18" width="3.8" color="#00E5FF"></a-text>
+          </a-box>
+        </a-entity>
+        <a-entity class="clickable" position="0 -0.84 0">
+          <a-box class="clickable" interactable width="1.8" height="0.62" depth="0.3"
+                 material="color: #201008; emissive: #FFB700; emissiveIntensity: 0.35; opacity: 0.98"
+                 data-action="tabla_ver_2d">
+            <a-text value="VER 2D" align="center" position="0 0 0.18" width="3.8" color="#FFB700"></a-text>
+          </a-box>
+        </a-entity>
+      </a-entity>
+
+      <!-- ÁREA DE DATOS de la tabla (idéntica a escena-tabla) -->
+      <a-entity id="qr-area-datos" position="6 0 0">
+        <a-entity id="qr-tabla-cabecera" position="0 5 0"></a-entity>
+        <a-entity id="qr-tabla-cuerpo"   position="0 4 0"></a-entity>
+      </a-entity>
+
+      <!-- VOLVER -->
+      <a-entity position="0 -2.5 0">
+        <a-box class="clickable" interactable color="#FF6B00" depth="0.3" width="3.8" height="0.7" data-action="volver">
+          <a-text value="← VOLVER" align="center" position="0 0 0.2" width="6.2" color="#FFF"></a-text>
+        </a-box>
+      </a-entity>
+
+    </a-entity>
+
     <!-- ============ TECLADO VIRTUAL VR ============ -->
     <a-entity id="vr-keyboard-panel" visible="false" position="7 4 -2">
       <!-- Panel de fondo -->
@@ -638,6 +709,9 @@
     let tablaActual = "";
     let ultimaEscenaDeAnalisis = "escena-consultas-guiadas";
 
+    let qrPaginaActual = 0;
+    const qrFilasPorPagina = 5;
+
     let tablaVista = "2d"; // "2d" | "3d"
 
     let analisisActual = {
@@ -683,7 +757,8 @@
           "escena-query-builder",
           "escena-consultas-guiadas",
           "escena-tabla",
-          "escena-analisis-edades"
+          "escena-analisis-edades",
+          "escena-query-resultado"
         ].forEach(id => document.getElementById(id).setAttribute("visible", "false"));
       }
       goTo(escena) {
@@ -951,6 +1026,8 @@
 
       if (action === "resetVista") return resetVista();
 
+      if (action === "qr_pag") return qr_cambiarPagina(parseInt(param, 10));
+
       // Teclado VR
       if (action === "vrkb_key") {
         _vrkbText += param;
@@ -995,6 +1072,9 @@
     function setVistaTabla(vista) {
       tablaVista = vista;
       renderizarTabla();
+      // Si estamos en escena-query-resultado, refrescar su tabla también
+      const qrVisible = document.getElementById("escena-query-resultado")?.getAttribute("visible");
+      if (qrVisible === true || qrVisible === "true") renderQRTabla();
     }
 
     function mostrarMenuTablas() {
@@ -1314,47 +1394,114 @@
     }
 
     async function qb_ejecutar() {
-      nav.goTo("escena-tabla");
+      nav.goTo("escena-query-resultado");
       paginaActual = 0;
+      qrPaginaActual = 0;
       tablaActual = queryState.table;
       tablaVista = "2d";
 
       const titulo = `${queryState.operation} ${queryState.table.toUpperCase()}`;
-      document.getElementById("texto-tabla").setAttribute("value", titulo);
+      document.getElementById("qr-titulo").setAttribute("value", titulo);
 
       try {
         const params = new URLSearchParams();
-
         if (queryState.columns.length && queryState.columns[0] !== "*") {
           params.set("select", queryState.columns.join(","));
         }
-
         if (queryState.whereCol && queryState.whereVal !== "" && queryState.whereVal !== undefined) {
           params.set(queryState.whereCol, `eq.${queryState.whereVal}`);
         }
-
         if (queryState.orderCol) {
           params.set("order", `${queryState.orderCol}.${queryState.orderDir.toLowerCase()}`);
         }
-
         params.set("limit", "1000");
 
         const url = `${API_URL}/${queryState.table}?${params.toString()}`;
         const res = await fetch(url);
         const raw = await res.json();
-
-        if (!res.ok) {
-          console.error("Error PostgREST:", raw);
-          datosActuales = [];
-        } else {
-          datosActuales = parseApiArray(raw);
-        }
+        datosActuales = res.ok ? parseApiArray(raw) : [];
       } catch (e) {
         console.error("Error de red:", e);
         datosActuales = [];
       }
 
+      // Renderizar tabla (usa las mismas funciones que escena-tabla)
+      // pero apuntando a los IDs qr-tabla-cabecera / qr-tabla-cuerpo / qr-label-pagina
+      renderQRTabla();
+      renderQRGrafico3D();
+    }
+
+    // Renderiza la tabla en la escena-query-resultado (misma lógica que renderizarTabla2D/3D
+    // pero usando los IDs propios de la escena QR)
+    function renderQRTabla() {
+      // Reutilizamos renderizarTabla() que ya escribe en tabla-cabecera/tabla-cuerpo/label-pagina
+      // Para no duplicar código, temporalmente redirigimos a los IDs QR
+      const _cab  = document.getElementById("tabla-cabecera");
+      const _cuer = document.getElementById("tabla-cuerpo");
+      const _pag  = document.getElementById("label-pagina");
+
+      // Swapear IDs temporalmente
+      document.getElementById("qr-tabla-cabecera").id = "tabla-cabecera";
+      document.getElementById("qr-tabla-cuerpo").id   = "tabla-cuerpo";
+      document.getElementById("qr-label-pagina").id   = "label-pagina";
+      _cab.id  = "tabla-cabecera-orig";
+      _cuer.id = "tabla-cuerpo-orig";
+      _pag.id  = "label-pagina-orig";
+
       renderizarTabla();
+
+      // Restaurar IDs
+      document.getElementById("tabla-cabecera").id = "qr-tabla-cabecera";
+      document.getElementById("tabla-cuerpo").id   = "qr-tabla-cuerpo";
+      document.getElementById("label-pagina").id   = "qr-label-pagina";
+      document.getElementById("tabla-cabecera-orig").id = "tabla-cabecera";
+      document.getElementById("tabla-cuerpo-orig").id   = "tabla-cuerpo";
+      document.getElementById("label-pagina-orig").id   = "label-pagina";
+    }
+
+    // Gráfico 3D rotativo a la izquierda (mismo código que renderGrafico3D)
+    function renderQRGrafico3D() {
+      const grafCont = document.getElementById("qr-grafico");
+      grafCont.innerHTML = "";
+
+      const columnas = datosActuales.length
+        ? Object.keys(datosActuales[0])
+        : (queryState.columns[0] !== "*" ? queryState.columns : schemasMock[tablaActual] || []);
+
+      if (!datosActuales.length || !columnas.length) {
+        const msg = document.createElement("a-text");
+        msg.setAttribute("value", "SIN DATOS");
+        msg.setAttribute("color", "#FF4444");
+        msg.setAttribute("align", "center");
+        msg.setAttribute("width", "6");
+        grafCont.appendChild(msg);
+        return;
+      }
+
+      // Detectar columna numérica y columna de etiqueta
+      const colNum = columnas.find(c =>
+        datosActuales.slice(0, 20).some(r => r[c] !== null && r[c] !== undefined && !isNaN(Number(r[c])) && String(r[c]).trim() !== "")
+      );
+      const colGroup = columnas.find(c => c !== colNum) || columnas[0];
+
+      // Agrupar datos
+      let datosGrafico = {};
+      if (colNum && colGroup) {
+        datosActuales.forEach(r => {
+          const k = String(r[colGroup] ?? "N/D").slice(0, 10);
+          const v = Number(r[colNum]);
+          datosGrafico[k] = (datosGrafico[k] || 0) + (Number.isFinite(v) ? v : 1);
+        });
+      } else {
+        datosActuales.forEach(r => {
+          const k = String(r[columnas[0]] ?? "N/D").slice(0, 10);
+          datosGrafico[k] = (datosGrafico[k] || 0) + 1;
+        });
+      }
+      if (!Object.keys(datosGrafico).length) datosGrafico = { "SIN DATOS": 0 };
+
+      // Reutilizar renderGrafico3D directamente
+      renderGrafico3D("qr-grafico", datosGrafico, colNum ? "num" : "count");
     }
 
     // ==========================================
@@ -1948,7 +2095,12 @@
       const next = paginaActual + delta;
       if (next >= 0 && next < totalPages) {
         paginaActual = next;
-        renderizarTabla();
+        const qrVisible = document.getElementById("escena-query-resultado")?.getAttribute("visible");
+        if (qrVisible === true || qrVisible === "true") {
+          renderQRTabla();
+        } else {
+          renderizarTabla();
+        }
       }
     }
 
