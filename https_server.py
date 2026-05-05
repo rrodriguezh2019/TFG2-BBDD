@@ -288,6 +288,52 @@ def delete_estudiante(id):
         cur.close()
         conn.close()
 
+# ============ NUEVA RUTA: CREAR TABLA (solo admin) ============
+
+@app.route('/api/admin/create_table', methods=['POST'])
+@require_auth
+@require_permission('admin_create_table')
+def admin_create_table():
+    data = request.get_json()
+    table_name = data.get('table_name')
+    columns = data.get('columns')  # [{'name': 'nombrecol', 'type': 'TEXT'}, ...]
+
+    # Validar inputs
+    if not table_name or not columns or not isinstance(columns, list):
+        return jsonify({'error': 'Datos de tabla/columnas inválidos'}), 400
+
+    # Validar nombre tabla seguro (solo letras, números y guión bajo)
+    if not table_name.replace('_', '').isalnum():
+        return jsonify({'error': 'Nombre de tabla no válido'}), 400
+
+    # Tipos permitidos (amplía si lo deseas)
+    allowed_types = {'TEXT', 'INTEGER', 'SERIAL', 'BOOLEAN', 'DATE', 'REAL'}
+    col_defs = []
+    for col in columns:
+        name = col.get('name')
+        col_type = col.get('type', '').upper()
+        if not name or not name.replace('_', '').isalnum():
+            return jsonify({'error': f'Nombre de columna no válido: {name}'}), 400
+        if col_type not in allowed_types:
+            return jsonify({'error': f'Tipo de columna no permitido: {col_type}'}), 400
+        col_defs.append(f"{name} {col_type}")
+
+    sql = f'CREATE TABLE IF NOT EXISTS {table_name} ({", ".join(col_defs)});'
+
+    conn = get_db_connection()
+    if not conn:
+        return jsonify({'error': 'No se pudo conectar a la base de datos'}), 500
+    try:
+        cur = conn.cursor()
+        cur.execute(sql)
+        conn.commit()
+        cur.close()
+        conn.close()
+        return jsonify({'success': True, 'sql': sql}), 200
+    except Exception as e:
+        conn.rollback()
+        return jsonify({'error': str(e)}), 500
+
 # ============ MANEJO DE ERRORES ============
 
 @app.errorhandler(404)

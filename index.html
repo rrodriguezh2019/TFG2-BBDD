@@ -430,7 +430,7 @@
 
       <a-entity position="0 6 -5">
         <a-box color="#111" depth="0.5" height="3.2" width="19" opacity="0.92"></a-box>
-        <a-text value="QUERY ACTUAL:" position="-9 1.05 0.3" color="#FF00FF" width="8"></a-text>
+        
         <a-text id="query-display" value="Esperando instrucción..." position="-9 0 0.3" color="#00E5FF" width="16.8" wrap-count="40"></a-text>
       </a-entity>
 
@@ -597,7 +597,9 @@
     let queryState = {
       step: 1, operation: "", table: "", columns: [],
       whereCol: "", whereVal: "", whereOptions: [],
-      orderCol: "", orderDir: "ASC"
+      orderCol: "", orderDir: "ASC",
+      createTableName: "",
+      createColumns: []
     };
 
     let datosActuales = [];
@@ -906,6 +908,11 @@
       if (action === "qb_toggle_order_dir") return qb_toggleOrderDir();
       if (action === "qb_ejecutar") return qb_ejecutar();
 
+      if (action === "qb_create_set_name") return qb_create_set_name();
+      if (action === "qb_create_add_col") return qb_create_add_col(param);
+      if (action === "qb_create_remove_col") return qb_create_remove_col();
+      if (action === "qb_create_exec") return qb_create_exec();
+
       if (action === "iniciarConsultasGuiadas") return iniciarConsultasGuiadas();
       if (action === "ejecutarConsultaGuiada") return ejecutarConsultaGuiada(param);
 
@@ -949,7 +956,9 @@
       queryState = {
         step: 1, operation: "", table: "", columns: [],
         whereCol: "", whereVal: "", whereOptions: [],
-        orderCol: "", orderDir: "ASC"
+        orderCol: "", orderDir: "ASC",
+        createTableName: "",
+        createColumns: []
       };
       limpiarEntidad("query-hint-container");
       actualizarDisplaySQL();
@@ -968,6 +977,11 @@
         else if (s.whereCol && !s.whereVal) sql += `\nWHERE ${s.whereCol} = '...'`;
         if (s.orderCol) sql += `\nORDER BY ${s.orderCol} ${s.orderDir}`;
         sql += ";";
+      } else if (s.operation === "CREATE_TABLE") {
+        const cols = s.createColumns.length
+          ? s.createColumns.map(c => `${c.name} ${c.type}`).join(", ")
+          : "...";
+        sql = `CREATE TABLE ${s.createTableName || "nombre_tabla"} (\n  ${cols}\n);`;
       } else if (s.operation) {
         sql = `${s.operation} ...`;
       }
@@ -986,7 +1000,10 @@
 
       if (queryState.step === 1) {
         titleEl.setAttribute("value", "PASO 1 · OPERACIÓN SQL");
-        opciones = ["SELECT"].map((op, i) => ({
+        const ops = ["SELECT"];
+        if (tienePermiso("admin_create_table")) ops.push("CREATE TABLE");
+
+        opciones = ops.map((op, i) => ({
           label: op,
           action: "qb_op",
           param: op,
@@ -994,7 +1011,7 @@
           textColor: ["#00E5FF", "#00FF88", "#FFB700", "#FF4444"][i]
         }));
       }
-      else if (queryState.step === 2) {
+      else if (queryState.step === 2 && queryState.operation === "SELECT") {
         titleEl.setAttribute("value", "PASO 2 · TABLA PRINCIPAL");
         opciones = tablas.map(t => ({ label: t.toUpperCase(), action: "qb_tabla", param: t }));
       }
@@ -1014,13 +1031,13 @@
           extraButtons.push({ label: "PASO 4 →", action: "qb_skip", bg: "#1A1A2E", color: "#00E5FF", w: 5 });
         }
       }
-      else if (queryState.step === 4) {
+      else if (queryState.step === 4 && queryState.operation === "SELECT") {
         titleEl.setAttribute("value", "PASO 4 · FILTRO WHERE (opcional)");
         const cols = schemasMock[queryState.table] || [];
         opciones = cols.map(c => ({ label: `WHERE ${c}`, action: "qb_where_col", param: c }));
         extraButtons.push({ label: "SALTAR WHERE", action: "qb_skip", bg: "#111", color: "#FF00FF", w: 5.8 });
       }
-      else if (queryState.step === 4.5) {
+      else if (queryState.step === 4.5 && queryState.operation === "SELECT") {
         titleEl.setAttribute("value", `PASO 4.5 · VALOR DE ${queryState.whereCol?.toUpperCase() || "WHERE"}`);
         opciones = queryState.whereOptions.map((v, idx) => ({
           label: `= '${String(v).length > 14 ? String(v).slice(0, 11) + "..." : String(v)}'`,
@@ -1029,7 +1046,7 @@
         }));
         extraButtons.push({ label: "CANCELAR WHERE", action: "qb_skip", bg: "#111", color: "#FF00FF", w: 6.0 });
       }
-      else if (queryState.step === 5) {
+      else if (queryState.step === 5 && queryState.operation === "SELECT") {
         titleEl.setAttribute("value", "PASO 5 · ORDER BY (opcional)");
         const cols = queryState.columns[0] === "*" ? (schemasMock[queryState.table] || []) : queryState.columns;
         opciones = cols.map(c => ({ label: `ORDER ${c}`, action: "qb_order_col", param: c }));
@@ -1042,7 +1059,7 @@
         });
         extraButtons.push({ label: "SALTAR ORDER", action: "qb_skip", bg: "#111", color: "#FF00FF", w: 5.6 });
       }
-      else if (queryState.step === 6) {
+      else if (queryState.step === 6 && queryState.operation === "SELECT") {
         titleEl.setAttribute("value", "✓ QUERY LISTA");
         extraButtons.push({ label: "▶ EJECUTAR QUERY", action: "qb_ejecutar", bg: "#001800", color: "#00FF88", w: 6.5 });
 
@@ -1058,9 +1075,45 @@
         hint.appendChild(t);
       }
 
+      else if (queryState.step === 2 && queryState.operation === "CREATE_TABLE") {
+        titleEl.setAttribute("value", "PASO 2 · NOMBRE DE TABLA");
+        opciones = [{
+          label: queryState.createTableName ? `TABLA: ${queryState.createTableName}` : "ELEGIR NOMBRE",
+          action: "qb_create_set_name"
+        }];
+        extraButtons.push({ label: "PASO 3 →", action: "qb_skip", bg: "#1A1A2E", color: "#00E5FF", w: 5 });
+      }
+      else if (queryState.step === 3 && queryState.operation === "CREATE_TABLE") {
+        titleEl.setAttribute("value", "PASO 3 · COLUMNAS");
+        const tipos = ["TEXT", "INTEGER","REAL"];
+        opciones = tipos.map(t => ({
+          label: `+ ${t}`,
+          action: "qb_create_add_col",
+          param: t,
+          w: 5.5,
+          h: 1.0
+        }));
+        extraButtons.push({ label: "QUITAR ULTIMA", action: "qb_create_remove_col", bg: "#3A1111", color: "#FF8888", w: 6 });
+        extraButtons.push({ label: "PASO 4 →", action: "qb_skip", bg: "#1A1A2E", color: "#00E5FF", w: 5 });
+      }
+      else if (queryState.step === 4 && queryState.operation === "CREATE_TABLE") {
+        titleEl.setAttribute("value", "✓ LISTO PARA CREAR");
+        extraButtons.push({ label: "▶ EJECUTAR CREATE", action: "qb_create_exec", bg: "#001800", color: "#00FF88", w: 7 });
+
+        const t = document.createElement("a-text");
+        t.setAttribute("value",
+          `Tabla: ${queryState.createTableName || "?"}\n` +
+          `Columnas: ${queryState.createColumns.map(c => `${c.name} ${c.type}`).join(", ") || "ninguna"}`
+        );
+        t.setAttribute("color", "#FFB700");
+        t.setAttribute("align", "center");
+        t.setAttribute("width", "12");
+        t.setAttribute("position", "0 -2 0");
+        hint.appendChild(t);
+      }
+
       layoutBotones(cont, opciones, { maxCols: 3, gapX: 1.5, gapY: 2.2, maxWidth: 20 });
 
-      // ✅ Botones de control: línea horizontal fija ENCIMA del query display
       const controlBtns = [
         ...extraButtons.map(btn => ({
           label: btn.label, action: btn.action,
@@ -1082,8 +1135,15 @@
     }
 
     function qb_selOp(op) {
-      queryState.operation = op;
-      queryState.step = op === "SELECT" ? 2 : 6;
+      if (op === "CREATE TABLE") {
+        queryState.operation = "CREATE_TABLE";
+        queryState.step = 2;
+        queryState.createTableName = "";
+        queryState.createColumns = [];
+      } else {
+        queryState.operation = op;
+        queryState.step = op === "SELECT" ? 2 : 6;
+      }
       actualizarDisplaySQL();
       renderQBOpciones();
     }
@@ -1168,12 +1228,16 @@
     }
 
     function qb_skip() {
-      if (queryState.step === 4.5) {
-        queryState.whereCol = "";
-        queryState.whereVal = "";
-        queryState.step = 5;
+      if (queryState.operation === "CREATE_TABLE") {
+        queryState.step = Math.min(queryState.step + 1, 4);
       } else {
-        queryState.step = Math.min(queryState.step + 1, 6);
+        if (queryState.step === 4.5) {
+          queryState.whereCol = "";
+          queryState.whereVal = "";
+          queryState.step = 5;
+        } else {
+          queryState.step = Math.min(queryState.step + 1, 6);
+        }
       }
       actualizarDisplaySQL();
       renderQBOpciones();
@@ -1221,6 +1285,56 @@
       }
 
       renderizarTabla();
+    }
+
+    function qb_create_set_name() {
+      const name = prompt("Nombre de la tabla:");
+      if (name && name.trim()) {
+        queryState.createTableName = name.trim();
+        actualizarDisplaySQL();
+        renderQBOpciones();
+      }
+    }
+
+    function qb_create_add_col(type) {
+      const name = prompt(`Nombre de la columna (${type}):`);
+      if (name && name.trim()) {
+        queryState.createColumns.push({ name: name.trim(), type });
+        actualizarDisplaySQL();
+        renderQBOpciones();
+      }
+    }
+
+    function qb_create_remove_col() {
+      queryState.createColumns.pop();
+      actualizarDisplaySQL();
+      renderQBOpciones();
+    }
+
+    async function qb_create_exec() {
+      if (!queryState.createTableName || !queryState.createColumns.length) {
+        mostrarToastHUD("❌ Faltan datos");
+        return;
+      }
+
+      try {
+        const resp = await fetch('/api/admin/create_table', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            table_name: queryState.createTableName,
+            columns: queryState.createColumns
+          })
+        });
+        const data = await resp.json();
+        if (resp.ok) {
+          mostrarToastHUD("✅ Tabla creada");
+        } else {
+          mostrarToastHUD(`❌ ${data.error || "Error"}`);
+        }
+      } catch (e) {
+        mostrarToastHUD("❌ Error de red");
+      }
     }
 
     function iniciarConsultasGuiadas() {
