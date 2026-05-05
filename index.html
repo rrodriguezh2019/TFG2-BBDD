@@ -222,6 +222,141 @@
   </script>
 </head>
 <body>
+  <!-- ============ MODAL DE LOGIN ============ -->
+  <div id="login-modal" style="
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #000 0%, #0a0a1a 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+  ">
+    <div style="
+      background: rgba(10, 20, 40, 0.95);
+      border: 2px solid #00E5FF;
+      border-radius: 12px;
+      padding: 40px;
+      width: 90%;
+      max-width: 400px;
+      box-shadow: 0 0 30px rgba(0, 229, 255, 0.3);
+    ">
+      <h1 style="
+        color: #00E5FF;
+        text-align: center;
+        font-family: Arial, sans-serif;
+        margin-bottom: 10px;
+        font-size: 28px;
+        letter-spacing: 2px;
+      ">SISTEMA UNIVERSITARIO</h1>
+
+      <p style="
+        color: #00FF88;
+        text-align: center;
+        font-family: Arial, sans-serif;
+        margin-bottom: 30px;
+        font-size: 12px;
+      ">Ingresa tus credenciales</p>
+
+      <div style="margin-bottom: 20px;">
+        <label style="color: #00E5FF; font-family: Arial; font-size: 13px; display: block; margin-bottom: 8px;">
+          👤 Usuario
+        </label>
+        <input id="login-username" type="text" placeholder="admin" style="
+          width: 100%;
+          padding: 10px;
+          background: rgba(0, 50, 100, 0.5);
+          border: 1px solid #00E5FF;
+          color: #00E5FF;
+          border-radius: 6px;
+          font-family: monospace;
+          box-sizing: border-box;
+        " />
+      </div>
+
+      <div style="margin-bottom: 30px;">
+        <label style="color: #00E5FF; font-family: Arial; font-size: 13px; display: block; margin-bottom: 8px;">
+          🔑 Contraseña
+        </label>
+        <input id="login-password" type="password" placeholder="••••••••" style="
+          width: 100%;
+          padding: 10px;
+          background: rgba(0, 50, 100, 0.5);
+          border: 1px solid #00E5FF;
+          color: #00E5FF;
+          border-radius: 6px;
+          font-family: monospace;
+          box-sizing: border-box;
+        " />
+      </div>
+
+      <button id="login-btn" onclick="hacerLogin()" style="
+        width: 100%;
+        padding: 12px;
+        background: linear-gradient(135deg, #00E5FF 0%, #00FF88 100%);
+        border: none;
+        color: #000;
+        font-weight: bold;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        letter-spacing: 1px;
+        transition: transform 0.2s, box-shadow 0.2s;
+      ">▶ ENTRAR</button>
+
+      <p id="login-error" style="
+        color: #FF4444;
+        text-align: center;
+        font-family: Arial;
+        font-size: 12px;
+        margin-top: 15px;
+        display: none;
+      "></p>
+
+      <p style="
+        color: #888;
+        text-align: center;
+        font-family: Arial;
+        font-size: 11px;
+        margin-top: 20px;
+      ">Prueba: admin / admin123</p>
+    </div>
+  </div>
+
+  <!-- ============ INFO DEL USUARIO (esquina superior) ============ -->
+  <div id="user-info-panel" style="
+    position: fixed;
+    top: 16px;
+    right: 16px;
+    background: rgba(0, 20, 30, 0.85);
+    border: 1.5px solid #00FF88;
+    border-radius: 8px;
+    padding: 12px 18px;
+    color: #00FF88;
+    font-family: Arial, sans-serif;
+    font-size: 13px;
+    display: none;
+    z-index: 9998;
+    max-width: 250px;
+  ">
+    <div style="margin-bottom: 8px;">👤 <span id="user-display-name">Usuario</span></div>
+    <div style="margin-bottom: 8px;">🔐 <span id="user-display-role">Rol</span></div>
+    <button id="logout-btn" onclick="hacerLogout()" style="
+      width: 100%;
+      padding: 6px;
+      background: #FF6B00;
+      border: none;
+      color: #FFF;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 11px;
+      margin-top: 8px;
+    ">← SALIR</button>
+  </div>
+
   <a-scene
     cursor="rayOrigin: mouse"
     raycaster="objects: .clickable; recursive: true; far: 60"
@@ -1632,6 +1767,121 @@
         cont.appendChild(valLabel);
       });
     }
+
+    // ============ AUTENTICACIÓN Y PERMISOS ============
+
+    let usuarioActual = null;
+    let permisosActuales = [];
+
+    async function hacerLogin() {
+      const username = document.getElementById("login-username").value.trim();
+      const password = document.getElementById("login-password").value;
+      const errorDiv = document.getElementById("login-error");
+      const loginBtn = document.getElementById("login-btn");
+
+      if (!username || !password) {
+        errorDiv.textContent = "❌ Usuario y contraseña requeridos";
+        errorDiv.style.display = "block";
+        return;
+      }
+
+      loginBtn.disabled = true;
+      loginBtn.textContent = "Conectando...";
+
+      try {
+        const response = await fetch("/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username, password })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          errorDiv.textContent = `❌ ${data.error || "Credenciales inválidas"}`;
+          errorDiv.style.display = "block";
+          loginBtn.disabled = false;
+          loginBtn.textContent = "▶ ENTRAR";
+          return;
+        }
+
+        usuarioActual = data;
+        await cargarPermisos();
+        mostrarApp();
+        mostrarToastHUD(`✅ Bienvenido, ${data.username}!`);
+
+      } catch (error) {
+        console.error("Error en login:", error);
+        errorDiv.textContent = "❌ Error de conexión";
+        errorDiv.style.display = "block";
+        loginBtn.disabled = false;
+        loginBtn.textContent = "▶ ENTRAR";
+      }
+    }
+
+    async function cargarPermisos() {
+      try {
+        const response = await fetch("/permissions");
+        const data = await response.json();
+        permisosActuales = data.permissions || [];
+        console.log("Permisos cargados:", permisosActuales);
+      } catch (error) {
+        console.error("Error cargando permisos:", error);
+        permisosActuales = [];
+      }
+    }
+
+    function tienePermiso(permiso) {
+      return permisosActuales.includes(permiso);
+    }
+
+    function mostrarApp() {
+      document.getElementById("login-modal").style.display = "none";
+      document.getElementById("user-info-panel").style.display = "block";
+      document.getElementById("user-display-name").textContent = usuarioActual.username;
+      document.getElementById("user-display-role").textContent = `${usuarioActual.role.toUpperCase()}`;
+    }
+
+    async function hacerLogout() {
+      try {
+        await fetch("/logout", { method: "POST" });
+      } catch (error) {
+        console.error("Error en logout:", error);
+      }
+
+      usuarioActual = null;
+      permisosActuales = [];
+
+      document.getElementById("login-modal").style.display = "flex";
+      document.getElementById("user-info-panel").style.display = "none";
+
+      document.getElementById("login-username").value = "";
+      document.getElementById("login-password").value = "";
+      document.getElementById("login-error").style.display = "none";
+
+      mostrarToastHUD("👋 Sesión cerrada");
+    }
+
+    window.addEventListener("load", async () => {
+      try {
+        const response = await fetch("/profile");
+        if (response.ok) {
+          usuarioActual = await response.json();
+          await cargarPermisos();
+          mostrarApp();
+        }
+      } catch (error) {
+        console.log("No hay sesión activa. Mostrando login.");
+      }
+    });
+
+    document.getElementById("login-password")?.addEventListener("keypress", (e) => {
+      if (e.key === "Enter") hacerLogin();
+    });
+
+    document.getElementById("login-username")?.addEventListener("keypress", (e) => {
+      if (e.key === "Enter") hacerLogin();
+    });
   </script>
 </body>
 </html>
