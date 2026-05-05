@@ -577,6 +577,36 @@
       </a-entity>
     </a-entity>
 
+    <!-- ============ TECLADO VIRTUAL VR ============ -->
+    <a-entity id="vr-keyboard-panel" visible="false" position="7 4 -2">
+      <!-- Panel de fondo -->
+      <a-box width="14" height="6.8" depth="0.18"
+             material="color: #050D18; emissive: #00E5FF; emissiveIntensity: 0.06; opacity: 0.97"></a-box>
+      <!-- Borde superior -->
+      <a-box width="14" height="0.06" depth="0.20" position="0 3.37 0"
+             material="color: #00E5FF; emissive: #00E5FF; emissiveIntensity: 1; opacity: 0.85"></a-box>
+
+      <!-- Título -->
+      <a-text id="vrkb-title" value="INTRODUCE TEXTO" align="center"
+              position="0 2.85 0.12" width="13" color="#00E5FF"></a-text>
+
+      <!-- Display del texto introducido -->
+      <a-box width="12.8" height="0.9" depth="0.14" position="0 2.2 0.05"
+             material="color: #000D1A; emissive: #00E5FF; emissiveIntensity: 0.08; opacity: 0.98"></a-box>
+      <a-text id="vrkb-display" value="" align="left"
+              position="-6.0 2.2 0.14" width="13" color="#00FF88" wrap-count="36"></a-text>
+      <!-- Cursor parpadeante -->
+      <a-box id="vrkb-cursor" width="0.06" height="0.55" depth="0.12" position="0 2.2 0.14"
+             material="color: #00FF88; emissive: #00FF88; emissiveIntensity: 1; opacity: 0.9"
+             animation="property: material.opacity; from: 0.9; to: 0.1; dur: 600; loop: true; dir: alternate"></a-box>
+
+      <!-- Filas de teclas (se generan por JS) -->
+      <a-entity id="vrkb-keys" position="0 1.0 0.12"></a-entity>
+
+      <!-- Botones de acción -->
+      <a-entity id="vrkb-actions" position="0 -2.6 0.12"></a-entity>
+    </a-entity>
+
     <!-- Rig -->
     <a-entity id="rig" position="7 3 8">
       <a-entity id="camera" camera look-controls wasd-controls></a-entity>
@@ -920,6 +950,46 @@
       if (action === "analisis_ver_2d") return setVistaAnalisis("2d");
 
       if (action === "resetVista") return resetVista();
+
+      // Teclado VR
+      if (action === "vrkb_key") {
+        _vrkbText += param;
+        _vrkbActualizar();
+        return;
+      }
+      if (action === "vrkb_space") {
+        _vrkbText += " ";
+        _vrkbActualizar();
+        return;
+      }
+      if (action === "vrkb_back") {
+        _vrkbText = _vrkbText.slice(0, -1);
+        _vrkbActualizar();
+        return;
+      }
+      if (action === "vrkb_toggle_case") {
+        if (_vrkbMode === "num") { _vrkbMode = "upper"; }
+        else if (_vrkbMode === "upper") { _vrkbMode = "lower"; }
+        else { _vrkbMode = "upper"; }
+        _vrkbRenderKeys();
+        return;
+      }
+      if (action === "vrkb_toggle_num") {
+        _vrkbMode = _vrkbMode === "num" ? "upper" : "num";
+        _vrkbRenderKeys();
+        return;
+      }
+      if (action === "vrkb_confirm") {
+        const cb = _vrkbCallback;
+        const val = _vrkbText;
+        cerrarTecladoVR();
+        if (cb) cb(val);
+        return;
+      }
+      if (action === "vrkb_cancel") {
+        cerrarTecladoVR();
+        return;
+      }
     }
 
     function setVistaTabla(vista) {
@@ -1287,22 +1357,169 @@
       renderizarTabla();
     }
 
-    function qb_create_set_name() {
-      const name = prompt("Nombre de la tabla:");
-      if (name && name.trim()) {
-        queryState.createTableName = name.trim();
-        actualizarDisplaySQL();
-        renderQBOpciones();
+    // ==========================================
+    // TECLADO VIRTUAL VR
+    // ==========================================
+    let _vrkbCallback = null;
+    let _vrkbText = "";
+    const _vrkbShiftRows = [
+      ["Q","W","E","R","T","Y","U","I","O","P"],
+      ["A","S","D","F","G","H","J","K","L","Ñ"],
+      ["Z","X","C","V","B","N","M","_","-","@"]
+    ];
+    const _vrkbLowerRows = [
+      ["q","w","e","r","t","y","u","i","o","p"],
+      ["a","s","d","f","g","h","j","k","l","ñ"],
+      ["z","x","c","v","b","n","m","_","-","@"]
+    ];
+    const _vrkbNumRows = [
+      ["1","2","3","4","5","6","7","8","9","0"],
+      ["!","?","(",")","+","=","/","\\",".",","],
+      ["<",">","[","]","{","}","#","$","%","&"]
+    ];
+    let _vrkbMode = "upper"; // "upper" | "lower" | "num"
+
+    function abrirTecladoVR(titulo, valorInicial, callback) {
+      _vrkbCallback = callback;
+      _vrkbText = valorInicial || "";
+      _vrkbMode = "upper";
+      const panel = document.getElementById("vr-keyboard-panel");
+      panel.setAttribute("visible", "true");
+      // Posicionar frente a la cámara
+      const cam = document.querySelector("#camera");
+      const rig = document.querySelector("#rig");
+      if (cam && rig) {
+        const rigPos = rig.getAttribute("position");
+        const camRot = cam.getAttribute("rotation") || { x: 0, y: 0, z: 0 };
+        const yRad = (camRot.y || 0) * Math.PI / 180;
+        panel.setAttribute("position", {
+          x: (rigPos.x || 7) - Math.sin(yRad) * 6,
+          y: (rigPos.y || 3) + 1,
+          z: (rigPos.z || 8) - Math.cos(yRad) * 6
+        });
+        panel.setAttribute("rotation", { x: 0, y: -(camRot.y || 0), z: 0 });
       }
+      document.getElementById("vrkb-title").setAttribute("value", titulo.toUpperCase());
+      _vrkbActualizar();
+      _vrkbRenderKeys();
+    }
+
+    function cerrarTecladoVR() {
+      document.getElementById("vr-keyboard-panel").setAttribute("visible", "false");
+      _vrkbCallback = null;
+    }
+
+    function _vrkbActualizar() {
+      const display = _vrkbText || "";
+      document.getElementById("vrkb-display").setAttribute("value", display || " ");
+      // Mover cursor al final del texto
+      const cursorEl = document.getElementById("vrkb-cursor");
+      const approxCharW = 0.36;
+      const startX = -6.0;
+      const cursorX = startX + display.length * approxCharW + 0.18;
+      cursorEl.setAttribute("position", `${Math.min(cursorX, 5.8)} 2.2 0.14`);
+    }
+
+    function _vrkbRenderKeys() {
+      const cont = document.getElementById("vrkb-keys");
+      cont.innerHTML = "";
+
+      const rows = _vrkbMode === "num" ? _vrkbNumRows
+                  : _vrkbMode === "upper" ? _vrkbShiftRows
+                  : _vrkbLowerRows;
+
+      const keyW = 1.15, keyH = 0.72, gapX = 0.10, gapY = 0.10;
+      const rowsTotal = rows.length;
+
+      rows.forEach((row, rowIdx) => {
+        const totalW = row.length * keyW + (row.length - 1) * gapX;
+        const startX = -totalW / 2 + keyW / 2;
+        const y = -(rowIdx * (keyH + gapY));
+
+        row.forEach((char, colIdx) => {
+          const x = startX + colIdx * (keyW + gapX);
+          const ent = document.createElement("a-entity");
+          ent.setAttribute("position", `${x} ${y} 0`);
+
+          const bg = "#0A1828";
+          const emissive = "#00E5FF";
+          ent.innerHTML = `
+            <a-box class="clickable" interactable
+                   width="${keyW}" height="${keyH}" depth="0.22"
+                   material="color: ${bg}; emissive: ${emissive}; emissiveIntensity: 0.18; opacity: 0.98"
+                   data-action="vrkb_key" data-param="${char}">
+              <a-text value="${char}" align="center" position="0 0 0.13"
+                      width="${keyW * 2.2}" color="#00E5FF"></a-text>
+            </a-box>
+          `;
+          cont.appendChild(ent);
+        });
+      });
+
+      // Fila especial: SHIFT/MAYUS | ESPACIO | BORRAR | NÚMEROS
+      const bottomY = -(rowsTotal * (keyH + gapY)) - 0.15;
+      const specialKeys = [
+        { label: _vrkbMode === "num" ? "ABC" : (_vrkbMode === "upper" ? "minús" : "MAYÚS"), param: "vrkb_toggle_case", w: 2.2, color: "#FF00FF" },
+        { label: "ESPACIO", param: "vrkb_space", w: 4.2, color: "#00FF88" },
+        { label: "⌫", param: "vrkb_back", w: 1.6, color: "#FFB700" },
+        { label: _vrkbMode === "num" ? "ABC" : "123", param: "vrkb_toggle_num", w: 2.0, color: "#9D4EDD" }
+      ];
+      const totalSpecialW = specialKeys.reduce((a, k) => a + k.w, 0) + (specialKeys.length - 1) * 0.15;
+      let sx = -totalSpecialW / 2;
+      specialKeys.forEach(k => {
+        const ent = document.createElement("a-entity");
+        ent.setAttribute("position", `${sx + k.w / 2} ${bottomY} 0`);
+        ent.innerHTML = `
+          <a-box class="clickable" interactable
+                 width="${k.w}" height="${keyH}" depth="0.22"
+                 material="color: #0D0020; emissive: ${k.color}; emissiveIntensity: 0.28; opacity: 0.98"
+                 data-action="${k.param}">
+            <a-text value="${k.label}" align="center" position="0 0 0.13"
+                    width="${k.w * 2.0}" color="${k.color}"></a-text>
+          </a-box>
+        `;
+        cont.appendChild(ent);
+        sx += k.w + 0.15;
+      });
+
+      // Botones CONFIRMAR / CANCELAR
+      const actCont = document.getElementById("vrkb-actions");
+      actCont.innerHTML = `
+        <a-entity position="-2.2 0 0">
+          <a-box class="clickable" interactable width="4.0" height="0.78" depth="0.22"
+                 material="color: #001800; emissive: #00FF88; emissiveIntensity: 0.45; opacity: 0.98"
+                 data-action="vrkb_confirm">
+            <a-text value="✓ CONFIRMAR" align="center" position="0 0 0.13" width="7.5" color="#00FF88"></a-text>
+          </a-box>
+        </a-entity>
+        <a-entity position="2.6 0 0">
+          <a-box class="clickable" interactable width="4.0" height="0.78" depth="0.22"
+                 material="color: #1A0000; emissive: #FF4444; emissiveIntensity: 0.40; opacity: 0.98"
+                 data-action="vrkb_cancel">
+            <a-text value="✗ CANCELAR" align="center" position="0 0 0.13" width="7.5" color="#FF4444"></a-text>
+          </a-box>
+        </a-entity>
+      `;
+    }
+
+    function qb_create_set_name() {
+      abrirTecladoVR("Nombre de la tabla", queryState.createTableName || "", (name) => {
+        if (name && name.trim()) {
+          queryState.createTableName = name.trim();
+          actualizarDisplaySQL();
+          renderQBOpciones();
+        }
+      });
     }
 
     function qb_create_add_col(type) {
-      const name = prompt(`Nombre de la columna (${type}):`);
-      if (name && name.trim()) {
-        queryState.createColumns.push({ name: name.trim(), type });
-        actualizarDisplaySQL();
-        renderQBOpciones();
-      }
+      abrirTecladoVR(`Nombre de columna (${type})`, "", (name) => {
+        if (name && name.trim()) {
+          queryState.createColumns.push({ name: name.trim(), type });
+          actualizarDisplaySQL();
+          renderQBOpciones();
+        }
+      });
     }
 
     function qb_create_remove_col() {
