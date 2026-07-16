@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1300 1000" width="1300" height="1000" font-family="Segoe UI, Arial, sans-serif">
+
+<defs>
+  <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+    <path d="M0,0 L8,3 L0,6 Z" fill="#334155"/>
+  </marker>
+  <marker id="arrowGrey" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+    <path d="M0,0 L8,3 L0,6 Z" fill="#94a3b8"/>
+  </marker>
+</defs>
+
+<rect x="0" y="0" width="1300" height="1000" fill="#ffffff"/>
+<text x="650.0" y="34" text-anchor="middle" font-size="22" font-weight="700" fill="#0f172a">Arquitectura y flujo de datos del TFG</text>
+<text x="40" y="54" font-size="13.5" font-weight="700" fill="#1d4ed8" letter-spacing="0.3">NAVEGADOR — Interfaz VR (A-Frame)</text>
+<rect x="40" y="64" width="930" height="140" rx="10" fill="#eff6ff" stroke="#1d4ed8" stroke-width="1.5"/>
+<text x="40" y="240" font-size="13.5" font-weight="700" fill="#047857" letter-spacing="0.3">FLASK — https_server.py  (HTTPS :8000)</text>
+<rect x="40" y="250" width="930" height="190" rx="10" fill="#ecfdf5" stroke="#047857" stroke-width="1.5"/>
+<text x="40" y="476" font-size="13.5" font-weight="700" fill="#7c3aed" letter-spacing="0.3">POSTGREST  (Docker, :3000 — solo localhost)</text>
+<rect x="40" y="486" width="930" height="100" rx="10" fill="#f5f3ff" stroke="#7c3aed" stroke-width="1.5"/>
+<text x="40" y="612" font-size="13.5" font-weight="700" fill="#1e3a8a" letter-spacing="0.3">POSTGRESQL  (Docker)</text>
+<rect x="40" y="622" width="930" height="190" rx="10" fill="#eef2ff" stroke="#1e3a8a" stroke-width="1.5"/>
+<rect x="60" y="100" width="230" height="80" rx="8" fill="#ffffff" stroke="#1d4ed8" stroke-width="1.6"/><text x="175.0" y="122" text-anchor="middle" font-size="13" font-weight="700" fill="#0f172a">Modal de login</text><text x="175.0" y="140" text-anchor="middle" font-size="11.5" fill="#0f172a">usuario + contraseña</text>
+<rect x="345" y="100" width="430" height="80" rx="8" fill="#ffffff" stroke="#1d4ed8" stroke-width="1.6"/><text x="560.0" y="122" text-anchor="middle" font-size="13" font-weight="700" fill="#0f172a">Interfaz VR</text><text x="560.0" y="140" text-anchor="middle" font-size="11.5" fill="#0f172a">Ver tablas · Query Builder · Consultas guiadas</text>
+<rect x="730" y="100" width="260" height="80" rx="8" fill="#ffffff" stroke="#1d4ed8" stroke-width="1.6"/><text x="860.0" y="122" text-anchor="middle" font-size="13" font-weight="700" fill="#0f172a">Panel admin</text><text x="860.0" y="140" text-anchor="middle" font-size="11.5" fill="#0f172a">Crear usuario</text>
+<rect x="60" y="286" width="230" height="90" rx="8" fill="#ffffff" stroke="#047857" stroke-width="1.6"/><text x="175.0" y="308" text-anchor="middle" font-size="13" font-weight="700" fill="#0f172a">/login</text><text x="175.0" y="326" text-anchor="middle" font-size="11.5" fill="#0f172a">verifica credenciales (bcrypt)</text><text x="175.0" y="341" text-anchor="middle" font-size="11.5" fill="#0f172a">crea sesión + JWT</text>
+<rect x="435" y="286" width="250" height="55" rx="8" fill="#ffffff" stroke="#047857" stroke-width="1.6"/><text x="560.0" y="308" text-anchor="middle" font-size="13" font-weight="700" fill="#0f172a">/profile /permissions</text><text x="560.0" y="326" text-anchor="middle" font-size="11.5" fill="#0f172a">/api/my-tables /api/token</text>
+<rect x="435" y="354" width="250" height="62" rx="8" fill="#ffffff" stroke="#047857" stroke-width="1.6"/><text x="560.0" y="376" text-anchor="middle" font-size="13" font-weight="700" fill="#0f172a">/pgrest/*</text><text x="560.0" y="394" text-anchor="middle" font-size="11.5" fill="#0f172a">proxy hacia PostgREST</text>
+<rect x="730" y="286" width="260" height="90" rx="8" fill="#ffffff" stroke="#047857" stroke-width="1.6"/><text x="860.0" y="308" text-anchor="middle" font-size="13" font-weight="700" fill="#0f172a">/api/admin/*</text><text x="860.0" y="326" text-anchor="middle" font-size="11.5" fill="#0f172a">crear usuarios, tablas y roles</text>
+<rect x="420" y="508" width="280" height="62" rx="8" fill="#ffffff" stroke="#7c3aed" stroke-width="1.6"/><text x="560.0" y="530" text-anchor="middle" font-size="13" font-weight="700" fill="#0f172a">PostgREST</text><text x="560.0" y="548" text-anchor="middle" font-size="11.5" fill="#0f172a">verifica JWT → SET ROLE app_user_N</text>
+<rect x="60" y="658" width="260" height="130" rx="8" fill="#ffffff" stroke="#1e3a8a" stroke-width="1.6"/><text x="190.0" y="680" text-anchor="middle" font-size="13" font-weight="700" fill="#0f172a">Tablas de sistema</text><text x="190.0" y="698" text-anchor="middle" font-size="11.5" fill="#0f172a">users, permissions, roles,</text><text x="190.0" y="713" text-anchor="middle" font-size="11.5" fill="#0f172a">role_default_tables,</text><text x="190.0" y="728" text-anchor="middle" font-size="11.5" fill="#0f172a">user_table_permissions</text>
+<rect x="420" y="658" width="280" height="130" rx="8" fill="#ffffff" stroke="#1e3a8a" stroke-width="1.6"/><text x="560.0" y="680" text-anchor="middle" font-size="13" font-weight="700" fill="#0f172a">Tablas de datos</text><text x="560.0" y="698" text-anchor="middle" font-size="11.5" fill="#0f172a">estudiantes, profesores,</text><text x="560.0" y="713" text-anchor="middle" font-size="11.5" fill="#0f172a">asignaturas, matriculas,</text><text x="560.0" y="728" text-anchor="middle" font-size="11.5" fill="#0f172a">recursos...</text>
+<rect x="730" y="658" width="260" height="130" rx="8" fill="#ffffff" stroke="#1e3a8a" stroke-width="1.6"/><text x="860.0" y="680" text-anchor="middle" font-size="13" font-weight="700" fill="#0f172a">Roles nativos</text><text x="860.0" y="698" text-anchor="middle" font-size="11.5" fill="#0f172a">authenticator, app_user_N</text><text x="860.0" y="713" text-anchor="middle" font-size="11.5" fill="#0f172a">(web_anon sin acceso)</text>
+<rect x="1000" y="508" width="260" height="304" rx="8" fill="#f5f5f5" stroke="#525252" stroke-width="1.6"/><text x="1130.0" y="530" text-anchor="middle" font-size="13" font-weight="700" fill="#0f172a">pgAdmin</text><text x="1130.0" y="548" text-anchor="middle" font-size="11.5" fill="#0f172a">Docker, :5050</text><text x="1130.0" y="563" text-anchor="middle" font-size="11.5" fill="#0f172a"></text><text x="1130.0" y="578" text-anchor="middle" font-size="11.5" fill="#0f172a">Gestión manual de la BD</text><text x="1130.0" y="593" text-anchor="middle" font-size="11.5" fill="#0f172a">(fuera del flujo de la app)</text>
+<path d="M161.0,180 L161.0,286" stroke="#334155" stroke-width="1.8" fill="none" marker-end="url(#arrow)"/>
+<rect x="21.0" y="210.0" width="132.0" height="15" fill="#ffffff"/><text x="153.0" y="221.0" text-anchor="end" font-size="11" fill="#334155">usuario + contraseña</text>
+<path d="M189.0,286 L189.0,180" stroke="#94a3b8" stroke-width="1.8" fill="none" marker-end="url(#arrowGrey)" stroke-dasharray="6,5"/>
+<rect x="197.0" y="246.0" width="144.6" height="15" fill="#ffffff"/><text x="197.0" y="257.0" text-anchor="start" font-size="11" fill="#64748b">cookie de sesión + JWT</text>
+<path d="M175.0,376 L190.0,658" stroke="#334155" stroke-width="1.8" fill="none" marker-end="url(#arrow)"/>
+<rect x="185.0" y="589" width="138.29999999999998" height="15" fill="#ffffff"/><text x="185.0" y="600" text-anchor="start" font-size="11" fill="#334155">SELECT ... FROM users</text>
+<path d="M846.0,180 L846.0,286" stroke="#334155" stroke-width="1.8" fill="none" marker-end="url(#arrow)"/>
+<rect x="731.2" y="210.0" width="106.8" height="15" fill="#ffffff"/><text x="838.0" y="221.0" text-anchor="end" font-size="11" fill="#334155">cookie de sesión</text>
+<path d="M820.0,376 L820.0,658" stroke="#334155" stroke-width="1.8" fill="none" marker-end="url(#arrow)"/>
+<rect x="728.8" y="561" width="182.4" height="15" fill="#ffffff"/><text x="820.0" y="572" text-anchor="middle" font-size="11" fill="#334155">CREATE ROLE / GRANT / REVOKE</text>
+<path d="M470.0,180 L540.0,286" stroke="#334155" stroke-width="1.8" fill="none" marker-end="url(#arrow)"/>
+<rect x="360.0" y="264" width="106.8" height="15" fill="#ffffff"/><text x="360.0" y="275" text-anchor="start" font-size="11" fill="#334155">cookie de sesión</text>
+<path d="M560.0,341 L560.0,354" stroke="#334155" stroke-width="1.8" fill="none" marker-end="none"/>
+<path d="M530.0,446 L470.0,658" stroke="#334155" stroke-width="1.8" fill="none" marker-end="url(#arrow)"/>
+<path d="M620.0,180 L546.0,354" stroke="#334155" stroke-width="1.8" fill="none" marker-end="url(#arrow)"/>
+<rect x="630.0" y="264" width="125.7" height="15" fill="#ffffff"/><text x="630.0" y="275" text-anchor="start" font-size="11" fill="#334155">fetch /pgrest + JWT</text>
+<path d="M546.0,416 L546.0,508" stroke="#334155" stroke-width="1.8" fill="none" marker-end="url(#arrow)"/>
+<rect x="441.8" y="489" width="94.2" height="15" fill="#ffffff"/><text x="536.0" y="500" text-anchor="end" font-size="11" fill="#334155">reenvía el JWT</text>
+<path d="M570.0,570 L570.0,658" stroke="#334155" stroke-width="1.8" fill="none" marker-end="url(#arrow)"/>
+<rect x="580.0" y="597" width="182.4" height="15" fill="#ffffff"/><text x="580.0" y="608" text-anchor="start" font-size="11" fill="#334155">SELECT / INSERT si hay GRANT</text>
+<path d="M530.0,658 L520.0,570" stroke="#94a3b8" stroke-width="1.8" fill="none" marker-end="url(#arrowGrey)" stroke-dasharray="6,5"/>
+<path d="M574.0,508 L574.0,416" stroke="#94a3b8" stroke-width="1.8" fill="none" marker-end="url(#arrowGrey)" stroke-dasharray="6,5"/>
+<path d="M574.0,354 L690.0,180" stroke="#94a3b8" stroke-width="1.8" fill="none" marker-end="url(#arrowGrey)" stroke-dasharray="6,5"/>
+<rect x="584.0" y="451" width="119.39999999999999" height="15" fill="#ffffff"/><text x="584.0" y="462" text-anchor="start" font-size="11" fill="#64748b">datos, o error 403</text>
+<path d="M1000,660.0 L990,703.0" stroke="#525252" stroke-width="1.8" fill="none" marker-end="url(#arrowGrey)" stroke-dasharray="6,5"/>
+<rect x="851.4" y="639.0" width="144.6" height="15" fill="#ffffff"/><text x="996" y="650.0" text-anchor="end" font-size="11" fill="#525252">conexión directa admin</text>
+<text x="40" y="862" font-size="12.5" font-weight="700" fill="#0f172a">Leyenda</text>
+<path d="M40,880 L80,880" stroke="#334155" stroke-width="1.8" fill="none" marker-end="url(#arrow)"/>
+<text x="92" y="884" font-size="11.5" fill="#334155">Petición</text>
+<path d="M190,880 L230,880" stroke="#94a3b8" stroke-width="1.8" fill="none" marker-end="url(#arrowGrey)" stroke-dasharray="6,5"/>
+<text x="242" y="884" font-size="11.5" fill="#64748b">Respuesta</text>
+<rect x="360" y="872" width="16" height="16" fill="#f5f5f5" stroke="#525252"/>
+<text x="384" y="884" font-size="11.5" fill="#525252">Fuera del flujo normal de la app (uso del desarrollador)</text>
+<text x="40" y="914" font-size="11.5" fill="#334155">La app nunca habla directamente con PostgreSQL ni con PostgREST: todo pasa por Flask (unico servicio con HTTPS).</text>
+<text x="40" y="932" font-size="11.5" fill="#334155">Quien decide que puede leer o escribir cada usuario es PostgreSQL, mediante GRANT/REVOKE sobre su rol app_user_N.</text>
+</svg>

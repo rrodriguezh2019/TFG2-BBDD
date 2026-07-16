@@ -1,10 +1,12 @@
-from flask import Flask, render_template, request, jsonify, session
+from flask import Flask, render_template, request, jsonify, session, Response
 from flask_cors import CORS
 import ssl
 import os
 import psycopg2
 import psycopg2.extras
 import bcrypt
+import jwt
+import requests
 from functools import wraps
 from datetime import datetime, timedelta
 
@@ -43,6 +45,15 @@ DB_CONFIG = {
     'port': 5432
 }
 
+# Secreto para firmar los JWT que usará PostgREST (debe coincidir con
+# PGRST_JWT_SECRET en docker-compose.yml)
+JWT_SECRET = os.environ.get('JWT_SECRET', 'cambia-esto-en-produccion-tfg-jwt-secret-2026')
+JWT_ALGORITHM = 'HS256'
+
+# PostgREST solo escucha en localhost:3000 (no expuesto directamente al navegador);
+# Flask hace de proxy para que todo el tráfico vaya por el mismo origen HTTPS.
+POSTGREST_URL = os.environ.get('POSTGREST_URL', 'http://localhost:3000')
+
 # ============ FUNCIONES AUXILIARES ============
 
 def get_db_connection():
@@ -65,6 +76,18 @@ def verify_password(password, hash_password):
         return bcrypt.checkpw(password.encode(), hash_password.encode())
     except:
         return False
+
+def pg_role_for_user(user_id):
+    """Nombre del rol de PostgreSQL asociado a este usuario (mismo criterio usado al crear el rol en Postgres)"""
+    return f"app_user_{user_id}"
+
+def generar_jwt(user_id):
+    """Genera el JWT que el frontend enviará a PostgREST para que use el rol de Postgres de este usuario"""
+    payload = {
+        'role': pg_role_for_user(user_id),
+        'exp': datetime.utcnow() + timedelta(hours=8)
+    }
+    return jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
 
 # ============ DECORADORES DE PROTECCIÓN ============
 
@@ -167,7 +190,8 @@ def login():
             'user_id': user['user_id'],
             'username': user['username'],
             'role': user['role'],
-            'email': user['email']
+            'email': user['email'],
+            'token': generar_jwt(user['user_id'])
         }), 200
     
     except Exception as e:
@@ -175,6 +199,13 @@ def login():
     finally:
         cur.close()
         conn.close()
+
+@app.route('/api/token', methods=['GET'])
+@require_auth
+def get_token():
+    """Reemite un JWT para el usuario de la sesión actual (se usa al recargar la página, ya que el
+    token solo viaja en la respuesta de /login y se pierde en memoria al refrescar el navegador)"""
+    return jsonify({'token': generar_jwt(session['user_id'])}), 200
 
 @app.route('/logout', methods=['POST'])
 def logout():
@@ -224,6 +255,46 @@ def get_permissions():
     finally:
         cur.close()
         conn.close()
+
+# ============ PROXY HACIA POSTGREST ============
+
+# Cabeceras que no se deben reenviar tal cual entre proxy y cliente (son específicas
+# de cada salto de la conexión, no del contenido de la respuesta).
+HOP_BY_HOP_HEADERS = {
+    'connection', 'keep-alive', 'proxy-authenticate', 'proxy-authorization',
+    'te', 'trailers', 'transfer-encoding', 'upgrade', 'content-encoding', 'content-length'
+}
+
+@app.route('/pgrest/<path:subpath>', methods=['GET', 'POST', 'PATCH', 'PUT', 'DELETE'])
+def pgrest_proxy(subpath):
+    """Reenvía la petición a PostgREST (solo accesible en localhost:3000) para que el
+    navegador hable siempre con el mismo origen HTTPS. No comprueba sesión ni permisos
+    aquí: quien autoriza de verdad es PostgREST/Postgres a partir del JWT reenviado."""
+    headers = {}
+    if 'Authorization' in request.headers:
+        headers['Authorization'] = request.headers['Authorization']
+    if 'Content-Type' in request.headers:
+        headers['Content-Type'] = request.headers['Content-Type']
+    if 'Prefer' in request.headers:
+        headers['Prefer'] = request.headers['Prefer']
+
+    try:
+        pg_response = requests.request(
+            method=request.method,
+            url=f'{POSTGREST_URL}/{subpath}',
+            params=request.args,
+            data=request.get_data(),
+            headers=headers,
+            timeout=15
+        )
+    except requests.RequestException as e:
+        return jsonify({'error': f'No se pudo contactar con PostgREST: {e}'}), 502
+
+    response_headers = [
+        (k, v) for k, v in pg_response.headers.items()
+        if k.lower() not in HOP_BY_HOP_HEADERS
+    ]
+    return Response(pg_response.content, status=pg_response.status_code, headers=response_headers)
 
 # ============ RUTAS ESTÁTICAS ============
 
@@ -334,6 +405,230 @@ def admin_create_table():
         conn.rollback()
         return jsonify({'error': str(e)}), 500
 
+# ============ GESTIÓN DINÁMICA DE USUARIOS Y PERMISOS POR TABLA ============
+
+# Tablas internas del propio sistema de login/permisos: nunca se ofrecen en el
+# desplegable ni se pueden conceder, para no exponer password_hash de `users`.
+EXCLUDED_TABLES = {'users', 'permissions', 'role_default_tables', 'user_table_permissions'}
+
+def _valid_identifier(name):
+    """Nombre seguro para usar en SQL dinámico (GRANT/REVOKE/CREATE ROLE): solo alfanumérico y guión bajo"""
+    return bool(name) and name.replace('_', '').isalnum()
+
+def _get_public_tables(cur):
+    """Tablas de datos disponibles para conceder permisos (excluye las tablas internas del sistema)"""
+    cur.execute('''
+        SELECT table_name FROM information_schema.tables
+        WHERE table_schema = 'public' AND table_type = 'BASE TABLE'
+        ORDER BY table_name
+    ''')
+    return [row[0] for row in cur.fetchall() if row[0] not in EXCLUDED_TABLES]
+
+@app.route('/api/admin/tables', methods=['GET'])
+@require_auth
+@require_permission('admin_manage_users')
+def admin_list_tables():
+    """Lista de tablas disponibles para asignar permisos (desplegable del panel de admin)"""
+    conn = get_db_connection()
+    if not conn:
+        return jsonify({'error': 'Error de conexión a BD'}), 500
+    try:
+        cur = conn.cursor()
+        return jsonify({'tables': _get_public_tables(cur)}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+    finally:
+        cur.close()
+        conn.close()
+
+@app.route('/api/admin/roles', methods=['GET'])
+@require_auth
+@require_permission('admin_manage_users')
+def admin_list_roles():
+    """Roles conocidos y sus tablas por defecto (role_default_tables), para precargar el formulario"""
+    conn = get_db_connection()
+    if not conn:
+        return jsonify({'error': 'Error de conexión a BD'}), 500
+    try:
+        cur = conn.cursor()
+        cur.execute('SELECT role_name, table_name, can_write FROM role_default_tables ORDER BY role_name, table_name')
+        roles = {}
+        for role_name, table_name, can_write in cur.fetchall():
+            roles.setdefault(role_name, []).append({'table': table_name, 'can_write': can_write})
+        return jsonify({'roles': roles}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+    finally:
+        cur.close()
+        conn.close()
+
+@app.route('/api/my-tables', methods=['GET'])
+@require_auth
+def my_tables():
+    """Tablas accesibles para el usuario autenticado, con su permiso de lectura/escritura (para el menú dinámico)"""
+    conn = get_db_connection()
+    if not conn:
+        return jsonify({'error': 'Error de conexión a BD'}), 500
+    try:
+        cur = conn.cursor()
+        cur.execute(
+            'SELECT table_name, can_read, can_write FROM user_table_permissions WHERE user_id = %s ORDER BY table_name',
+            (session['user_id'],)
+        )
+        tablas = [{'table': t, 'can_read': r, 'can_write': w} for t, r, w in cur.fetchall()]
+        return jsonify({'tables': tablas}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+    finally:
+        cur.close()
+        conn.close()
+
+@app.route('/api/admin/users', methods=['POST'])
+@require_auth
+@require_permission('admin_manage_users')
+def admin_create_user():
+    """Crea un usuario nuevo con permisos de lectura/escritura por tabla (rol real de Postgres + GRANTs)"""
+    data = request.get_json()
+    username = (data.get('username') or '').strip()
+    password = data.get('password')
+    role = (data.get('role') or '').strip()
+    table_permissions = data.get('table_permissions')  # [{table, can_read, can_write}, ...]
+
+    if not username or not password or not role:
+        return jsonify({'error': 'username, password y role son obligatorios'}), 400
+    if not isinstance(table_permissions, list) or not table_permissions:
+        return jsonify({'error': 'Selecciona al menos una tabla'}), 400
+    if not _valid_identifier(role):
+        return jsonify({'error': 'Rol no válido'}), 400
+
+    conn = get_db_connection()
+    if not conn:
+        return jsonify({'error': 'Error de conexión a BD'}), 500
+
+    try:
+        cur = conn.cursor()
+
+        cur.execute('SELECT 1 FROM users WHERE username = %s', (username,))
+        if cur.fetchone():
+            return jsonify({'error': 'Ese nombre de usuario ya existe'}), 409
+
+        tablas_validas = set(_get_public_tables(cur))
+        permisos_limpios = []
+        for tp in table_permissions:
+            tabla = tp.get('table')
+            if not _valid_identifier(tabla) or tabla not in tablas_validas:
+                return jsonify({'error': f'Tabla no válida: {tabla}'}), 400
+            permisos_limpios.append({
+                'table': tabla,
+                'can_read': bool(tp.get('can_read', True)),
+                'can_write': bool(tp.get('can_write', False))
+            })
+
+        # 1) Crear usuario
+        cur.execute(
+            '''INSERT INTO users (username, password_hash, email, role)
+               VALUES (%s, %s, %s, %s) RETURNING user_id''',
+            (username, hash_password(password), data.get('email'), role)
+        )
+        user_id = cur.fetchone()[0]
+        pg_role = pg_role_for_user(user_id)
+
+        # 2) Rol de Postgres para este usuario, delegable por "authenticator" (PostgREST)
+        cur.execute('SELECT 1 FROM pg_roles WHERE rolname = %s', (pg_role,))
+        if not cur.fetchone():
+            cur.execute(f'CREATE ROLE {pg_role} NOLOGIN')
+        cur.execute(f'GRANT {pg_role} TO authenticator')
+
+        # 3) Permisos por tabla: bookkeeping en nuestra tabla + GRANT real en Postgres
+        for p in permisos_limpios:
+            cur.execute(
+                '''INSERT INTO user_table_permissions (user_id, table_name, can_read, can_write)
+                   VALUES (%s, %s, %s, %s)''',
+                (user_id, p['table'], p['can_read'], p['can_write'])
+            )
+            if p['can_read']:
+                cur.execute(f'GRANT SELECT ON {p["table"]} TO {pg_role}')
+            if p['can_write']:
+                cur.execute(f'GRANT INSERT, UPDATE, DELETE ON {p["table"]} TO {pg_role}')
+
+        conn.commit()
+        return jsonify({
+            'success': True,
+            'user_id': user_id,
+            'username': username,
+            'role': role,
+            'table_permissions': permisos_limpios
+        }), 201
+
+    except Exception as e:
+        conn.rollback()
+        return jsonify({'error': str(e)}), 500
+    finally:
+        cur.close()
+        conn.close()
+
+@app.route('/api/admin/users/<int:user_id>/permissions', methods=['PUT'])
+@require_auth
+@require_permission('admin_manage_users')
+def admin_update_user_permissions(user_id):
+    """Sustituye los permisos por tabla de un usuario ya existente (añade/quita tablas, cambia lectura/escritura)"""
+    data = request.get_json()
+    table_permissions = data.get('table_permissions')
+    if not isinstance(table_permissions, list) or not table_permissions:
+        return jsonify({'error': 'Selecciona al menos una tabla'}), 400
+
+    conn = get_db_connection()
+    if not conn:
+        return jsonify({'error': 'Error de conexión a BD'}), 500
+
+    try:
+        cur = conn.cursor()
+        cur.execute('SELECT 1 FROM users WHERE user_id = %s', (user_id,))
+        if not cur.fetchone():
+            return jsonify({'error': 'Usuario no encontrado'}), 404
+
+        pg_role = pg_role_for_user(user_id)
+        tablas_validas = set(_get_public_tables(cur))
+
+        cur.execute('SELECT table_name FROM user_table_permissions WHERE user_id = %s', (user_id,))
+        actuales = {row[0] for row in cur.fetchall()}
+
+        nuevos = {}
+        for tp in table_permissions:
+            tabla = tp.get('table')
+            if not _valid_identifier(tabla) or tabla not in tablas_validas:
+                return jsonify({'error': f'Tabla no válida: {tabla}'}), 400
+            nuevos[tabla] = (bool(tp.get('can_read', True)), bool(tp.get('can_write', False)))
+
+        # Revocar tablas que ya no están en la lista nueva
+        for tabla in actuales - set(nuevos.keys()):
+            cur.execute(f'REVOKE ALL PRIVILEGES ON {tabla} FROM {pg_role}')
+            cur.execute('DELETE FROM user_table_permissions WHERE user_id = %s AND table_name = %s', (user_id, tabla))
+
+        # Aplicar el estado nuevo (upsert + grant/revoke real)
+        for tabla, (can_read, can_write) in nuevos.items():
+            cur.execute(
+                '''INSERT INTO user_table_permissions (user_id, table_name, can_read, can_write)
+                   VALUES (%s, %s, %s, %s)
+                   ON CONFLICT (user_id, table_name) DO UPDATE
+                   SET can_read = EXCLUDED.can_read, can_write = EXCLUDED.can_write''',
+                (user_id, tabla, can_read, can_write)
+            )
+            cur.execute(f'REVOKE ALL PRIVILEGES ON {tabla} FROM {pg_role}')
+            if can_read:
+                cur.execute(f'GRANT SELECT ON {tabla} TO {pg_role}')
+            if can_write:
+                cur.execute(f'GRANT INSERT, UPDATE, DELETE ON {tabla} TO {pg_role}')
+
+        conn.commit()
+        return jsonify({'success': True}), 200
+    except Exception as e:
+        conn.rollback()
+        return jsonify({'error': str(e)}), 500
+    finally:
+        cur.close()
+        conn.close()
+
 # ============ MANEJO DE ERRORES ============
 
 @app.errorhandler(404)
@@ -383,5 +678,6 @@ if __name__ == '__main__':
         host=HOST,
         port=PORT,
         ssl_context=context,
-        debug=False
+        debug=False,
+        threaded=True  # necesario para no bloquear otras peticiones mientras se hace de proxy hacia PostgREST
     )

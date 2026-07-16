@@ -18,11 +18,19 @@
 
   <!-- Botón reset vista - esquina inferior izquierda -->
   <button id="btn-reset-vista" onclick="resetVista()" title="Recentrar cámara (R)">↺</button>
+
+  <!-- Botón + panel de entorno - junto al botón de recentrar -->
+  <button id="btn-entorno" onclick="toggleMenuEntorno()" title="Cambiar entorno">🌍</button>
+  <div id="menu-entorno">
+    <button class="entorno-btn" id="entorno-btn-cyberpunk" onclick="aplicarEntorno('cyberpunk')">🌆 Cyberpunk</button>
+    <button class="entorno-btn" id="entorno-btn-bosque" onclick="aplicarEntorno('bosque')">🌲 Bosque</button>
+    <button class="entorno-btn" id="entorno-btn-desierto" onclick="aplicarEntorno('desierto')">🏜️ Desierto</button>
+  </div>
+
   <style>
-    #btn-reset-vista {
+    #btn-reset-vista, #btn-entorno {
       position: fixed;
       bottom: 16px;
-      left: 16px;
       z-index: 9999;
       background: rgba(0, 20, 30, 0.75);
       border: 1.5px solid #00E5FF;
@@ -39,9 +47,47 @@
       line-height: 1;
       transition: background 0.2s, box-shadow 0.2s;
     }
-    #btn-reset-vista:hover {
+    #btn-reset-vista:hover, #btn-entorno:hover {
       background: rgba(0, 229, 255, 0.18);
       box-shadow: 0 0 10px #00E5FF88;
+    }
+    #btn-reset-vista { left: 16px; }
+    #btn-entorno { left: 58px; }
+
+    #menu-entorno {
+      position: fixed;
+      bottom: 58px;
+      left: 58px;
+      z-index: 9999;
+      display: none;
+      flex-direction: column;
+      gap: 6px;
+      background: rgba(0, 20, 30, 0.9);
+      border: 1.5px solid #00E5FF;
+      border-radius: 8px;
+      padding: 8px;
+    }
+    #menu-entorno.abierto { display: flex; }
+    .entorno-btn {
+      font-family: Arial, sans-serif;
+      font-size: 12px;
+      white-space: nowrap;
+      background: rgba(0, 50, 100, 0.4);
+      border: 1px solid #00E5FF88;
+      color: #00E5FF;
+      border-radius: 5px;
+      padding: 6px 10px;
+      cursor: pointer;
+      text-align: left;
+      transition: background 0.2s;
+    }
+    .entorno-btn:hover {
+      background: rgba(0, 229, 255, 0.2);
+    }
+    .entorno-btn.activo {
+      background: #00E5FF;
+      color: #001A22;
+      font-weight: bold;
     }
   </style>
 
@@ -344,6 +390,18 @@
   ">
     <div style="margin-bottom: 8px;">👤 <span id="user-display-name">Usuario</span></div>
     <div style="margin-bottom: 8px;">🔐 <span id="user-display-role">Rol</span></div>
+    <button id="admin-users-btn" onclick="abrirPanelAdminUsuarios()" style="
+      width: 100%;
+      padding: 6px;
+      background: #0057B7;
+      border: none;
+      color: #FFF;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 11px;
+      margin-bottom: 6px;
+      display: none;
+    ">👥 GESTIONAR USUARIOS</button>
     <button id="logout-btn" onclick="hacerLogout()" style="
       width: 100%;
       padding: 6px;
@@ -357,25 +415,92 @@
     ">← SALIR</button>
   </div>
 
+  <!-- ============ MODAL ADMIN: CREAR USUARIO ============ -->
+  <div id="admin-users-modal" style="
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.75);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 10001;
+  ">
+    <div style="
+      background: rgba(10, 20, 40, 0.98);
+      border: 2px solid #00E5FF;
+      border-radius: 12px;
+      padding: 30px;
+      width: 90%;
+      max-width: 480px;
+      max-height: 85vh;
+      overflow-y: auto;
+      box-shadow: 0 0 30px rgba(0, 229, 255, 0.3);
+      font-family: Arial, sans-serif;
+    ">
+      <h2 style="color:#00E5FF; margin: 0 0 4px 0;">👥 Crear usuario</h2>
+      <p style="color:#888; font-size: 11px; margin-bottom: 18px;">Define su acceso por tabla (lectura / escritura)</p>
+
+      <div style="margin-bottom: 14px;">
+        <label style="color:#00E5FF; font-size:13px; display:block; margin-bottom:6px;">Usuario</label>
+        <input id="admin-new-username" type="text" style="width:100%; padding:8px; background:rgba(0,50,100,0.5); border:1px solid #00E5FF; color:#00E5FF; border-radius:6px; box-sizing:border-box;" />
+      </div>
+
+      <div style="margin-bottom: 14px;">
+        <label style="color:#00E5FF; font-size:13px; display:block; margin-bottom:6px;">Contraseña</label>
+        <input id="admin-new-password" type="password" style="width:100%; padding:8px; background:rgba(0,50,100,0.5); border:1px solid #00E5FF; color:#00E5FF; border-radius:6px; box-sizing:border-box;" />
+      </div>
+
+      <div style="margin-bottom: 14px;">
+        <label style="color:#00E5FF; font-size:13px; display:block; margin-bottom:6px;">Rol</label>
+        <select id="admin-new-role" onchange="onCambioRolNuevoUsuario()" style="width:100%; padding:8px; background:rgba(0,50,100,0.5); border:1px solid #00E5FF; color:#00E5FF; border-radius:6px;">
+          <option value="profesor">Profesor</option>
+          <option value="estudiante">Estudiante</option>
+          <option value="admin">Admin</option>
+          <option value="otro">Otro...</option>
+        </select>
+        <input id="admin-new-role-custom" type="text" placeholder="Nombre del rol" style="display:none; margin-top:8px; width:100%; padding:8px; background:rgba(0,50,100,0.5); border:1px solid #00E5FF; color:#00E5FF; border-radius:6px; box-sizing:border-box;" />
+      </div>
+
+      <div style="margin-bottom: 18px;">
+        <label style="color:#00E5FF; font-size:13px; display:block; margin-bottom:8px;">Tablas y permisos</label>
+        <div id="admin-tabla-permisos-list" style="border:1px solid #0a3050; border-radius:6px; padding:8px;"></div>
+      </div>
+
+      <button onclick="crearUsuarioAdmin()" style="
+        width:100%; padding:12px; background:linear-gradient(135deg,#00E5FF 0%,#00FF88 100%);
+        border:none; color:#000; font-weight:bold; border-radius:6px; cursor:pointer; font-size:14px;
+      ">✓ CREAR USUARIO</button>
+
+      <button onclick="cerrarPanelAdminUsuarios()" style="
+        width:100%; padding:10px; margin-top:8px; background:#333; border:none; color:#FFF;
+        border-radius:6px; cursor:pointer; font-size:12px;
+      ">Cancelar</button>
+
+      <p id="admin-new-user-error" style="color:#FF4444; font-size:12px; margin-top:12px; display:none;"></p>
+    </div>
+  </div>
+
   <a-scene
     cursor="rayOrigin: mouse"
     raycaster="objects: .clickable; recursive: true; far: 60"
     background="color: #000"
     fog="type: linear; color: #000; far: 120; near: 0.1"
+    xr-mode-ui="XRMode: xr"
   >
     <!-- Luces -->
-    <a-light type="ambient" intensity="0.5" color="#fff"></a-light>
-    <a-light type="directional" intensity="1" color="#00E5FF" position="20 30 20"></a-light>
-    <a-light type="directional" intensity="0.6" color="#FF00FF" position="-20 20 -20"></a-light>
-    <a-light type="point" intensity="0.8" color="#00E5FF" position="7 10 5"></a-light>
-    <a-light type="point" intensity="0.6" color="#FF00FF" position="7 5 -10"></a-light>
+    <a-light id="light-ambient" type="ambient" intensity="0.5" color="#fff"></a-light>
+    <a-light id="light-dir-1" type="directional" intensity="1" color="#00E5FF" position="20 30 20"></a-light>
+    <a-light id="light-dir-2" type="directional" intensity="0.6" color="#FF00FF" position="-20 20 -20"></a-light>
+    <a-light id="light-point-1" type="point" intensity="0.8" color="#00E5FF" position="7 10 5"></a-light>
+    <a-light id="light-point-2" type="point" intensity="0.6" color="#FF00FF" position="7 5 -10"></a-light>
 
     <!-- Piso y entorno -->
-    <a-plane id="teleport-surface" position="7 -3 -4" rotation="-90 0 0" width="240" height="240" color="#0a0a0a"></a-plane>
-    <a-plane position="7 -2.97 -4" rotation="-90 0 0" width="240" height="240"
-             material="shader: flat; color: #00E5FF; opacity: 0.03"></a-plane>
-    <a-sky color="#050505"></a-sky>
-    <a-entity id="stars"></a-entity>
+    <a-plane id="teleport-surface" position="7 -3 -4" rotation="-90 0 0" width="240" height="240" color="#0a0a0a" hide-on-enter-ar></a-plane>
+    <a-plane id="floor-grid" position="7 -2.97 -4" rotation="-90 0 0" width="240" height="240"
+             material="shader: flat; color: #00E5FF; opacity: 0.03" hide-on-enter-ar></a-plane>
+    <a-sky id="cielo" color="#050505" hide-on-enter-ar></a-sky>
+    <a-entity id="stars" hide-on-enter-ar></a-entity>
+    <a-entity id="env-decor" hide-on-enter-ar></a-entity>
 
     <!-- ESCENA 1: BIENVENIDA -->
     <a-entity id="escena-bienvenida" visible="true">
@@ -692,8 +817,14 @@
   </a-scene>
 
   <script>
-    const API_URL = "http://192.168.1.136:3000";
-    const tablas = ["estudiantes", "profesores", "asignaturas", "matriculas"];
+    const API_URL = "/pgrest"; // ruta relativa: Flask hace de proxy hacia PostgREST, mismo origen HTTPS
+    let tablas = []; // se carga dinámicamente tras login desde /api/my-tables (antes era una lista fija)
+
+    function postgrestFetch(url, options = {}) {
+      const headers = Object.assign({}, options.headers || {});
+      if (jwtToken) headers["Authorization"] = `Bearer ${jwtToken}`;
+      return fetch(url, Object.assign({}, options, { headers }));
+    }
 
     let queryState = {
       step: 1, operation: "", table: "", columns: [],
@@ -896,6 +1027,167 @@
       }
     }
     generarEstrellas();
+
+    // =========================
+    // ENTORNOS (temas visuales)
+    // =========================
+    const ENTORNOS = {
+      cyberpunk: {
+        label: "Cyberpunk",
+        sky: "#050505",
+        fog: { color: "#000", near: 0.1, far: 120 },
+        floor: "#0a0a0a",
+        floorGrid: { color: "#00E5FF", opacity: 0.03 },
+        ambient: { color: "#fff", intensity: 0.5 },
+        dirLights: [
+          { color: "#00E5FF", intensity: 1 },
+          { color: "#FF00FF", intensity: 0.6 }
+        ],
+        pointLights: [
+          { color: "#00E5FF", intensity: 0.8 },
+          { color: "#FF00FF", intensity: 0.6 }
+        ],
+        stars: true,
+        decor: null
+      },
+      bosque: {
+        label: "Bosque",
+        sky: "#8FCB9B",
+        fog: { color: "#8FCB9B", near: 5, far: 90 },
+        floor: "#33512E",
+        floorGrid: { color: "#4CAF6D", opacity: 0.05 },
+        ambient: { color: "#DFFFE0", intensity: 0.7 },
+        dirLights: [
+          { color: "#FFF3C4", intensity: 1.1 },
+          { color: "#A8D8B9", intensity: 0.4 }
+        ],
+        pointLights: [
+          { color: "#FFF3C4", intensity: 0.4 },
+          { color: "#8FCB9B", intensity: 0.3 }
+        ],
+        stars: false,
+        decor: "bosque"
+      },
+      desierto: {
+        label: "Desierto",
+        sky: "#F2C879",
+        fog: { color: "#F2C879", near: 5, far: 100 },
+        floor: "#C2A268",
+        floorGrid: { color: "#FFD98E", opacity: 0.05 },
+        ambient: { color: "#FFEFD0", intensity: 0.75 },
+        dirLights: [
+          { color: "#FFD98E", intensity: 1.2 },
+          { color: "#FFB870", intensity: 0.4 }
+        ],
+        pointLights: [
+          { color: "#FFD98E", intensity: 0.3 },
+          { color: "#FFB870", intensity: 0.25 }
+        ],
+        stars: false,
+        decor: "desierto"
+      }
+    };
+
+    let entornoActual = "cyberpunk";
+
+    function toggleMenuEntorno() {
+      document.getElementById("menu-entorno").classList.toggle("abierto");
+    }
+
+    function posicionAleatoriaAnillo(centroX, centroZ, rMin, rMax) {
+      const ang = Math.random() * Math.PI * 2;
+      const r = rMin + Math.random() * (rMax - rMin);
+      return { x: centroX + Math.cos(ang) * r, z: centroZ + Math.sin(ang) * r };
+    }
+
+    function generarArbol(x, z) {
+      const el = document.createElement("a-entity");
+      el.setAttribute("position", `${x} -3 ${z}`);
+      const alturaTronco = 1.5 + Math.random() * 1;
+      const alturaCopa = 2 + Math.random() * 2;
+      const escala = 0.8 + Math.random() * 0.6;
+      el.innerHTML = `
+        <a-cylinder radius="0.25" height="${alturaTronco}" color="#4A3423" position="0 ${alturaTronco / 2} 0"></a-cylinder>
+        <a-cone radius-bottom="${1.4 * escala}" radius-top="0" height="${alturaCopa}" color="#2F6B3A"
+                position="0 ${alturaTronco + alturaCopa / 2 - 0.2} 0"></a-cone>
+        <a-cone radius-bottom="${1.0 * escala}" radius-top="0" height="${alturaCopa * 0.8}" color="#3A7D46"
+                position="0 ${alturaTronco + alturaCopa * 0.9} 0"></a-cone>
+      `;
+      return el;
+    }
+
+    function generarRoca(x, z) {
+      const el = document.createElement("a-entity");
+      const s = 0.6 + Math.random() * 1.2;
+      el.setAttribute("position", `${x} -3 ${z}`);
+      el.setAttribute("rotation", `0 ${Math.random() * 360} 0`);
+      el.innerHTML = `<a-sphere radius="${s}" color="#9C8360" scale="1 0.6 1" position="0 ${s * 0.3} 0"></a-sphere>`;
+      return el;
+    }
+
+    function generarCactus(x, z) {
+      const el = document.createElement("a-entity");
+      el.setAttribute("position", `${x} -3 ${z}`);
+      const h = 2 + Math.random() * 1.5;
+      el.innerHTML = `
+        <a-cylinder radius="0.28" height="${h}" color="#3E7D4F" position="0 ${h / 2} 0"></a-cylinder>
+        <a-cylinder radius="0.16" height="1" color="#3E7D4F" position="0.4 ${h * 0.6} 0" rotation="0 0 90"></a-cylinder>
+        <a-cylinder radius="0.16" height="0.8" color="#3E7D4F" position="-0.4 ${h * 0.45} 0" rotation="0 0 -90"></a-cylinder>
+      `;
+      return el;
+    }
+
+    function generarDecoracionEntorno(tipo) {
+      const cont = limpiarEntidad("env-decor");
+      if (!cont || !tipo) return;
+      const n = tipo === "bosque" ? 26 : 16;
+      for (let i = 0; i < n; i++) {
+        const { x, z } = posicionAleatoriaAnillo(7, -4, 20, 95);
+        const el = tipo === "bosque"
+          ? generarArbol(x, z)
+          : (Math.random() < 0.55 ? generarCactus(x, z) : generarRoca(x, z));
+        cont.appendChild(el);
+      }
+    }
+
+    function aplicarEntorno(nombre, opts = {}) {
+      const cfg = ENTORNOS[nombre];
+      if (!cfg) return;
+      entornoActual = nombre;
+
+      document.getElementById("cielo").setAttribute("color", cfg.sky);
+      document.querySelector("a-scene").setAttribute(
+        "fog", `type: linear; color: ${cfg.fog.color}; near: ${cfg.fog.near}; far: ${cfg.fog.far}`
+      );
+
+      document.getElementById("teleport-surface").setAttribute("color", cfg.floor);
+      document.getElementById("floor-grid").setAttribute(
+        "material", `shader: flat; color: ${cfg.floorGrid.color}; opacity: ${cfg.floorGrid.opacity}`
+      );
+
+      document.getElementById("light-ambient").setAttribute("color", cfg.ambient.color);
+      document.getElementById("light-ambient").setAttribute("intensity", cfg.ambient.intensity);
+
+      ["light-dir-1", "light-dir-2"].forEach((id, i) => {
+        document.getElementById(id).setAttribute("color", cfg.dirLights[i].color);
+        document.getElementById(id).setAttribute("intensity", cfg.dirLights[i].intensity);
+      });
+      ["light-point-1", "light-point-2"].forEach((id, i) => {
+        document.getElementById(id).setAttribute("color", cfg.pointLights[i].color);
+        document.getElementById(id).setAttribute("intensity", cfg.pointLights[i].intensity);
+      });
+
+      document.getElementById("stars").setAttribute("visible", cfg.stars);
+
+      generarDecoracionEntorno(cfg.decor);
+
+      document.querySelectorAll(".entorno-btn").forEach(b => b.classList.remove("activo"));
+      document.getElementById(`entorno-btn-${nombre}`)?.classList.add("activo");
+
+      if (!opts.silent) mostrarToastHUD(`🌍 ENTORNO: ${cfg.label.toUpperCase()}`);
+    }
+
+    aplicarEntorno("cyberpunk", { silent: true });
 
     const rig = document.querySelector("#rig");
     let rigPos = { x: 7, y: 3, z: 8 };
@@ -1304,7 +1596,7 @@
       limpiarEntidad("query-options-container");
 
       try {
-        const res = await fetch(`${API_URL}/${tabla}?limit=1`);
+        const res = await postgrestFetch(`${API_URL}/${tabla}?limit=1`);
         const raw = await res.json();
         const arr = parseApiArray(raw);
         if (arr.length) schemasMock[tabla] = Object.keys(arr[0]);
@@ -1337,7 +1629,7 @@
 
       try {
         const url = `${API_URL}/${queryState.table}?select=${encodeURIComponent(col)}&${encodeURIComponent(col)}=not.is.null&limit=1000`;
-        const res = await fetch(url);
+        const res = await postgrestFetch(url);
         const raw = await res.json();
         const arr = parseApiArray(raw);
 
@@ -1417,7 +1709,7 @@
         params.set("limit", "1000");
 
         const url = `${API_URL}/${queryState.table}?${params.toString()}`;
-        const res = await fetch(url);
+        const res = await postgrestFetch(url);
         const raw = await res.json();
         datosActuales = res.ok ? parseApiArray(raw) : [];
       } catch (e) {
@@ -1747,7 +2039,7 @@
     async function fetchAll(endpoint, select = "*") {
       try {
         const url = `${API_URL}/${endpoint}?select=${encodeURIComponent(select)}&limit=2000`;
-        const res = await fetch(url);
+        const res = await postgrestFetch(url);
         const raw = await res.json();
         if (!res.ok) throw new Error(JSON.stringify(raw));
         return parseApiArray(raw);
@@ -1904,7 +2196,7 @@
       document.getElementById("texto-tabla").setAttribute("value", `SELECT ${nombre.toUpperCase()}`);
 
       try {
-        const res = await fetch(`${API_URL}/${nombre}?limit=1000`);
+        const res = await postgrestFetch(`${API_URL}/${nombre}?limit=1000`);
         const raw = await res.json();
         if (!res.ok) throw new Error(JSON.stringify(raw));
         datosActuales = parseApiArray(raw);
@@ -2255,6 +2547,8 @@
 
     let usuarioActual = null;
     let permisosActuales = [];
+    let jwtToken = null;
+    let misPermisosTablas = {}; // { nombreTabla: {can_read, can_write} }
 
     async function hacerLogin() {
       const username = document.getElementById("login-username").value.trim();
@@ -2289,7 +2583,8 @@
         }
 
         usuarioActual = data;
-        await cargarPermisos();
+        jwtToken = data.token;
+        await Promise.all([cargarPermisos(), cargarMisTablas()]);
         mostrarApp();
         mostrarToastHUD(`✅ Bienvenido, ${data.username}!`);
 
@@ -2318,11 +2613,161 @@
       return permisosActuales.includes(permiso);
     }
 
+    async function cargarMisTablas() {
+      try {
+        const response = await fetch("/api/my-tables");
+        const data = await response.json();
+        const info = data.tables || [];
+        tablas = info.map(t => t.table);
+        misPermisosTablas = {};
+        info.forEach(t => { misPermisosTablas[t.table] = { can_read: t.can_read, can_write: t.can_write }; });
+        console.log("Tablas accesibles:", tablas);
+      } catch (error) {
+        console.error("Error cargando tablas del usuario:", error);
+        tablas = [];
+        misPermisosTablas = {};
+      }
+    }
+
+    function puedeEscribirTabla(tabla) {
+      return !!(misPermisosTablas[tabla] && misPermisosTablas[tabla].can_write);
+    }
+
+    // ============ ADMIN: CREAR USUARIOS CON PERMISOS POR TABLA ============
+
+    let rolesDisponibles = {};   // { role_name: [{table, can_write}, ...] }, desde /api/admin/roles
+    let tablasDisponibles = [];  // todas las tablas del sistema, desde /api/admin/tables
+
+    async function abrirPanelAdminUsuarios() {
+      document.getElementById("admin-new-username").value = "";
+      document.getElementById("admin-new-password").value = "";
+      document.getElementById("admin-new-role").value = "profesor";
+      document.getElementById("admin-new-role-custom").value = "";
+      document.getElementById("admin-new-role-custom").style.display = "none";
+      document.getElementById("admin-new-user-error").style.display = "none";
+
+      try {
+        const [resTablas, resRoles] = await Promise.all([
+          fetch("/api/admin/tables"),
+          fetch("/api/admin/roles")
+        ]);
+        if (!resTablas.ok || !resRoles.ok) throw new Error("No autorizado o error de servidor");
+        tablasDisponibles = (await resTablas.json()).tables || [];
+        rolesDisponibles = (await resRoles.json()).roles || {};
+      } catch (e) {
+        mostrarToastHUD("❌ Error cargando tablas/roles");
+        return;
+      }
+
+      renderTablaPermisosChecklist();
+      onCambioRolNuevoUsuario();
+      document.getElementById("admin-users-modal").style.display = "flex";
+    }
+
+    function cerrarPanelAdminUsuarios() {
+      document.getElementById("admin-users-modal").style.display = "none";
+    }
+
+    function renderTablaPermisosChecklist() {
+      const cont = document.getElementById("admin-tabla-permisos-list");
+      cont.innerHTML = "";
+      tablasDisponibles.forEach(tabla => {
+        const row = document.createElement("div");
+        row.style.cssText = "display:flex; align-items:center; justify-content:space-between; padding:5px 0; border-bottom:1px solid #0a2030;";
+        row.innerHTML = `
+          <span style="color:#FFF; font-size:12px;">${tabla}</span>
+          <span style="font-size:11px; color:#00E5FF;">
+            <label style="margin-right:12px; cursor:pointer;"><input type="checkbox" class="perm-read" data-tabla="${tabla}"> Lectura</label>
+            <label style="cursor:pointer;"><input type="checkbox" class="perm-write" data-tabla="${tabla}"> Escritura</label>
+          </span>
+        `;
+        cont.appendChild(row);
+      });
+
+      // Marcar "Escritura" implica marcar también "Lectura"
+      cont.querySelectorAll(".perm-write").forEach(cb => {
+        cb.addEventListener("change", () => {
+          if (cb.checked) {
+            cont.querySelector(`.perm-read[data-tabla="${cb.dataset.tabla}"]`).checked = true;
+          }
+        });
+      });
+    }
+
+    function onCambioRolNuevoUsuario() {
+      const select = document.getElementById("admin-new-role");
+      const rol = select.value;
+      document.getElementById("admin-new-role-custom").style.display = rol === "otro" ? "block" : "none";
+
+      const cont = document.getElementById("admin-tabla-permisos-list");
+      cont.querySelectorAll(".perm-read").forEach(cb => cb.checked = false);
+      cont.querySelectorAll(".perm-write").forEach(cb => cb.checked = false);
+
+      (rolesDisponibles[rol] || []).forEach(d => {
+        const readCb = cont.querySelector(`.perm-read[data-tabla="${d.table}"]`);
+        const writeCb = cont.querySelector(`.perm-write[data-tabla="${d.table}"]`);
+        if (readCb) readCb.checked = true;
+        if (writeCb) writeCb.checked = !!d.can_write;
+      });
+    }
+
+    async function crearUsuarioAdmin() {
+      const username = document.getElementById("admin-new-username").value.trim();
+      const password = document.getElementById("admin-new-password").value;
+      const select = document.getElementById("admin-new-role");
+      const role = select.value === "otro"
+        ? document.getElementById("admin-new-role-custom").value.trim()
+        : select.value;
+      const errorDiv = document.getElementById("admin-new-user-error");
+
+      const cont = document.getElementById("admin-tabla-permisos-list");
+      const table_permissions = [];
+      cont.querySelectorAll(".perm-read").forEach(cb => {
+        if (cb.checked) {
+          const tabla = cb.dataset.tabla;
+          const writeCb = cont.querySelector(`.perm-write[data-tabla="${tabla}"]`);
+          table_permissions.push({ table: tabla, can_read: true, can_write: writeCb.checked });
+        }
+      });
+
+      if (!username || !password || !role) {
+        errorDiv.textContent = "❌ Usuario, contraseña y rol son obligatorios";
+        errorDiv.style.display = "block";
+        return;
+      }
+      if (table_permissions.length === 0) {
+        errorDiv.textContent = "❌ Selecciona al menos una tabla";
+        errorDiv.style.display = "block";
+        return;
+      }
+
+      try {
+        const resp = await fetch("/api/admin/users", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username, password, role, table_permissions })
+        });
+        const data = await resp.json();
+        if (!resp.ok) {
+          errorDiv.textContent = `❌ ${data.error || "Error creando usuario"}`;
+          errorDiv.style.display = "block";
+          return;
+        }
+        mostrarToastHUD(`✅ Usuario ${username} creado`);
+        cerrarPanelAdminUsuarios();
+      } catch (e) {
+        errorDiv.textContent = "❌ Error de red";
+        errorDiv.style.display = "block";
+      }
+    }
+
     function mostrarApp() {
       document.getElementById("login-modal").style.display = "none";
       document.getElementById("user-info-panel").style.display = "block";
       document.getElementById("user-display-name").textContent = usuarioActual.username;
       document.getElementById("user-display-role").textContent = `${usuarioActual.role.toUpperCase()}`;
+      document.getElementById("admin-users-btn").style.display =
+        usuarioActual.role === "admin" ? "block" : "none";
     }
 
     async function hacerLogout() {
@@ -2334,6 +2779,9 @@
 
       usuarioActual = null;
       permisosActuales = [];
+      jwtToken = null;
+      misPermisosTablas = {};
+      tablas = [];
 
       document.getElementById("login-modal").style.display = "flex";
       document.getElementById("user-info-panel").style.display = "none";
@@ -2350,7 +2798,11 @@
         const response = await fetch("/profile");
         if (response.ok) {
           usuarioActual = await response.json();
-          await cargarPermisos();
+          const tokenResp = await fetch("/api/token");
+          if (tokenResp.ok) {
+            jwtToken = (await tokenResp.json()).token;
+          }
+          await Promise.all([cargarPermisos(), cargarMisTablas()]);
           mostrarApp();
         }
       } catch (error) {
