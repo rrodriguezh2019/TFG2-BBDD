@@ -506,8 +506,8 @@
     <a-entity id="escena-bienvenida" visible="true">
       <a-entity position="7 5 -15" animation="property: rotation; to: 0 360 0; dur: 20000; easing: linear; loop: true">
         <a-box color="#0a0a0a" depth="1" height="2.5" width="16" opacity="0.92"></a-box>
-        <a-text value="SISTEMA DE GESTIÓN" align="center" position="0 0.8 0.6" width="21" color="#00E5FF"></a-text>
-        <a-text value="UNIVERSITARIA" align="center" position="0 0.2 0.6" width="21" color="#00E5FF"></a-text>
+        <a-text id="titulo-bienvenida-1" value="SISTEMA DE GESTIÓN" align="center" position="0 0.8 0.6" width="21" color="#00E5FF"></a-text>
+        <a-text id="titulo-bienvenida-2" value="UNIVERSITARIA" align="center" position="0 0.2 0.6" width="21" color="#00E5FF"></a-text>
       </a-entity>
 
       <a-entity position="7 3 -10">
@@ -515,20 +515,20 @@
                   animation="property: rotation; to: 0 360 0; dur: 10000; easing: linear; loop: true"></a-sphere>
 
         <a-entity position="-5 0 0">
-          <a-box class="clickable" interactable color="#00E5FF" depth="0.8" height="1.2" width="4.2" data-action="mostrarMenuTablas">
-            <a-text value="VER TABLAS" align="center" position="0 0 0.5" width="6.2" color="#000"></a-text>
+          <a-box id="btn-tablas-box" class="clickable" interactable color="#00E5FF" depth="0.8" height="1.2" width="4.2" data-action="mostrarMenuTablas">
+            <a-text id="btn-tablas-text" value="VER TABLAS" align="center" position="0 0 0.5" width="6.2" color="#000"></a-text>
           </a-box>
         </a-entity>
 
         <a-entity position="0 0 0">
-          <a-box class="clickable" interactable color="#FF00FF" depth="0.8" height="1.2" width="5.2" data-action="iniciarQueryBuilder">
-            <a-text value="CONSTRUIR\nCONSULTA" align="center" position="0 0 0.5" width="6.5" color="#FFF"></a-text>
+          <a-box id="btn-query-box" class="clickable" interactable color="#FF00FF" depth="0.8" height="1.2" width="5.2" data-action="iniciarQueryBuilder">
+            <a-text id="btn-query-text" value="CONSTRUIR\nCONSULTA" align="center" position="0 0 0.5" width="6.5" color="#FFF"></a-text>
           </a-box>
         </a-entity>
 
         <a-entity position="5.3 0 0">
-          <a-box class="clickable" interactable color="#00FF88" depth="0.8" height="1.2" width="6" data-action="iniciarConsultasGuiadas">
-            <a-text value="CONSULTAS\nGUIADAS" align="center" position="0 0 0.5" width="7" color="#001A0E"></a-text>
+          <a-box id="btn-guiadas-box" class="clickable" interactable color="#00FF88" depth="0.8" height="1.2" width="6" data-action="iniciarConsultasGuiadas">
+            <a-text id="btn-guiadas-text" value="CONSULTAS\nGUIADAS" align="center" position="0 0 0.5" width="7" color="#001A0E"></a-text>
           </a-box>
         </a-entity>
       </a-entity>
@@ -537,7 +537,7 @@
     <!-- ESCENA 2: MENÚ TABLAS -->
     <a-entity id="escena-menu-tablas" visible="false">
       <a-entity position="7 6 -15">
-        <a-text value="SELECCIONA UNA TABLA" align="center" width="20" color="#00E5FF"></a-text>
+        <a-text id="titulo-menu-tablas" value="SELECCIONA UNA TABLA" align="center" width="20" color="#00E5FF"></a-text>
       </a-entity>
       <a-entity id="menu-tablas" position="7 3 -4"></a-entity>
 
@@ -556,7 +556,7 @@
       <a-entity position="0 6 -5">
         <a-box color="#111" depth="0.5" height="3.2" width="19" opacity="0.92"></a-box>
         
-        <a-text id="query-display" value="Esperando instrucción..." position="-9 0 0.3" color="#00E5FF" width="16.8" wrap-count="40"></a-text>
+        <a-text id="query-display" value="Esperando instrucción..." position="-9 0 0.3" color="#00E5FF" data-rol="primario" width="16.8" wrap-count="40"></a-text>
       </a-entity>
 
       <a-entity position="0 3.8 -2">
@@ -570,23 +570,23 @@
     <!-- ESCENA 6: CONSULTAS GUIADAS -->
     <a-entity id="escena-consultas-guiadas" visible="false" position="7 0 -10">
       <a-entity position="0 7.2 -6">
-        <a-box color="#050D0A" depth="0.25" height="1.6" width="14"
+        <a-box color="#050D0A" depth="0.25" height="1.6" width="14" data-rol="terciario" data-rol-target="material-emissive"
                material="color: #050D0A; emissive: #00FF88; emissiveIntensity: 0.06; opacity: 0.96"></a-box>
-        <a-box color="#00FF88" depth="0.26" height="0.04" width="14" position="0 0.78 0"
+        <a-box color="#00FF88" depth="0.26" height="0.04" width="14" position="0 0.78 0" data-rol="terciario" data-rol-target="material-both"
                material="color: #00FF88; emissive: #00FF88; emissiveIntensity: 1; opacity: 0.9"></a-box>
-        <a-box color="#00FF88" depth="0.26" height="0.04" width="14" position="0 -0.78 0"
+        <a-box color="#00FF88" depth="0.26" height="0.04" width="14" position="0 -0.78 0" data-rol="terciario" data-rol-target="material-both"
                material="color: #00FF88; emissive: #00FF88; emissiveIntensity: 1; opacity: 0.9"></a-box>
         <a-text value="ANÁLISIS · CONSULTAS GUIADAS" align="center" position="0 0.28 0.14"
-                width="13" color="#00FF88"></a-text>
+                width="13" color="#00FF88" data-rol="terciario"></a-text>
         <a-text value="Selecciona un análisis para visualizar datos en 3D o 2D"
-                align="center" position="0 -0.25 0.14" width="11" color="#4DFFBB"></a-text>
+                align="center" position="0 -0.25 0.14" width="11" color="#4DFFBB" data-rol="verdeClaro"></a-text>
       </a-entity>
 
       <a-entity position="-7.5 6.8 -6">
-        <a-box class="clickable" interactable depth="0.3" width="3.2" height="0.9"
+        <a-box class="clickable" interactable depth="0.3" width="3.2" height="0.9" data-rol="volver" data-rol-target="material-emissive"
                material="color: #1A0800; emissive: #FF6B00; emissiveIntensity: 0.35"
                data-action="volver">
-          <a-text value="← VOLVER" align="center" position="0 0 0.16" width="6" color="#FF9944"></a-text>
+          <a-text value="← VOLVER" align="center" position="0 0 0.16" width="6" color="#FF9944" data-rol="volverTexto"></a-text>
         </a-box>
       </a-entity>
 
@@ -602,11 +602,11 @@
 
       <a-entity id="controles-lateral" position="-6.2 2.5 0">
         <a-box color="#111" depth="0.3" height="6.2" width="2" opacity="0.85"></a-box>
-        <a-text value="CONTROLES" position="0 2.3 0.2" align="center" color="#00E5FF" width="4"></a-text>
+        <a-text value="CONTROLES" position="0 2.3 0.2" align="center" color="#00E5FF" data-rol="primario" width="4"></a-text>
 
         <a-entity position="0 1.3 0.15">
           <a-box id="btn-anterior" class="clickable" interactable color="#222" width="1.8" height="0.7" depth="0.3" data-action="cambiarPagina" data-param="-1">
-            <a-text value="ANTERIOR" align="center" position="0 0 0.2" width="4.4" color="#00E5FF"></a-text>
+            <a-text value="ANTERIOR" align="center" position="0 0 0.2" width="4.4" color="#00E5FF" data-rol="primario"></a-text>
           </a-box>
         </a-entity>
 
@@ -616,7 +616,7 @@
 
         <a-entity position="0 -0.6 0.15">
           <a-box id="btn-siguiente" class="clickable" interactable color="#222" width="1.8" height="0.7" depth="0.3" data-action="cambiarPagina" data-param="1">
-            <a-text value="SIGUIENTE" align="center" position="0 0 0.2" width="4.4" color="#00E5FF"></a-text>
+            <a-text value="SIGUIENTE" align="center" position="0 0 0.2" width="4.4" color="#00E5FF" data-rol="primario"></a-text>
           </a-box>
         </a-entity>
       </a-entity>
@@ -624,18 +624,18 @@
       <!-- SWITCH 2D / 3D PARA TABLA -->
       <a-entity id="switch-vista-tabla" position="-6.2 0.7 0.15">
         <a-entity class="clickable" position="0 0 0">
-          <a-box class="clickable" interactable width="1.8" height="0.62" depth="0.3"
+          <a-box class="clickable" interactable width="1.8" height="0.62" depth="0.3" data-rol="primario" data-rol-target="material-emissive"
                  material="color: #0A1020; emissive: #00E5FF; emissiveIntensity: 0.35; opacity: 0.98"
                  data-action="tabla_ver_3d">
-            <a-text value="VER 3D" align="center" position="0 0 0.18" width="3.8" color="#00E5FF"></a-text>
+            <a-text value="VER 3D" align="center" position="0 0 0.18" width="3.8" color="#00E5FF" data-rol="primario"></a-text>
           </a-box>
         </a-entity>
 
         <a-entity class="clickable" position="0 -0.84 0">
-          <a-box class="clickable" interactable width="1.8" height="0.62" depth="0.3"
+          <a-box class="clickable" interactable width="1.8" height="0.62" depth="0.3" data-rol="ambar" data-rol-target="material-emissive"
                  material="color: #201008; emissive: #FFB700; emissiveIntensity: 0.35; opacity: 0.98"
                  data-action="tabla_ver_2d">
-            <a-text value="VER 2D" align="center" position="0 0 0.18" width="3.8" color="#FFB700"></a-text>
+            <a-text value="VER 2D" align="center" position="0 0 0.18" width="3.8" color="#FFB700" data-rol="ambar"></a-text>
           </a-box>
         </a-entity>
       </a-entity>
@@ -646,7 +646,7 @@
       </a-entity>
 
       <a-entity position="0 -2.5 0">
-        <a-box class="clickable" interactable color="#FF6B00" depth="0.3" width="3.8" height="0.7" data-action="volver">
+        <a-box class="clickable" interactable color="#FF6B00" data-rol="volver" depth="0.3" width="3.8" height="0.7" data-action="volver">
           <a-text value="← VOLVER" align="center" position="0 0 0.2" width="6.2" color="#FFF"></a-text>
         </a-box>
       </a-entity>
@@ -656,41 +656,41 @@
     <a-entity id="escena-analisis-edades" visible="false" position="7 0 -15">
       <a-entity position="0 6.8 0">
         <a-box color="#0a0a0a" depth="0.4" height="1" width="16" opacity="0.95"></a-box>
-        <a-text id="titulo-analisis" value="ANÁLISIS" align="center" position="0 0 0.25" width="18" color="#9D4EDD"></a-text>
+        <a-text id="titulo-analisis" value="ANÁLISIS" align="center" position="0 0 0.25" width="18" color="#9D4EDD" data-rol="violeta"></a-text>
       </a-entity>
 
       <a-entity position="-10 6.8 0">
-        <a-box class="clickable" interactable depth="0.35" width="3.4" height="0.9"
+        <a-box class="clickable" interactable depth="0.35" width="3.4" height="0.9" data-rol="volver" data-rol-target="material-emissive"
                material="color: #1A0800; emissive: #FF6B00; emissiveIntensity: 0.4"
                data-action="volver">
-          <a-text value="← VOLVER" align="center" position="0 0 0.19" width="6.2" color="#FF9944"></a-text>
+          <a-text value="← VOLVER" align="center" position="0 0 0.19" width="6.2" color="#FF9944" data-rol="volverTexto"></a-text>
         </a-box>
       </a-entity>
 
       <a-entity id="switch-vista-analisis" position="-10 5.6 0.05">
         <a-entity class="clickable" position="0 -1.1 0">
-          <a-box class="clickable" interactable width="3.4" height="0.75" depth="0.32"
+          <a-box class="clickable" interactable width="3.4" height="0.75" depth="0.32" data-rol="primario" data-rol-target="material-emissive"
                  material="color: #0A1020; emissive: #00E5FF; emissiveIntensity: 0.35; opacity: 0.98"
                  data-action="analisis_ver_3d">
-            <a-text value="VER 3D" align="center" position="0 0 0.18" width="5.4" color="#00E5FF"></a-text>
+            <a-text value="VER 3D" align="center" position="0 0 0.18" width="5.4" color="#00E5FF" data-rol="primario"></a-text>
           </a-box>
         </a-entity>
 
         <a-entity class="clickable" position="0 -2.05 0">
-          <a-box class="clickable" interactable width="3.4" height="0.75" depth="0.32"
+          <a-box class="clickable" interactable width="3.4" height="0.75" depth="0.32" data-rol="ambar" data-rol-target="material-emissive"
                  material="color: #201008; emissive: #FFB700; emissiveIntensity: 0.35; opacity: 0.98"
                  data-action="analisis_ver_2d">
-            <a-text value="VER 2D" align="center" position="0 0 0.18" width="5.4" color="#FFB700"></a-text>
+            <a-text value="VER 2D" align="center" position="0 0 0.18" width="5.4" color="#FFB700" data-rol="ambar"></a-text>
           </a-box>
         </a-entity>
       </a-entity>
 
       <a-entity id="panel-estadisticas" position="8.2 3.5 0">
-        <a-box color="#0A0F0A" depth="0.3" height="5.8" width="2.6"
+        <a-box color="#0A0F0A" depth="0.3" height="5.8" width="2.6" data-rol="violeta" data-rol-target="material-emissive"
                material="color: #0A0F0A; emissive: #9D4EDD; emissiveIntensity: 0.06; opacity: 0.92"></a-box>
-        <a-box depth="0.31" height="5.8" width="0.04" position="-1.3 0 0"
+        <a-box depth="0.31" height="5.8" width="0.04" position="-1.3 0 0" data-rol="violeta" data-rol-target="material-both"
                material="color: #9D4EDD; emissive: #9D4EDD; emissiveIntensity: 0.8; opacity: 0.7"></a-box>
-        <a-text value="ESTADÍSTICAS" position="0 2.4 0.17" align="center" color="#9D4EDD" width="4.6"></a-text>
+        <a-text value="ESTADÍSTICAS" position="0 2.4 0.17" align="center" color="#9D4EDD" data-rol="violeta" width="4.6"></a-text>
         <a-text id="stat-edad-min" value="MIN: --" position="0 1.5 0.17" align="center" color="#00FF88" width="4.6"></a-text>
         <a-text id="stat-edad-max" value="MÁX: --" position="0 0.7 0.17" align="center" color="#FF88FF" width="4.6"></a-text>
         <a-text id="stat-edad-prom" value="PROM: --" position="0 -0.1 0.17" align="center" color="#00E5FF" width="4.6"></a-text>
@@ -719,12 +719,12 @@
       <!-- CONTROLES LATERALES (idénticos a escena-tabla) -->
       <a-entity id="qr-controles-lateral" position="-6.2 2.5 0">
         <a-box color="#111" depth="0.3" height="6.2" width="2" opacity="0.85"></a-box>
-        <a-text value="CONTROLES" position="0 2.3 0.2" align="center" color="#00E5FF" width="4"></a-text>
+        <a-text value="CONTROLES" position="0 2.3 0.2" align="center" color="#00E5FF" data-rol="primario" width="4"></a-text>
 
         <a-entity position="0 1.3 0.15">
           <a-box class="clickable" interactable color="#222" width="1.8" height="0.7" depth="0.3"
                  data-action="cambiarPagina" data-param="-1">
-            <a-text value="ANTERIOR" align="center" position="0 0 0.2" width="4.4" color="#00E5FF"></a-text>
+            <a-text value="ANTERIOR" align="center" position="0 0 0.2" width="4.4" color="#00E5FF" data-rol="primario"></a-text>
           </a-box>
         </a-entity>
 
@@ -735,7 +735,7 @@
         <a-entity position="0 -0.6 0.15">
           <a-box class="clickable" interactable color="#222" width="1.8" height="0.7" depth="0.3"
                  data-action="cambiarPagina" data-param="1">
-            <a-text value="SIGUIENTE" align="center" position="0 0 0.2" width="4.4" color="#00E5FF"></a-text>
+            <a-text value="SIGUIENTE" align="center" position="0 0 0.2" width="4.4" color="#00E5FF" data-rol="primario"></a-text>
           </a-box>
         </a-entity>
       </a-entity>
@@ -743,17 +743,17 @@
       <!-- SWITCH 2D / 3D (idéntico a escena-tabla) -->
       <a-entity id="qr-switch-vista" position="-6.2 0.7 0.15">
         <a-entity class="clickable" position="0 0 0">
-          <a-box class="clickable" interactable width="1.8" height="0.62" depth="0.3"
+          <a-box class="clickable" interactable width="1.8" height="0.62" depth="0.3" data-rol="primario" data-rol-target="material-emissive"
                  material="color: #0A1020; emissive: #00E5FF; emissiveIntensity: 0.35; opacity: 0.98"
                  data-action="tabla_ver_3d">
-            <a-text value="VER 3D" align="center" position="0 0 0.18" width="3.8" color="#00E5FF"></a-text>
+            <a-text value="VER 3D" align="center" position="0 0 0.18" width="3.8" color="#00E5FF" data-rol="primario"></a-text>
           </a-box>
         </a-entity>
         <a-entity class="clickable" position="0 -0.84 0">
-          <a-box class="clickable" interactable width="1.8" height="0.62" depth="0.3"
+          <a-box class="clickable" interactable width="1.8" height="0.62" depth="0.3" data-rol="ambar" data-rol-target="material-emissive"
                  material="color: #201008; emissive: #FFB700; emissiveIntensity: 0.35; opacity: 0.98"
                  data-action="tabla_ver_2d">
-            <a-text value="VER 2D" align="center" position="0 0 0.18" width="3.8" color="#FFB700"></a-text>
+            <a-text value="VER 2D" align="center" position="0 0 0.18" width="3.8" color="#FFB700" data-rol="ambar"></a-text>
           </a-box>
         </a-entity>
       </a-entity>
@@ -766,7 +766,7 @@
 
       <!-- VOLVER -->
       <a-entity position="0 -2.5 0">
-        <a-box class="clickable" interactable color="#FF6B00" depth="0.3" width="3.8" height="0.7" data-action="volver">
+        <a-box class="clickable" interactable color="#FF6B00" data-rol="volver" depth="0.3" width="3.8" height="0.7" data-action="volver">
           <a-text value="← VOLVER" align="center" position="0 0 0.2" width="6.2" color="#FFF"></a-text>
         </a-box>
       </a-entity>
@@ -776,23 +776,23 @@
     <!-- ============ TECLADO VIRTUAL VR ============ -->
     <a-entity id="vr-keyboard-panel" visible="false" position="7 4 -2">
       <!-- Panel de fondo -->
-      <a-box width="14" height="6.8" depth="0.18"
+      <a-box width="14" height="6.8" depth="0.18" data-rol="primario" data-rol-target="material-emissive"
              material="color: #050D18; emissive: #00E5FF; emissiveIntensity: 0.06; opacity: 0.97"></a-box>
       <!-- Borde superior -->
-      <a-box width="14" height="0.06" depth="0.20" position="0 3.37 0"
+      <a-box width="14" height="0.06" depth="0.20" position="0 3.37 0" data-rol="primario" data-rol-target="material-both"
              material="color: #00E5FF; emissive: #00E5FF; emissiveIntensity: 1; opacity: 0.85"></a-box>
 
       <!-- Título -->
       <a-text id="vrkb-title" value="INTRODUCE TEXTO" align="center"
-              position="0 2.85 0.12" width="13" color="#00E5FF"></a-text>
+              position="0 2.85 0.12" width="13" color="#00E5FF" data-rol="primario"></a-text>
 
       <!-- Display del texto introducido -->
-      <a-box width="12.8" height="0.9" depth="0.14" position="0 2.2 0.05"
+      <a-box width="12.8" height="0.9" depth="0.14" position="0 2.2 0.05" data-rol="primario" data-rol-target="material-emissive"
              material="color: #000D1A; emissive: #00E5FF; emissiveIntensity: 0.08; opacity: 0.98"></a-box>
       <a-text id="vrkb-display" value="" align="left"
-              position="-6.0 2.2 0.14" width="13" color="#00FF88" wrap-count="36"></a-text>
+              position="-6.0 2.2 0.14" width="13" color="#00FF88" data-rol="terciario" wrap-count="36"></a-text>
       <!-- Cursor parpadeante -->
-      <a-box id="vrkb-cursor" width="0.06" height="0.55" depth="0.12" position="0 2.2 0.14"
+      <a-box id="vrkb-cursor" width="0.06" height="0.55" depth="0.12" position="0 2.2 0.14" data-rol="terciario" data-rol-target="material-both"
              material="color: #00FF88; emissive: #00FF88; emissiveIntensity: 1; opacity: 0.9"
              animation="property: material.opacity; from: 0.9; to: 0.1; dur: 600; loop: true; dir: alternate"></a-box>
 
@@ -868,13 +868,15 @@
       fila_alt:"#16213e"
     };
 
+    // "rol" referencia una clave de PALETAS_UI[entorno].roles, resuelta en iniciarConsultasGuiadas()
+    // al momento de pintar las tarjetas (así cambian de color con el entorno activo).
     const CONSULTAS_GUIADAS = [
-      { id:"edad-distribucion", label:"Distribución\nde Edades", emoji:"◈", color:"#00E5FF", bg:"#001820" },
-      { id:"edad-prom-curso", label:"Edad Promedio\nGlobal", emoji:"◉", color:"#00FF88", bg:"#00180E" },
-      { id:"prof-departamento", label:"Profesores por\nDepartamento", emoji:"◆", color:"#FF00FF", bg:"#180018" },
-      { id:"salario-departamento", label:"Salario Promedio\npor Depto.", emoji:"◈", color:"#FFB700", bg:"#181000" },
-      { id:"asignaturas-curso", label:"Asignaturas\npor Curso", emoji:"◉", color:"#9D4EDD", bg:"#110018" },
-      { id:"nota-asignatura", label:"Nota Promedio\npor Asignatura", emoji:"◆", color:"#FF6B6B", bg:"#180A0A" }
+      { id:"edad-distribucion", label:"Distribución\nde Edades", emoji:"◈", rol:"primario" },
+      { id:"edad-prom-curso", label:"Edad Promedio\nGlobal", emoji:"◉", rol:"terciario" },
+      { id:"prof-departamento", label:"Profesores por\nDepartamento", emoji:"◆", rol:"secundario" },
+      { id:"salario-departamento", label:"Salario Promedio\npor Depto.", emoji:"◈", rol:"ambar" },
+      { id:"asignaturas-curso", label:"Asignaturas\npor Curso", emoji:"◉", rol:"violeta" },
+      { id:"nota-asignatura", label:"Nota Promedio\npor Asignatura", emoji:"◆", rol:"rosaClaro" }
     ];
 
     class NavigationManager {
@@ -941,11 +943,11 @@
 
       e.innerHTML = `
         <a-box class="clickable" interactable width="${size.width}" height="${size.height}" depth="0.4"
-               material="color: ${bg}; emissive: ${color}; emissiveIntensity: 0.24"
+               material="color: ${bg}; emissive: ${color}; emissiveIntensity: 0.32"
                data-action="${action}" ${pAttr}>
           <a-text value="${label}" align="center" position="0 0 0.22"
                   width="${size.width * 1.25}" wrap-count="${size.wrap}"
-                  color="${color}"></a-text>
+                  color="#0A0A0A"></a-text>
         </a-box>
       `;
       return e;
@@ -990,14 +992,18 @@
           const ent = document.createElement("a-entity");
           ent.setAttribute("position", `${x + op._w / 2} ${-rowIndex * gapY} 0`);
 
+          // El texto va siempre en negro: usar el mismo color del rol para el brillo del botón Y
+          // para la letra hacía que se fundieran en cuanto el tono no era un neón muy saturado
+          // (cian/magenta originales sí colaban, ámbar/turquesa/terracota ya no).
+          const emisivoDefecto = op.emissive || rolesActuales().primario;
           ent.innerHTML = `
             <a-box class="clickable" interactable
                    width="${op._w}" height="${op._h}" depth="0.35"
-                   material="color: #0a1020; emissive: ${op.emissive || "#00E5FF"}; emissiveIntensity: ${op.emissive ? 0.22 : 0.12}"
+                   material="color: #0a1020; emissive: ${emisivoDefecto}; emissiveIntensity: ${op.emissive ? 0.3 : 0.18}"
                    data-action="${op.action}" ${op.param !== undefined ? `data-param="${String(op.param).replace(/"/g, "&quot;")}"` : ""}>
               <a-text value="${op.label}" align="center" position="0 0 0.19"
                       width="${op._w * 1.25}" wrap-count="${op.wrap || op._wrap}"
-                      color="${op.textColor || "#00E5FF"}"></a-text>
+                      color="#0A0A0A"></a-text>
             </a-box>
           `;
           cont.appendChild(ent);
@@ -1056,14 +1062,17 @@
         fog: { color: "#8FCB9B", near: 5, far: 90 },
         floor: "#33512E",
         floorGrid: { color: "#4CAF6D", opacity: 0.05 },
-        ambient: { color: "#DFFFE0", intensity: 0.7 },
+        // Luz ambiente/direccional menos saturada de verde que antes: con la anterior (#DFFFE0
+        // muy verdosa) hasta los paneles neutros se veían teñidos de verde, reforzando la
+        // sensación de "todo verde" que comentó el usuario.
+        ambient: { color: "#F2ECD6", intensity: 0.65 },
         dirLights: [
           { color: "#FFF3C4", intensity: 1.1 },
-          { color: "#A8D8B9", intensity: 0.4 }
+          { color: "#D9CBAE", intensity: 0.35 }
         ],
         pointLights: [
           { color: "#FFF3C4", intensity: 0.4 },
-          { color: "#8FCB9B", intensity: 0.3 }
+          { color: "#D9CBAE", intensity: 0.25 }
         ],
         stars: false,
         decor: "bosque"
@@ -1087,6 +1096,150 @@
         decor: "desierto"
       }
     };
+
+    // Paleta de colores de la interfaz (menú principal, tablas) por entorno,
+    // para que dejen de verse cian/magenta neón sobre un desierto o un bosque.
+    const PALETAS_UI = {
+      cyberpunk: {
+        tituloTexto: "#00E5FF",
+        botones: [
+          { bg: "#00E5FF", texto: "#000" },
+          { bg: "#FF00FF", texto: "#FFF" },
+          { bg: "#00FF88", texto: "#001A0E" }
+        ],
+        tabla: { celda: "#1a1a2e", celdaTexto: "#00E5FF", cabecera: "#0f3460", cabeceraTexto: "#00FF88", fila_alt: "#16213e" },
+        // Roles genéricos usados en el resto de pantallas (constructor de consultas, consultas
+        // guiadas, análisis, teclado VR...) para no dejar esas escenas siempre en neón cian/magenta.
+        roles: {
+          primario: "#00E5FF", secundario: "#FF00FF", terciario: "#00FF88",
+          ambar: "#FFB700", violeta: "#9D4EDD",
+          volver: "#FF6B00", volverTexto: "#FF9944",
+          peligro: "#FF4444", rosaClaro: "#FF6B6B", verdeClaro: "#4DFFBB"
+        }
+      },
+      bosque: {
+        // El mundo (cielo/niebla/suelo/decoración) es verde, así que los acentos de interfaz usan
+        // tonos cálidos "opuestos" en la rueda de color (ámbar/terracota/coral) en vez de más
+        // verde — si no, todo se funde con el fondo y se vuelve ilegible (ver captura del teclado
+        // VR en bosque: letras verdes sobre fondo verde).
+        tituloTexto: "#FFEFC2",
+        botones: [
+          { bg: "#F2A340", texto: "#3A2000" },
+          { bg: "#B9502E", texto: "#FFF3E0" },
+          { bg: "#E8735A", texto: "#3A0E08" }
+        ],
+        tabla: { celda: "#1c2e1e", celdaTexto: "#CDEFC8", cabecera: "#234d32", cabeceraTexto: "#FFE9A8", fila_alt: "#223a26" },
+        roles: {
+          primario: "#F2A340", secundario: "#B9502E", terciario: "#E8735A",
+          ambar: "#FFCF5C", violeta: "#D1A6E8",
+          volver: "#C97A32", volverTexto: "#F5B27A",
+          peligro: "#D9463C", rosaClaro: "#E88C99", verdeClaro: "#F2E8C9"
+        }
+      },
+      desierto: {
+        // El mundo es cálido (arena/cielo amarillo-naranja), así que los acentos usan tonos fríos
+        // "opuestos" (turquesa/verde palmera/coral) en vez de más amarillo — antes casi todos los
+        // acentos eran también naranja/dorado y se perdían contra el fondo.
+        tituloTexto: "#CFF3F0",
+        botones: [
+          { bg: "#3FB6C2", texto: "#052224" },
+          { bg: "#2E6E7A", texto: "#EAF6F5" },
+          { bg: "#4C9A5B", texto: "#0C2410" }
+        ],
+        tabla: { celda: "#2a1d10", celdaTexto: "#FFE9C6", cabecera: "#5c3a1e", cabeceraTexto: "#FFD98E", fila_alt: "#33230f" },
+        roles: {
+          primario: "#3FB6C2", secundario: "#2E6E7A", terciario: "#4C9A5B",
+          ambar: "#E8734B", violeta: "#C77DC2",
+          volver: "#C2502E", volverTexto: "#FFCBA6",
+          peligro: "#D9463C", rosaClaro: "#E0937A", verdeClaro: "#D9C79E"
+        }
+      }
+    };
+
+    function rolesActuales() {
+      return PALETAS_UI[entornoActual].roles;
+    }
+
+    // Oscurece un color hex (para fondos de tarjetas a partir de su color de acento)
+    function oscurecerHex(hex, factor = 0.12) {
+      const h = hex.replace("#", "");
+      const r = Math.round(parseInt(h.substring(0, 2), 16) * factor);
+      const g = Math.round(parseInt(h.substring(2, 4), 16) * factor);
+      const b = Math.round(parseInt(h.substring(4, 6), 16) * factor);
+      return `#${[r, g, b].map(v => v.toString(16).padStart(2, "0")).join("")}`;
+    }
+
+    // Aplica los roles genéricos (primario/secundario/terciario/ambar/violeta/volver...) a todo
+    // elemento marcado con data-rol en el HTML: constructor de consultas, consultas guiadas,
+    // controles de tabla, análisis y teclado VR. data-rol-target indica cómo aplicarlo:
+    // "color" (por defecto) = atributo color plano; "material-emissive" = solo el emissive del
+    // material; "material-both" = color y emissive del material a la vez (líneas/bordes que usan
+    // el mismo tono para ambos).
+    function aplicarRolesEstaticos(nombre) {
+      const rol = PALETAS_UI[nombre].roles;
+
+      document.querySelectorAll("[data-rol]").forEach(el => {
+        const valor = rol[el.getAttribute("data-rol")];
+        if (!valor) return;
+        const target = el.getAttribute("data-rol-target") || "color";
+        if (target === "material-emissive") {
+          el.setAttribute("material", "emissive", valor);
+        } else if (target === "material-both") {
+          el.setAttribute("material", "color", valor);
+          el.setAttribute("material", "emissive", valor);
+        } else {
+          el.setAttribute("color", valor);
+        }
+      });
+
+      // Láser de los mandos VR y cilindro de teletransporte
+      ["rightController", "leftController"].forEach(id => {
+        document.getElementById(id)?.setAttribute("line", "color", rol.primario);
+      });
+      document.getElementById("leftController")?.setAttribute("teleport-controls", "hitCylinderColor", rol.primario);
+    }
+
+    function aplicarPaletaUI(nombre, opts = {}) {
+      const ui = PALETAS_UI[nombre];
+      if (!ui) return;
+
+      colores.celda = ui.tabla.celda;
+      colores.celdaTexto = ui.tabla.celdaTexto;
+      colores.cabecera = ui.tabla.cabecera;
+      colores.cabeceraTexto = ui.tabla.cabeceraTexto;
+      colores.fila_alt = ui.tabla.fila_alt;
+
+      ["titulo-bienvenida-1", "titulo-bienvenida-2", "titulo-menu-tablas", "texto-tabla", "qr-titulo"].forEach(id => {
+        document.getElementById(id)?.setAttribute("color", ui.tituloTexto);
+      });
+
+      [
+        { box: "btn-tablas-box", texto: "btn-tablas-text" },
+        { box: "btn-query-box", texto: "btn-query-text" },
+        { box: "btn-guiadas-box", texto: "btn-guiadas-text" }
+      ].forEach((ids, i) => {
+        document.getElementById(ids.box)?.setAttribute("color", ui.botones[i].bg);
+        document.getElementById(ids.texto)?.setAttribute("color", ui.botones[i].texto);
+      });
+
+      aplicarRolesEstaticos(nombre);
+
+      // Si alguna escena ya está en pantalla, refrescarla para que recoja los nuevos colores al
+      // momento. Se salta en la carga inicial (opts.silent): en ese instante A-Frame todavía no ha
+      // aplicado los visible="false" de las escenas (usa el default "true" hasta que la escena
+      // termina de cargar), así que esVisible() daría falsos positivos y dispararía renders antes
+      // de que el resto de variables globales (permisosActuales, etc.) existan.
+      if (!opts.silent) {
+        const esVisible = (id) => {
+          const v = document.getElementById(id)?.getAttribute("visible");
+          return v === true || v === "true";
+        };
+        if (esVisible("escena-tabla") && tablaActual) renderizarTabla();
+        if (esVisible("escena-query-resultado")) renderQRTabla();
+        if (esVisible("escena-query-builder")) renderQBOpciones();
+        if (esVisible("escena-consultas-guiadas")) iniciarConsultasGuiadas();
+      }
+    }
 
     let entornoActual = "cyberpunk";
 
@@ -1180,6 +1333,7 @@
       document.getElementById("stars").setAttribute("visible", cfg.stars);
 
       generarDecoracionEntorno(cfg.decor);
+      aplicarPaletaUI(nombre, opts);
 
       document.querySelectorAll(".entorno-btn").forEach(b => b.classList.remove("activo"));
       document.getElementById(`entorno-btn-${nombre}`)?.classList.add("activo");
@@ -1384,7 +1538,7 @@
         btn.innerHTML = `
           <a-box class="clickable" interactable width="4.2" height="1.2" depth="0.5" color="#222"
                  data-action="cargarTabla" data-param="${nombre}">
-            <a-text value="${nombre.toUpperCase()}" align="center" position="0 0 0.26" width="7" color="#00E5FF"></a-text>
+            <a-text value="${nombre.toUpperCase()}" align="center" position="0 0 0.26" width="7" color="${rolesActuales().primario}"></a-text>
           </a-box>
         `;
         menu.appendChild(btn);
@@ -1436,6 +1590,7 @@
       const hint = limpiarEntidad("query-hint-container");
       const ctrlCont = limpiarEntidad("query-control-buttons");
       const titleEl = document.getElementById("query-step-title");
+      const rol = rolesActuales();
 
       let opciones = [];
       let extraButtons = [];
@@ -1449,8 +1604,8 @@
           label: op,
           action: "qb_op",
           param: op,
-          emissive: ["#00E5FF", "#00FF88", "#FFB700", "#FF4444"][i],
-          textColor: ["#00E5FF", "#00FF88", "#FFB700", "#FF4444"][i]
+          emissive: [rol.primario, rol.terciario, rol.ambar, rol.peligro][i],
+          textColor: [rol.primario, rol.terciario, rol.ambar, rol.peligro][i]
         }));
       }
       else if (queryState.step === 2 && queryState.operation === "SELECT") {
@@ -1466,18 +1621,18 @@
           param: c,
           w: 5.5,
           h: 1.0,
-          emissive: queryState.columns.includes(c) ? "#FFB700" : "#00E5FF",
-          textColor: queryState.columns.includes(c) ? "#FFB700" : "#00E5FF"
+          emissive: queryState.columns.includes(c) ? rol.ambar : rol.primario,
+          textColor: queryState.columns.includes(c) ? rol.ambar : rol.primario
         }));
         if (queryState.columns.length > 0) {
-          extraButtons.push({ label: "PASO 4 →", action: "qb_skip", bg: "#1A1A2E", color: "#00E5FF", w: 5 });
+          extraButtons.push({ label: "PASO 4 →", action: "qb_skip", bg: "#1A1A2E", color: rol.primario, w: 5 });
         }
       }
       else if (queryState.step === 4 && queryState.operation === "SELECT") {
         titleEl.setAttribute("value", "PASO 4 · FILTRO WHERE (opcional)");
         const cols = schemasMock[queryState.table] || [];
         opciones = cols.map(c => ({ label: `WHERE ${c}`, action: "qb_where_col", param: c }));
-        extraButtons.push({ label: "SALTAR WHERE", action: "qb_skip", bg: "#111", color: "#FF00FF", w: 5.8 });
+        extraButtons.push({ label: "SALTAR WHERE", action: "qb_skip", bg: "#111", color: rol.secundario, w: 5.8 });
       }
       else if (queryState.step === 4.5 && queryState.operation === "SELECT") {
         titleEl.setAttribute("value", `PASO 4.5 · VALOR DE ${queryState.whereCol?.toUpperCase() || "WHERE"}`);
@@ -1486,7 +1641,7 @@
           action: "qb_where_val",
           param: String(idx)
         }));
-        extraButtons.push({ label: "CANCELAR WHERE", action: "qb_skip", bg: "#111", color: "#FF00FF", w: 6.0 });
+        extraButtons.push({ label: "CANCELAR WHERE", action: "qb_skip", bg: "#111", color: rol.secundario, w: 6.0 });
       }
       else if (queryState.step === 5 && queryState.operation === "SELECT") {
         titleEl.setAttribute("value", "PASO 5 · ORDER BY (opcional)");
@@ -1496,21 +1651,21 @@
           label: `DIRECCIÓN: ${queryState.orderDir}`,
           action: "qb_toggle_order_dir",
           bg: "#0E1C2B",
-          color: "#00E5FF",
+          color: rol.primario,
           w: 6.0
         });
-        extraButtons.push({ label: "SALTAR ORDER", action: "qb_skip", bg: "#111", color: "#FF00FF", w: 5.6 });
+        extraButtons.push({ label: "SALTAR ORDER", action: "qb_skip", bg: "#111", color: rol.secundario, w: 5.6 });
       }
       else if (queryState.step === 6 && queryState.operation === "SELECT") {
         titleEl.setAttribute("value", "✓ QUERY LISTA");
-        extraButtons.push({ label: "▶ EJECUTAR QUERY", action: "qb_ejecutar", bg: "#001800", color: "#00FF88", w: 6.5 });
+        extraButtons.push({ label: "▶ EJECUTAR QUERY", action: "qb_ejecutar", bg: "#001800", color: rol.terciario, w: 6.5 });
 
         const t = document.createElement("a-text");
         t.setAttribute("value",
           `Tabla: ${queryState.table.toUpperCase()}  Cols: ${queryState.columns.join(", ")}\n` +
           `WHERE: ${queryState.whereCol || "ninguno"}  ORDER: ${queryState.orderCol ? `${queryState.orderCol} ${queryState.orderDir}` : "ninguno"}`
         );
-        t.setAttribute("color", "#FFB700");
+        t.setAttribute("color", rol.ambar);
         t.setAttribute("align", "center");
         t.setAttribute("width", "10");
         t.setAttribute("position", "0 -2 0");
@@ -1523,7 +1678,7 @@
           label: queryState.createTableName ? `TABLA: ${queryState.createTableName}` : "ELEGIR NOMBRE",
           action: "qb_create_set_name"
         }];
-        extraButtons.push({ label: "PASO 3 →", action: "qb_skip", bg: "#1A1A2E", color: "#00E5FF", w: 5 });
+        extraButtons.push({ label: "PASO 3 →", action: "qb_skip", bg: "#1A1A2E", color: rol.primario, w: 5 });
       }
       else if (queryState.step === 3 && queryState.operation === "CREATE_TABLE") {
         titleEl.setAttribute("value", "PASO 3 · COLUMNAS");
@@ -1535,19 +1690,19 @@
           w: 5.5,
           h: 1.0
         }));
-        extraButtons.push({ label: "QUITAR ULTIMA", action: "qb_create_remove_col", bg: "#3A1111", color: "#FF8888", w: 6 });
-        extraButtons.push({ label: "PASO 4 →", action: "qb_skip", bg: "#1A1A2E", color: "#00E5FF", w: 5 });
+        extraButtons.push({ label: "QUITAR ULTIMA", action: "qb_create_remove_col", bg: "#3A1111", color: rol.peligro, w: 6 });
+        extraButtons.push({ label: "PASO 4 →", action: "qb_skip", bg: "#1A1A2E", color: rol.primario, w: 5 });
       }
       else if (queryState.step === 4 && queryState.operation === "CREATE_TABLE") {
         titleEl.setAttribute("value", "✓ LISTO PARA CREAR");
-        extraButtons.push({ label: "▶ EJECUTAR CREATE", action: "qb_create_exec", bg: "#001800", color: "#00FF88", w: 7 });
+        extraButtons.push({ label: "▶ EJECUTAR CREATE", action: "qb_create_exec", bg: "#001800", color: rol.terciario, w: 7 });
 
         const t = document.createElement("a-text");
         t.setAttribute("value",
           `Tabla: ${queryState.createTableName || "?"}\n` +
           `Columnas: ${queryState.createColumns.map(c => `${c.name} ${c.type}`).join(", ") || "ninguna"}`
         );
-        t.setAttribute("color", "#FFB700");
+        t.setAttribute("color", rol.ambar);
         t.setAttribute("align", "center");
         t.setAttribute("width", "12");
         t.setAttribute("position", "0 -2 0");
@@ -1561,7 +1716,7 @@
           label: btn.label, action: btn.action,
           bg: btn.bg, color: btn.color, w: btn.w || 6
         })),
-        { label: "← CANCELAR", action: "volver", bg: "#FF6B00", color: "#FFF", w: 5.0 }
+        { label: "← CANCELAR", action: "volver", bg: rol.volver, color: "#FFF", w: 5.0 }
       ];
 
       const gapControl = 1.2;
@@ -1763,7 +1918,7 @@
       if (!datosActuales.length || !columnas.length) {
         const msg = document.createElement("a-text");
         msg.setAttribute("value", "SIN DATOS");
-        msg.setAttribute("color", "#FF4444");
+        msg.setAttribute("color", rolesActuales().peligro);
         msg.setAttribute("align", "center");
         msg.setAttribute("width", "6");
         grafCont.appendChild(msg);
@@ -1862,6 +2017,7 @@
     function _vrkbRenderKeys() {
       const cont = document.getElementById("vrkb-keys");
       cont.innerHTML = "";
+      const rol = rolesActuales();
 
       const rows = _vrkbMode === "num" ? _vrkbNumRows
                   : _vrkbMode === "upper" ? _vrkbShiftRows
@@ -1881,14 +2037,16 @@
           ent.setAttribute("position", `${x} ${y} 0`);
 
           const bg = "#0A1828";
-          const emissive = "#00E5FF";
+          const emissive = rol.primario;
+          // El texto va en negro (no del color del rol): con tonos menos neón que el cian/magenta
+          // original, letra y brillo del mismo color se fundían y se volvían ilegibles.
           ent.innerHTML = `
             <a-box class="clickable" interactable
                    width="${keyW}" height="${keyH}" depth="0.22"
-                   material="color: ${bg}; emissive: ${emissive}; emissiveIntensity: 0.18; opacity: 0.98"
+                   material="color: ${bg}; emissive: ${emissive}; emissiveIntensity: 0.32; opacity: 0.98"
                    data-action="vrkb_key" data-param="${char}">
               <a-text value="${char}" align="center" position="0 0 0.13"
-                      width="${keyW * 2.2}" color="#00E5FF"></a-text>
+                      width="${keyW * 2.9}" color="#0A0A0A"></a-text>
             </a-box>
           `;
           cont.appendChild(ent);
@@ -1898,10 +2056,10 @@
       // Fila especial: SHIFT/MAYUS | ESPACIO | BORRAR | NÚMEROS
       const bottomY = -(rowsTotal * (keyH + gapY)) - 0.15;
       const specialKeys = [
-        { label: _vrkbMode === "num" ? "ABC" : (_vrkbMode === "upper" ? "minús" : "MAYÚS"), param: "vrkb_toggle_case", w: 2.2, color: "#FF00FF" },
-        { label: "ESPACIO", param: "vrkb_space", w: 4.2, color: "#00FF88" },
-        { label: "⌫", param: "vrkb_back", w: 1.6, color: "#FFB700" },
-        { label: _vrkbMode === "num" ? "ABC" : "123", param: "vrkb_toggle_num", w: 2.0, color: "#9D4EDD" }
+        { label: _vrkbMode === "num" ? "ABC" : (_vrkbMode === "upper" ? "minús" : "MAYÚS"), param: "vrkb_toggle_case", w: 2.2, color: rol.secundario },
+        { label: "ESPACIO", param: "vrkb_space", w: 4.2, color: rol.terciario },
+        { label: "⌫", param: "vrkb_back", w: 1.6, color: rol.ambar },
+        { label: _vrkbMode === "num" ? "ABC" : "123", param: "vrkb_toggle_num", w: 2.0, color: rol.violeta }
       ];
       const totalSpecialW = specialKeys.reduce((a, k) => a + k.w, 0) + (specialKeys.length - 1) * 0.15;
       let sx = -totalSpecialW / 2;
@@ -1911,10 +2069,10 @@
         ent.innerHTML = `
           <a-box class="clickable" interactable
                  width="${k.w}" height="${keyH}" depth="0.22"
-                 material="color: #0D0020; emissive: ${k.color}; emissiveIntensity: 0.28; opacity: 0.98"
+                 material="color: #0D0020; emissive: ${k.color}; emissiveIntensity: 0.4; opacity: 0.98"
                  data-action="${k.param}">
             <a-text value="${k.label}" align="center" position="0 0 0.13"
-                    width="${k.w * 2.0}" color="${k.color}"></a-text>
+                    width="${k.w * 2.2}" color="#0A0A0A"></a-text>
           </a-box>
         `;
         cont.appendChild(ent);
@@ -1926,16 +2084,16 @@
       actCont.innerHTML = `
         <a-entity position="-2.2 0 0">
           <a-box class="clickable" interactable width="4.0" height="0.78" depth="0.22"
-                 material="color: #001800; emissive: #00FF88; emissiveIntensity: 0.45; opacity: 0.98"
+                 material="color: #001800; emissive: ${rol.terciario}; emissiveIntensity: 0.55; opacity: 0.98"
                  data-action="vrkb_confirm">
-            <a-text value="✓ CONFIRMAR" align="center" position="0 0 0.13" width="7.5" color="#00FF88"></a-text>
+            <a-text value="✓ CONFIRMAR" align="center" position="0 0 0.13" width="7.5" color="#0A0A0A"></a-text>
           </a-box>
         </a-entity>
         <a-entity position="2.6 0 0">
           <a-box class="clickable" interactable width="4.0" height="0.78" depth="0.22"
-                 material="color: #1A0000; emissive: #FF4444; emissiveIntensity: 0.40; opacity: 0.98"
+                 material="color: #1A0000; emissive: ${rol.peligro}; emissiveIntensity: 0.5; opacity: 0.98"
                  data-action="vrkb_cancel">
-            <a-text value="✗ CANCELAR" align="center" position="0 0 0.13" width="7.5" color="#FF4444"></a-text>
+            <a-text value="✗ CANCELAR" align="center" position="0 0 0.13" width="7.5" color="#0A0A0A"></a-text>
           </a-box>
         </a-entity>
       `;
@@ -2001,11 +2159,16 @@
       const gapX = 5.8;
       const gapY = 3.2;
 
+      const rol = rolesActuales();
+
       CONSULTAS_GUIADAS.forEach((q, i) => {
         const row = Math.floor(i / cols);
         const col = i % cols;
         const x = (col - (cols - 1) / 2) * gapX;
         const y = -row * gapY;
+
+        const color = rol[q.rol] || rol.primario;
+        const bg = oscurecerHex(color, 0.10);
 
         const card = document.createElement("a-entity");
         card.setAttribute("position", `${x} ${y} 0`);
@@ -2014,22 +2177,22 @@
         card.innerHTML = `
           <a-box class="clickable" interactable
                  width="5.2" height="2.6" depth="0.28"
-                 material="color: ${q.bg}; emissive: ${q.color}; emissiveIntensity: 0.10; opacity: 0.96"
+                 material="color: ${bg}; emissive: ${color}; emissiveIntensity: 0.10; opacity: 0.96"
                  data-action="ejecutarConsultaGuiada"
                  data-param="${q.id}">
           </a-box>
 
           <a-box width="5.2" height="0.06" depth="0.30" position="0 1.27 0"
-                 material="color: ${q.color}; emissive: ${q.color}; emissiveIntensity: 1; opacity: 0.85"></a-box>
+                 material="color: ${color}; emissive: ${color}; emissiveIntensity: 1; opacity: 0.85"></a-box>
 
           <a-text value="${q.emoji}" align="center" position="0 0.62 0.16"
-                  width="3.4" color="${q.color}"></a-text>
+                  width="3.4" color="${color}"></a-text>
 
           <a-text value="${q.label}" align="center" position="0 -0.12 0.16"
                   width="6.8" color="#FFFFFF" wrap-count="22"></a-text>
 
           <a-box width="3.2" height="0.03" depth="0.29" position="0 -1.06 0"
-                 material="color: ${q.color}; emissive: ${q.color}; emissiveIntensity: 0.5; opacity: 0.35"></a-box>
+                 material="color: ${color}; emissive: ${color}; emissiveIntensity: 0.5; opacity: 0.35"></a-box>
         `;
 
         cont.appendChild(card);
@@ -2257,7 +2420,7 @@
         const msg = document.createElement("a-text");
         msg.setAttribute("value", "0 RESULTADOS");
         msg.setAttribute("position", `0 -1.5 0.25`);
-        msg.setAttribute("color", "#FF4444");
+        msg.setAttribute("color", rolesActuales().peligro);
         msg.setAttribute("width", "10");
         msg.setAttribute("align", "center");
         cuerpo.appendChild(msg);
@@ -2319,17 +2482,22 @@
       const espX = 2.6;
       const totalW = (columnas.length - 1) * espX;
 
+      // Reutiliza el mismo objeto `colores` que la vista 2D (ver aplicarPaletaUI) para que la
+      // vista 3D de la tabla cambie de paleta con el entorno igual que la 2D — antes tenía sus
+      // propios colores fijos en cian/verde y no seguía el tema seleccionado.
+      const rol = rolesActuales();
+
       columnas.forEach((col, i) => {
         const x = i * espX - totalW / 2;
         const h = document.createElement("a-entity");
         h.setAttribute("position", `${x} 0 0`);
         h.innerHTML = `
           <a-box width="2.3" height="0.72" depth="0.52"
-                 material="color:#091428; emissive:#00E5FF; emissiveIntensity:0.26; opacity:0.96"></a-box>
+                 material="color:${colores.cabecera}; emissive:${colores.cabeceraTexto}; emissiveIntensity:0.26; opacity:0.96"></a-box>
           <a-box width="2.33" height="0.05" depth="0.55" position="0 0.36 0"
-                 material="color:#00E5FF; emissive:#00E5FF; emissiveIntensity:0.8; opacity:0.7"></a-box>
+                 material="color:${colores.cabeceraTexto}; emissive:${colores.cabeceraTexto}; emissiveIntensity:0.8; opacity:0.7"></a-box>
           <a-text value="${col.toUpperCase()}" align="center" position="0 0 0.30"
-                  width="5.2" color="#00FF88"></a-text>
+                  width="5.2" color="${colores.cabeceraTexto}"></a-text>
         `;
         cabecera.appendChild(h);
       });
@@ -2338,7 +2506,7 @@
         const msg = document.createElement("a-text");
         msg.setAttribute("value", "0 RESULTADOS");
         msg.setAttribute("position", "0 -1.3 0.35");
-        msg.setAttribute("color", "#FF4444");
+        msg.setAttribute("color", rol.peligro);
         msg.setAttribute("width", "8");
         msg.setAttribute("align", "center");
         cuerpo.appendChild(msg);
@@ -2360,17 +2528,17 @@
           let val = String(fila[col] ?? "-");
           if (val.length > 14) val = val.slice(0, 12) + "...";
 
-          const colorBase = rowI % 2 === 0 ? "#121a2e" : "#1a2542";
+          const colorBase = rowI % 2 === 0 ? colores.celda : colores.fila_alt;
 
           const cell = document.createElement("a-entity");
           cell.setAttribute("position", `${x} 0 0`);
           cell.innerHTML = `
             <a-box width="2.3" height="0.8" depth="0.48"
-                   material="color:${colorBase}; emissive:#00E5FF; emissiveIntensity:0.08; opacity:0.94"></a-box>
+                   material="color:${colorBase}; emissive:${colores.celdaTexto}; emissiveIntensity:0.08; opacity:0.94"></a-box>
             <a-box width="2.3" height="0.03" depth="0.50" position="0 -0.4 0"
-                   material="color:#00E5FF; emissive:#00E5FF; emissiveIntensity:0.5; opacity:0.18"></a-box>
+                   material="color:${colores.celdaTexto}; emissive:${colores.celdaTexto}; emissiveIntensity:0.5; opacity:0.18"></a-box>
             <a-text value="${val}" align="center" position="0 0 0.27"
-                    width="4.6" color="#CFFBFF"></a-text>
+                    width="4.6" color="${colores.celdaTexto}"></a-text>
           `;
           row.appendChild(cell);
         });
@@ -2400,6 +2568,7 @@
       const cont = document.getElementById(containerId);
       if (!cont) return;
       cont.innerHTML = "";
+      const rol = rolesActuales();
 
       const claves = Object.keys(datos);
       const valores = Object.values(datos).map(v => Number(v) || 0);
@@ -2444,11 +2613,11 @@
 
           <a-text value="${String(clave).length > 10 ? String(clave).slice(0, 9) + '…' : clave}"
                   position="0 ${-altBarra / 2 - 0.62} 0"
-                  color="#00E5FF" align="center" width="4.2"></a-text>
+                  color="${rol.primario}" align="center" width="4.2"></a-text>
 
           <a-text value="${tipo === 'num' ? Number(val).toFixed(2) : val}"
                   position="0 ${altBarra / 2 + 0.52} 0"
-                  color="#FFB700" align="center" width="4.2"></a-text>
+                  color="${rol.ambar}" align="center" width="4.2"></a-text>
         `;
 
         cont.appendChild(ent);
@@ -2458,14 +2627,14 @@
       base.setAttribute("radius", radius + 0.8);
       base.setAttribute("height", "0.04");
       base.setAttribute("position", "0 -2 0");
-      base.setAttribute("material", "color: #00E5FF; opacity: 0.05; wireframe: true");
+      base.setAttribute("material", `color: ${rol.primario}; opacity: 0.05; wireframe: true`);
       cont.appendChild(base);
 
       const ring = document.createElement("a-torus");
       ring.setAttribute("radius", radius + 0.8);
       ring.setAttribute("radius-tubular", "0.03");
       ring.setAttribute("position", "0 -2 0");
-      ring.setAttribute("material", `color: #00E5FF; emissive: #00E5FF; emissiveIntensity: 0.5; opacity: 0.3`);
+      ring.setAttribute("material", `color: ${rol.primario}; emissive: ${rol.primario}; emissiveIntensity: 0.5; opacity: 0.3`);
       cont.appendChild(ring);
     }
 
@@ -2473,6 +2642,7 @@
       const cont = document.getElementById(containerId);
       if (!cont) return;
       cont.innerHTML = "";
+      const rol = rolesActuales();
 
       const claves = Object.keys(datos);
       const valores = Object.values(datos).map(v => Number(v) || 0);
@@ -2496,7 +2666,7 @@
       ejeX.setAttribute("height", "0.03");
       ejeX.setAttribute("depth", "0.03");
       ejeX.setAttribute("position", "0 -2 0");
-      ejeX.setAttribute("color", "#00E5FF");
+      ejeX.setAttribute("color", rol.primario);
       cont.appendChild(ejeX);
 
       const ejeY = document.createElement("a-box");
@@ -2504,7 +2674,7 @@
       ejeY.setAttribute("height", String(chartHeight + 0.2));
       ejeY.setAttribute("depth", "0.03");
       ejeY.setAttribute("position", `${-(chartWidth/2)} ${-2 + chartHeight/2} 0`);
-      ejeY.setAttribute("color", "#00E5FF");
+      ejeY.setAttribute("color", rol.primario);
       cont.appendChild(ejeY);
 
       claves.forEach((k, i) => {
@@ -2530,7 +2700,7 @@
         label.setAttribute("position", `${x} -2.35 0.03`);
         label.setAttribute("align", "center");
         label.setAttribute("width", "3.2");
-        label.setAttribute("color", "#00E5FF");
+        label.setAttribute("color", rol.primario);
         cont.appendChild(label);
 
         const valLabel = document.createElement("a-text");
@@ -2538,7 +2708,7 @@
         valLabel.setAttribute("position", `${x} ${y + h/2 + 0.28} 0.03`);
         valLabel.setAttribute("align", "center");
         valLabel.setAttribute("width", "3.2");
-        valLabel.setAttribute("color", "#FFB700");
+        valLabel.setAttribute("color", rol.ambar);
         cont.appendChild(valLabel);
       });
     }
