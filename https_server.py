@@ -4,10 +4,12 @@ import ssl
 import os
 import psycopg2
 import psycopg2.extras
+from psycopg2 import sql as pgsql
 import bcrypt
 import jwt
 import requests
 from functools import wraps
+from collections import Counter
 from datetime import datetime, timedelta
 
 import socket
@@ -423,6 +425,167 @@ def _get_public_tables(cur):
         ORDER BY table_name
     ''')
     return [row[0] for row in cur.fetchall() if row[0] not in EXCLUDED_TABLES]
+
+def _get_table_columns(cur, table_name):
+    """Columnas reales de una tabla (para validar identificadores antes de meterlos en SQL dinámico)"""
+    cur.execute('''
+        SELECT column_name FROM information_schema.columns
+        WHERE table_schema = 'public' AND table_name = %s
+        ORDER BY ordinal_position
+    ''', (table_name,))
+    return [row[0] for row in cur.fetchall()]
+
+def _get_foreign_keys(cur):
+    """Relaciones FK entre tablas públicas (tabla_origen.columna -> tabla_destino.columna),
+    usadas para sugerir automáticamente la condición de un JOIN."""
+    cur.execute('''
+        SELECT tc.table_name, kcu.column_name, ccu.table_name AS foreign_table_name,
+               ccu.column_name AS foreign_column_name
+        FROM information_schema.table_constraints tc
+        JOIN information_schema.key_column_usage kcu
+            ON tc.constraint_name = kcu.constraint_name AND tc.table_schema = kcu.table_schema
+        JOIN information_schema.constraint_column_usage ccu
+            ON ccu.constraint_name = tc.constraint_name AND ccu.table_schema = tc.table_schema
+        WHERE tc.constraint_type = 'FOREIGN KEY' AND tc.table_schema = 'public'
+        ORDER BY tc.table_name
+    ''')
+    return [
+        {'table': t, 'column': c, 'foreign_table': ft, 'foreign_column': fc}
+        for t, c, ft, fc in cur.fetchall()
+        if t not in EXCLUDED_TABLES and ft not in EXCLUDED_TABLES
+    ]
+
+@app.route('/api/schema/relations', methods=['GET'])
+@require_auth
+def schema_relations():
+    """FKs entre tablas públicas, para que el constructor de consultas sugiera la
+    columna de unión al elegir una segunda tabla para un JOIN."""
+    conn = get_db_connection()
+    if not conn:
+        return jsonify({'error': 'Error de conexión a BD'}), 500
+    try:
+        cur = conn.cursor()
+        return jsonify({'relations': _get_foreign_keys(cur)}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+    finally:
+        cur.close()
+        conn.close()
+
+@app.route('/api/query/join', methods=['POST'])
+@require_auth
+def query_join():
+    """Ejecuta un SELECT ... JOIN construido por el usuario en el constructor de consultas.
+    Todo identificador (tabla/columna) se valida contra el catálogo real antes de entrar
+    en el SQL; los valores de WHERE van siempre parametrizados. La consulta se ejecuta
+    con SET ROLE al rol de Postgres del usuario para que se respeten sus permisos de
+    lectura por tabla, igual que hace PostgREST vía JWT — así este endpoint no puede
+    usarse para leer una tabla a la que el usuario no tiene acceso."""
+    data = request.get_json() or {}
+    table_a = data.get('tableA')
+    table_b = data.get('tableB')
+    join_type = (data.get('joinType') or 'INNER').upper()
+    on_a = data.get('onA')
+    on_b = data.get('onB')
+    columns = data.get('columns') or []
+    where = data.get('where')
+    order_by = data.get('orderBy')
+
+    if join_type not in {'INNER', 'LEFT', 'RIGHT'}:
+        return jsonify({'error': 'Tipo de JOIN no válido'}), 400
+    if not table_a or not table_b or table_a == table_b:
+        return jsonify({'error': 'Se necesitan dos tablas distintas'}), 400
+    for name in [table_a, table_b, on_a, on_b]:
+        if not _valid_identifier(name):
+            return jsonify({'error': f'Identificador no válido: {name}'}), 400
+
+    conn = get_db_connection()
+    if not conn:
+        return jsonify({'error': 'Error de conexión a BD'}), 500
+
+    try:
+        cur = conn.cursor()
+
+        public_tables = _get_public_tables(cur)
+        if table_a not in public_tables or table_b not in public_tables:
+            return jsonify({'error': 'Tabla no válida'}), 400
+
+        cols_a = set(_get_table_columns(cur, table_a))
+        cols_b = set(_get_table_columns(cur, table_b))
+        table_cols = {table_a: cols_a, table_b: cols_b}
+
+        if on_a not in cols_a or on_b not in cols_b:
+            return jsonify({'error': 'Columna de unión no válida'}), 400
+
+        def resolve_col(entry, label):
+            t, c = entry.get('table'), entry.get('col')
+            if t not in (table_a, table_b) or not _valid_identifier(c) or c not in table_cols.get(t, ()):
+                raise ValueError(f'{label} no válido: {t}.{c}')
+            return t, c
+
+        if not columns:
+            select_cols = [(table_a, c) for c in cols_a] + [(table_b, c) for c in cols_b]
+        else:
+            select_cols = [resolve_col(c, 'columna') for c in columns]
+
+        # Alias corto (solo el nombre de columna) salvo que dos tablas compartan el mismo
+        # nombre de columna, en cuyo caso se antepone la tabla para desambiguar. Mantiene
+        # las cabeceras de la tabla de resultados legibles en el caso común (sin colisión).
+        name_counts = Counter(c for _, c in select_cols)
+        select_parts = [
+            pgsql.SQL('{}.{} AS {}').format(
+                pgsql.Identifier(t), pgsql.Identifier(c),
+                pgsql.Identifier(c if name_counts[c] == 1 else f'{t}.{c}')
+            ) for t, c in select_cols
+        ]
+
+        query = pgsql.SQL('SELECT {select} FROM {ta} {jt} JOIN {tb} ON {ta}.{oa} = {tb}.{ob}').format(
+            select=pgsql.SQL(', ').join(select_parts),
+            ta=pgsql.Identifier(table_a),
+            jt=pgsql.SQL(join_type),
+            tb=pgsql.Identifier(table_b),
+            oa=pgsql.Identifier(on_a),
+            ob=pgsql.Identifier(on_b),
+        )
+        params = []
+
+        if where and where.get('col'):
+            wt, wc = resolve_col(where, 'WHERE')
+            query += pgsql.SQL(' WHERE {}.{} = %s').format(pgsql.Identifier(wt), pgsql.Identifier(wc))
+            params.append(where.get('val'))
+
+        if order_by and order_by.get('col'):
+            ot, oc = resolve_col(order_by, 'ORDER BY')
+            direction = 'DESC' if (order_by.get('dir') or '').upper() == 'DESC' else 'ASC'
+            query += pgsql.SQL(' ORDER BY {}.{} {}').format(
+                pgsql.Identifier(ot), pgsql.Identifier(oc), pgsql.SQL(direction)
+            )
+
+        query += pgsql.SQL(' LIMIT 500')
+
+        cur.execute(pgsql.SQL('SET ROLE {}').format(pgsql.Identifier(pg_role_for_user(session['user_id']))))
+        cur2 = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        cur2.execute(query, params)
+        rows = cur2.fetchall()
+        cur2.close()
+
+        return jsonify({
+            'success': True,
+            'sql': query.as_string(conn),
+            'data': [dict(r) for r in rows]
+        }), 200
+    except ValueError as e:
+        conn.rollback()
+        return jsonify({'error': str(e)}), 400
+    except psycopg2.errors.InsufficientPrivilege:
+        conn.rollback()
+        return jsonify({'error': 'No tienes permiso de lectura sobre una de las tablas'}), 403
+    except Exception as e:
+        conn.rollback()
+        return jsonify({'error': str(e)}), 500
+    finally:
+        cur.close()
+        conn.close()
 
 @app.route('/api/admin/tables', methods=['GET'])
 @require_auth

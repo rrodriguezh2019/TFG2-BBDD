@@ -831,7 +831,8 @@
       whereCol: "", whereVal: "", whereOptions: [],
       orderCol: "", orderDir: "ASC",
       createTableName: "",
-      createColumns: []
+      createColumns: [],
+      join: null, joinColumns: []
     };
 
     let datosActuales = [];
@@ -1459,6 +1460,18 @@
       if (action === "qb_toggle_order_dir") return qb_toggleOrderDir();
       if (action === "qb_ejecutar") return qb_ejecutar();
 
+      if (action === "qb_join_tabla") return qb_selJoinTabla(param);
+      if (action === "qb_join_col_a") return qb_joinColA(param);
+      if (action === "qb_join_col_b") return qb_joinColB(param);
+      if (action === "qb_join_toggle_type") return qb_joinToggleType();
+      if (action === "qb_join_manual") return qb_joinManual();
+      if (action === "qb_join_col") return qb_joinSelCol(param);
+      if (action === "qb_join_cols_all") return qb_joinColsAll();
+      if (action === "qb_join_cols_next") return qb_joinColsNext();
+      if (action === "qb_join_cols_done") return qb_joinColsDone();
+      if (action === "qb_join_where_col") return qb_joinSelWhereCol(param);
+      if (action === "qb_join_order_col") return qb_joinSelOrderCol(param);
+
       if (action === "qb_create_set_name") return qb_create_set_name();
       if (action === "qb_create_add_col") return qb_create_add_col(param);
       if (action === "qb_create_remove_col") return qb_create_remove_col();
@@ -1554,7 +1567,8 @@
         whereCol: "", whereVal: "", whereOptions: [],
         orderCol: "", orderDir: "ASC",
         createTableName: "",
-        createColumns: []
+        createColumns: [],
+        join: null, joinColumns: []
       };
       limpiarEntidad("query-hint-container");
       actualizarDisplaySQL();
@@ -1565,7 +1579,19 @@
       let sql = "";
       const s = queryState;
 
-      if (s.operation === "SELECT") {
+      if (s.operation === "SELECT" && s.join) {
+        const j = s.join;
+        const cols = s.joinColumns.length
+          ? s.joinColumns.map(c => `${c.table}.${c.col}`).join(", ")
+          : "*";
+        sql = `SELECT ${cols}\nFROM ${s.table}\n${j.type} JOIN ${j.table} ON ${s.table}.${j.onA || "..."} = ${j.table}.${j.onB || "..."}`;
+        if (s.whereCol && s.whereCol.col) {
+          const val = s.whereVal !== "" ? s.whereVal : "...";
+          sql += `\nWHERE ${s.whereCol.table}.${s.whereCol.col} = '${val}'`;
+        }
+        if (s.orderCol && s.orderCol.col) sql += `\nORDER BY ${s.orderCol.table}.${s.orderCol.col} ${s.orderDir}`;
+        sql += ";";
+      } else if (s.operation === "SELECT") {
         const cols = s.columns.length ? s.columns.join(", ") : "*";
         sql = `SELECT ${cols}`;
         if (s.table) sql += `\nFROM ${s.table}`;
@@ -1612,6 +1638,72 @@
         titleEl.setAttribute("value", "PASO 2 · TABLA PRINCIPAL");
         opciones = tablas.map(t => ({ label: t.toUpperCase(), action: "qb_tabla", param: t }));
       }
+      else if (queryState.step === 2.5 && queryState.operation === "SELECT") {
+        titleEl.setAttribute("value", "PASO 2.5 · ¿SEGUNDA TABLA? (JOIN opcional)");
+        opciones = tablas.filter(t => t !== queryState.table).map(t => ({
+          label: t.toUpperCase(), action: "qb_join_tabla", param: t, w: 6
+        }));
+        extraButtons.push({ label: "SIN JOIN, CONTINUAR", action: "qb_skip", bg: "#111", color: rol.secundario, w: 7.5 });
+      }
+      else if (queryState.step === 2.6 && queryState.operation === "SELECT") {
+        titleEl.setAttribute("value", `PASO 2.6 · COLUMNA DE UNIÓN EN ${queryState.table.toUpperCase()}`);
+        const colsA = schemasMock[queryState.table] || [];
+        opciones = colsA.map(c => ({
+          label: c.toUpperCase(), action: "qb_join_col_a", param: c, w: 5.5,
+          emissive: queryState.join.onA === c ? rol.ambar : rol.primario
+        }));
+      }
+      else if (queryState.step === 2.7 && queryState.operation === "SELECT") {
+        titleEl.setAttribute("value", `PASO 2.7 · COLUMNA DE UNIÓN EN ${queryState.join.table.toUpperCase()}`);
+        const colsB = schemasMock[queryState.join.table] || [];
+        opciones = colsB.map(c => ({
+          label: c.toUpperCase(), action: "qb_join_col_b", param: c, w: 5.5,
+          emissive: queryState.join.onB === c ? rol.ambar : rol.primario
+        }));
+      }
+      else if (queryState.step === 2.8 && queryState.operation === "SELECT") {
+        titleEl.setAttribute("value", "PASO 2.8 · CONFIRMAR JOIN");
+        opciones.push({ label: "CAMBIAR COLUMNAS", action: "qb_join_manual", w: 7, h: 1.1, emissive: rol.secundario, textColor: rol.secundario });
+        extraButtons.push({ label: `TIPO: ${queryState.join.type}`, action: "qb_join_toggle_type", bg: "#0E1C2B", color: rol.primario, w: 6 });
+        extraButtons.push({ label: "CONTINUAR →", action: "qb_skip", bg: "#1A1A2E", color: rol.terciario, w: 5.5 });
+
+        const t = document.createElement("a-text");
+        t.setAttribute("value",
+          `${queryState.table.toUpperCase()}.${queryState.join.onA} = ${queryState.join.table.toUpperCase()}.${queryState.join.onB}` +
+          (queryState.join.auto ? "\n(sugerido automáticamente por clave foránea)" : "")
+        );
+        t.setAttribute("color", rol.ambar);
+        t.setAttribute("align", "center");
+        t.setAttribute("width", "12");
+        t.setAttribute("position", "0 -1 0");
+        hint.appendChild(t);
+      }
+      else if (queryState.step === 3 && queryState.operation === "SELECT" && queryState.join) {
+        titleEl.setAttribute("value", `PASO 3 · COLUMNAS DE ${queryState.table.toUpperCase()}`);
+        const colsA = schemasMock[queryState.table] || [];
+        opciones = colsA.map(col => {
+          const selected = queryState.joinColumns.some(c => c.table === queryState.table && c.col === col);
+          return {
+            label: col.toUpperCase(), action: "qb_join_col", param: `${queryState.table}::${col}`,
+            w: 5.5, h: 1.0, emissive: selected ? rol.ambar : rol.primario, textColor: selected ? rol.ambar : rol.primario
+          };
+        });
+        extraButtons.push({ label: "TODAS LAS COLUMNAS", action: "qb_join_cols_all", bg: "#111", color: rol.secundario, w: 6.5 });
+        extraButtons.push({ label: `TABLA ${queryState.join.table.toUpperCase()} →`, action: "qb_join_cols_next", bg: "#1A1A2E", color: rol.primario, w: 6.5 });
+      }
+      else if (queryState.step === 3.5 && queryState.operation === "SELECT" && queryState.join) {
+        titleEl.setAttribute("value", `PASO 3.5 · COLUMNAS DE ${queryState.join.table.toUpperCase()}`);
+        const colsB = schemasMock[queryState.join.table] || [];
+        opciones = colsB.map(col => {
+          const selected = queryState.joinColumns.some(c => c.table === queryState.join.table && c.col === col);
+          return {
+            label: col.toUpperCase(), action: "qb_join_col", param: `${queryState.join.table}::${col}`,
+            w: 5.5, h: 1.0, emissive: selected ? rol.ambar : rol.primario, textColor: selected ? rol.ambar : rol.primario
+          };
+        });
+        extraButtons.push({ label: "TODAS LAS COLUMNAS", action: "qb_join_cols_all", bg: "#111", color: rol.secundario, w: 6.5 });
+        extraButtons.push({ label: "PASO 4 →", action: "qb_join_cols_done", bg: "#1A1A2E", color: rol.primario, w: 5 });
+      }
       else if (queryState.step === 3 && queryState.operation === "SELECT") {
         titleEl.setAttribute("value", "PASO 3 · COLUMNAS (selección múltiple)");
         const cols = ["*", ...(schemasMock[queryState.table] || ["id", "nombre"])];
@@ -1628,11 +1720,29 @@
           extraButtons.push({ label: "PASO 4 →", action: "qb_skip", bg: "#1A1A2E", color: rol.primario, w: 5 });
         }
       }
+      else if (queryState.step === 4 && queryState.operation === "SELECT" && queryState.join) {
+        titleEl.setAttribute("value", "PASO 4 · FILTRO WHERE (opcional)");
+        const colsA = (schemasMock[queryState.table] || []).map(c => ({ table: queryState.table, col: c }));
+        const colsB = (schemasMock[queryState.join.table] || []).map(c => ({ table: queryState.join.table, col: c }));
+        opciones = [...colsA, ...colsB].map(({ table, col }) => ({
+          label: `WHERE ${table}.${col}`, action: "qb_join_where_col", param: `${table}::${col}`, w: 5.5
+        }));
+        extraButtons.push({ label: "SALTAR WHERE", action: "qb_skip", bg: "#111", color: rol.secundario, w: 5.8 });
+      }
       else if (queryState.step === 4 && queryState.operation === "SELECT") {
         titleEl.setAttribute("value", "PASO 4 · FILTRO WHERE (opcional)");
         const cols = schemasMock[queryState.table] || [];
         opciones = cols.map(c => ({ label: `WHERE ${c}`, action: "qb_where_col", param: c }));
         extraButtons.push({ label: "SALTAR WHERE", action: "qb_skip", bg: "#111", color: rol.secundario, w: 5.8 });
+      }
+      else if (queryState.step === 4.5 && queryState.operation === "SELECT" && queryState.join) {
+        titleEl.setAttribute("value", `PASO 4.5 · VALOR DE ${queryState.whereCol.table.toUpperCase()}.${queryState.whereCol.col.toUpperCase()}`);
+        opciones = queryState.whereOptions.map((v, idx) => ({
+          label: `= '${String(v).length > 14 ? String(v).slice(0, 11) + "..." : String(v)}'`,
+          action: "qb_where_val",
+          param: String(idx)
+        }));
+        extraButtons.push({ label: "CANCELAR WHERE", action: "qb_skip", bg: "#111", color: rol.secundario, w: 6.0 });
       }
       else if (queryState.step === 4.5 && queryState.operation === "SELECT") {
         titleEl.setAttribute("value", `PASO 4.5 · VALOR DE ${queryState.whereCol?.toUpperCase() || "WHERE"}`);
@@ -1642,6 +1752,23 @@
           param: String(idx)
         }));
         extraButtons.push({ label: "CANCELAR WHERE", action: "qb_skip", bg: "#111", color: rol.secundario, w: 6.0 });
+      }
+      else if (queryState.step === 5 && queryState.operation === "SELECT" && queryState.join) {
+        titleEl.setAttribute("value", "PASO 5 · ORDER BY (opcional)");
+        const colsA = (schemasMock[queryState.table] || []).map(c => ({ table: queryState.table, col: c }));
+        const colsB = (schemasMock[queryState.join.table] || []).map(c => ({ table: queryState.join.table, col: c }));
+        const cols = queryState.joinColumns.length ? queryState.joinColumns : [...colsA, ...colsB];
+        opciones = cols.map(({ table, col }) => ({
+          label: `ORDER ${table}.${col}`, action: "qb_join_order_col", param: `${table}::${col}`, w: 5.5
+        }));
+        extraButtons.push({
+          label: `DIRECCIÓN: ${queryState.orderDir}`,
+          action: "qb_toggle_order_dir",
+          bg: "#0E1C2B",
+          color: rol.primario,
+          w: 6.0
+        });
+        extraButtons.push({ label: "SALTAR ORDER", action: "qb_skip", bg: "#111", color: rol.secundario, w: 5.6 });
       }
       else if (queryState.step === 5 && queryState.operation === "SELECT") {
         titleEl.setAttribute("value", "PASO 5 · ORDER BY (opcional)");
@@ -1655,6 +1782,24 @@
           w: 6.0
         });
         extraButtons.push({ label: "SALTAR ORDER", action: "qb_skip", bg: "#111", color: rol.secundario, w: 5.6 });
+      }
+      else if (queryState.step === 6 && queryState.operation === "SELECT" && queryState.join) {
+        titleEl.setAttribute("value", "✓ QUERY LISTA");
+        extraButtons.push({ label: "▶ EJECUTAR QUERY", action: "qb_ejecutar", bg: "#001800", color: rol.terciario, w: 6.5 });
+
+        const t = document.createElement("a-text");
+        t.setAttribute("value",
+          `${queryState.table.toUpperCase()} ${queryState.join.type} JOIN ${queryState.join.table.toUpperCase()} ` +
+          `ON ${queryState.table}.${queryState.join.onA} = ${queryState.join.table}.${queryState.join.onB}\n` +
+          `Cols: ${queryState.joinColumns.length ? queryState.joinColumns.map(c => `${c.table}.${c.col}`).join(", ") : "todas"}\n` +
+          `WHERE: ${queryState.whereCol?.col ? `${queryState.whereCol.table}.${queryState.whereCol.col}` : "ninguno"}  ` +
+          `ORDER: ${queryState.orderCol?.col ? `${queryState.orderCol.table}.${queryState.orderCol.col} ${queryState.orderDir}` : "ninguno"}`
+        );
+        t.setAttribute("color", rol.ambar);
+        t.setAttribute("align", "center");
+        t.setAttribute("width", "13");
+        t.setAttribute("position", "0 -2 0");
+        hint.appendChild(t);
       }
       else if (queryState.step === 6 && queryState.operation === "SELECT") {
         titleEl.setAttribute("value", "✓ QUERY LISTA");
@@ -1759,7 +1904,141 @@
         console.warn("No se pudieron cargar columnas en vivo. Se usa schema local.");
       }
 
-      queryState.step = queryState.operation === "SELECT" ? 3 : 6;
+      queryState.step = queryState.operation === "SELECT" ? 2.5 : 6;
+      actualizarDisplaySQL();
+      renderQBOpciones();
+    }
+
+    // ---- JOIN: caché de FKs reales (para sugerir la columna de unión) ----
+    let foreignKeysCache = null;
+    async function getForeignKeys() {
+      if (foreignKeysCache) return foreignKeysCache;
+      try {
+        const res = await fetch('/api/schema/relations');
+        const data = await res.json();
+        foreignKeysCache = res.ok ? (data.relations || []) : [];
+      } catch {
+        foreignKeysCache = [];
+      }
+      return foreignKeysCache;
+    }
+
+    function findJoinColumns(tableA, tableB, relations) {
+      for (const r of relations) {
+        if (r.table === tableA && r.foreign_table === tableB) return { onA: r.column, onB: r.foreign_column };
+        if (r.table === tableB && r.foreign_table === tableA) return { onA: r.foreign_column, onB: r.column };
+      }
+      return null;
+    }
+
+    async function qb_selJoinTabla(tabla) {
+      document.getElementById("query-step-title").setAttribute("value", "CARGANDO COLUMNAS...");
+      limpiarEntidad("query-options-container");
+
+      try {
+        const res = await postgrestFetch(`${API_URL}/${tabla}?limit=1`);
+        const raw = await res.json();
+        const arr = parseApiArray(raw);
+        if (arr.length) schemasMock[tabla] = Object.keys(arr[0]);
+      } catch (e) {
+        console.warn(`No se pudieron cargar columnas en vivo de ${tabla}. Se usa schema local.`);
+      }
+
+      const relations = await getForeignKeys();
+      const found = findJoinColumns(queryState.table, tabla, relations);
+
+      queryState.join = { table: tabla, type: "INNER", onA: found?.onA || "", onB: found?.onB || "", auto: !!found };
+      queryState.joinColumns = [];
+      queryState.step = found ? 2.8 : 2.6;
+      actualizarDisplaySQL();
+      renderQBOpciones();
+    }
+
+    function qb_joinColA(col) {
+      queryState.join.onA = col;
+      queryState.join.auto = false;
+      queryState.step = 2.7;
+      actualizarDisplaySQL();
+      renderQBOpciones();
+    }
+
+    function qb_joinColB(col) {
+      queryState.join.onB = col;
+      queryState.join.auto = false;
+      queryState.step = 2.8;
+      actualizarDisplaySQL();
+      renderQBOpciones();
+    }
+
+    function qb_joinToggleType() {
+      const orden = ["INNER", "LEFT", "RIGHT"];
+      queryState.join.type = orden[(orden.indexOf(queryState.join.type) + 1) % orden.length];
+      actualizarDisplaySQL();
+      renderQBOpciones();
+    }
+
+    function qb_joinManual() {
+      queryState.step = 2.6;
+      actualizarDisplaySQL();
+      renderQBOpciones();
+    }
+
+    function qb_joinSelCol(key) {
+      const [table, col] = key.split("::");
+      const idx = queryState.joinColumns.findIndex(c => c.table === table && c.col === col);
+      if (idx >= 0) queryState.joinColumns.splice(idx, 1);
+      else queryState.joinColumns.push({ table, col });
+      actualizarDisplaySQL();
+      renderQBOpciones();
+    }
+
+    function qb_joinColsAll() {
+      queryState.joinColumns = [];
+      queryState.step = 4;
+      actualizarDisplaySQL();
+      renderQBOpciones();
+    }
+
+    function qb_joinColsNext() {
+      queryState.step = 3.5;
+      actualizarDisplaySQL();
+      renderQBOpciones();
+    }
+
+    function qb_joinColsDone() {
+      queryState.step = 4;
+      actualizarDisplaySQL();
+      renderQBOpciones();
+    }
+
+    async function qb_joinSelWhereCol(key) {
+      const [table, col] = key.split("::");
+      queryState.whereCol = { table, col };
+      queryState.whereVal = "";
+      document.getElementById("query-step-title").setAttribute("value", "CARGANDO VALORES...");
+      limpiarEntidad("query-options-container");
+
+      try {
+        const url = `${API_URL}/${table}?select=${encodeURIComponent(col)}&${encodeURIComponent(col)}=not.is.null&limit=1000`;
+        const res = await postgrestFetch(url);
+        const raw = await res.json();
+        const arr = parseApiArray(raw);
+        const vals = [...new Set(arr.map(r => normalizeText(r[col])).filter(v => v !== ""))];
+        queryState.whereOptions = vals.slice(0, 20);
+      } catch {
+        queryState.whereOptions = [];
+      }
+
+      if (!queryState.whereOptions.length) queryState.whereOptions = ["Sin datos"];
+      queryState.step = 4.5;
+      actualizarDisplaySQL();
+      renderQBOpciones();
+    }
+
+    function qb_joinSelOrderCol(key) {
+      const [table, col] = key.split("::");
+      queryState.orderCol = { table, col };
+      queryState.step = 6;
       actualizarDisplaySQL();
       renderQBOpciones();
     }
@@ -1828,7 +2107,12 @@
       if (queryState.operation === "CREATE_TABLE") {
         queryState.step = Math.min(queryState.step + 1, 4);
       } else {
-        if (queryState.step === 4.5) {
+        if (queryState.step === 2.5) {
+          queryState.join = null;
+          queryState.step = 3;
+        } else if (queryState.step === 2.8) {
+          queryState.step = 3;
+        } else if (queryState.step === 4.5) {
           queryState.whereCol = "";
           queryState.whereVal = "";
           queryState.step = 5;
@@ -1846,6 +2130,43 @@
       qrPaginaActual = 0;
       tablaActual = queryState.table;
       tablaVista = "2d";
+
+      if (queryState.join) {
+        const j = queryState.join;
+        document.getElementById("qr-titulo").setAttribute("value",
+          `${queryState.table.toUpperCase()} ${j.type} JOIN ${j.table.toUpperCase()}`);
+
+        try {
+          const resp = await fetch('/api/query/join', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              tableA: queryState.table,
+              tableB: j.table,
+              joinType: j.type,
+              onA: j.onA,
+              onB: j.onB,
+              columns: queryState.joinColumns,
+              where: queryState.whereCol?.col
+                ? { table: queryState.whereCol.table, col: queryState.whereCol.col, val: queryState.whereVal }
+                : null,
+              orderBy: queryState.orderCol?.col
+                ? { table: queryState.orderCol.table, col: queryState.orderCol.col, dir: queryState.orderDir }
+                : null
+            })
+          });
+          const data = await resp.json();
+          datosActuales = resp.ok ? data.data : [];
+          if (!resp.ok) mostrarToastHUD(`❌ ${data.error || "Error"}`);
+        } catch (e) {
+          console.error("Error de red:", e);
+          datosActuales = [];
+        }
+
+        renderQRTabla();
+        renderQRGrafico3D();
+        return;
+      }
 
       const titulo = `${queryState.operation} ${queryState.table.toUpperCase()}`;
       document.getElementById("qr-titulo").setAttribute("value", titulo);
@@ -2376,6 +2697,16 @@
       return renderizarTabla2D();
     }
 
+    // Con pocas columnas la tabla se centra en su propio origen (comportamiento de siempre).
+    // A partir de cierto ancho (tablas de un JOIN con muchas columnas) centrarla haría que el
+    // borde izquierdo invadiera el panel fijo de CONTROLES (x=-6.2) y el gráfico rotatorio
+    // (x=-14) de la escena; en ese caso se ancla por la izquierda y crece solo hacia la derecha.
+    function offsetXTabla(totalW) {
+      const ANCHO_MAX_CENTRADO = 24;
+      const ANCLA_IZQUIERDA = -10;
+      return totalW < ANCHO_MAX_CENTRADO ? -totalW / 2 : ANCLA_IZQUIERDA;
+    }
+
     function renderizarTabla2D() {
       const cuerpo = limpiarEntidad("tabla-cuerpo");
       const cabecera = limpiarEntidad("tabla-cabecera");
@@ -2389,12 +2720,13 @@
 
       const espaciadoX = 3.2;
       const totalW = (columnas.length - 1) * espaciadoX;
+      const offsetX = offsetXTabla(totalW);
 
       const cabeceraBG = document.createElement("a-entity");
       cabeceraBG.setAttribute("position", "0 0 -0.3");
 
       columnas.forEach((col, i) => {
-        const x = i * espaciadoX - totalW / 2;
+        const x = i * espaciadoX + offsetX;
 
         const box = document.createElement("a-box");
         box.setAttribute("width", "3");
@@ -2438,7 +2770,7 @@
         filaEnt.setAttribute("position", `0 ${-rowI * 1.08} 0`);
 
         columnas.forEach((col, colI) => {
-          const x = colI * espaciadoX - totalW / 2;
+          const x = colI * espaciadoX + offsetX;
 
           const box = document.createElement("a-box");
           box.setAttribute("width", "3");
@@ -2481,6 +2813,7 @@
 
       const espX = 2.6;
       const totalW = (columnas.length - 1) * espX;
+      const offsetX = offsetXTabla(totalW);
 
       // Reutiliza el mismo objeto `colores` que la vista 2D (ver aplicarPaletaUI) para que la
       // vista 3D de la tabla cambie de paleta con el entorno igual que la 2D — antes tenía sus
@@ -2488,7 +2821,7 @@
       const rol = rolesActuales();
 
       columnas.forEach((col, i) => {
-        const x = i * espX - totalW / 2;
+        const x = i * espX + offsetX;
         const h = document.createElement("a-entity");
         h.setAttribute("position", `${x} 0 0`);
         h.innerHTML = `
@@ -2524,7 +2857,7 @@
         row.setAttribute("float-bob", `amp: 0.03; speed: ${0.8 + rowI * 0.08}; offset: ${rowI * 0.9}`);
 
         columnas.forEach((col, colI) => {
-          const x = colI * espX - totalW / 2;
+          const x = colI * espX + offsetX;
           let val = String(fila[col] ?? "-");
           if (val.length > 14) val = val.slice(0, 12) + "...";
 
