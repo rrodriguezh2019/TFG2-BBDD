@@ -411,17 +411,71 @@ def admin_create_table():
 
 # Tablas internas del propio sistema de login/permisos: nunca se ofrecen en el
 # desplegable ni se pueden conceder, para no exponer password_hash de `users`.
-EXCLUDED_TABLES = {'users', 'permissions', 'role_default_tables', 'user_table_permissions'}
+# audit_log tampoco se ofrece nunca: nadie debe poder conceder acceso a su propio rastro
+# de auditoría (ver initdb/005-audit-log-triggers.sql).
+EXCLUDED_TABLES = {'users', 'permissions', 'role_default_tables', 'user_table_permissions', 'audit_log'}
 
 def _valid_identifier(name):
     """Nombre seguro para usar en SQL dinámico (GRANT/REVOKE/CREATE ROLE): solo alfanumérico y guión bajo"""
     return bool(name) and name.replace('_', '').isalnum()
+
+# ============ NUEVA RUTA: ELIMINAR TABLA (solo admin) ============
+# Permiso de esquema (DDL), independiente de user_table_permissions.can_write (que solo
+# da INSERT/UPDATE/DELETE sobre filas). Tener escritura de datos en una tabla no da
+# derecho a borrarla.
+
+@app.route('/api/admin/drop_table', methods=['POST'])
+@require_auth
+@require_permission('admin_drop_table')
+def admin_drop_table():
+    data = request.get_json()
+    table_name = data.get('table_name')
+
+    if not _valid_identifier(table_name):
+        return jsonify({'error': 'Nombre de tabla no válido'}), 400
+
+    if table_name in EXCLUDED_TABLES:
+        return jsonify({'error': 'No se puede eliminar una tabla interna del sistema'}), 403
+
+    conn = get_db_connection()
+    if not conn:
+        return jsonify({'error': 'No se pudo conectar a la base de datos'}), 500
+    try:
+        cur = conn.cursor()
+        # Confirma que la tabla existe realmente en el esquema antes de borrarla
+        # (mismo patrón de validación contra information_schema que el resto del panel de admin).
+        if table_name not in _get_public_tables(cur):
+            cur.close()
+            conn.close()
+            return jsonify({'error': f'La tabla "{table_name}" no existe'}), 404
+
+        sql = pgsql.SQL('DROP TABLE {}').format(pgsql.Identifier(table_name))
+        cur.execute(sql)
+        conn.commit()
+        sql_text = sql.as_string(conn)
+        cur.close()
+        conn.close()
+        return jsonify({'success': True, 'sql': sql_text}), 200
+    except Exception as e:
+        conn.rollback()
+        return jsonify({'error': str(e)}), 500
 
 def _get_public_tables(cur):
     """Tablas de datos disponibles para conceder permisos (excluye las tablas internas del sistema)"""
     cur.execute('''
         SELECT table_name FROM information_schema.tables
         WHERE table_schema = 'public' AND table_type = 'BASE TABLE'
+        ORDER BY table_name
+    ''')
+    return [row[0] for row in cur.fetchall() if row[0] not in EXCLUDED_TABLES]
+
+def _get_public_views(cur):
+    """Vistas por rol disponibles para conceder permisos (ver initdb/004-role-views.sql).
+    Separado de _get_public_tables porque DROP TABLE no admite vistas (admin_drop_table
+    sigue usando solo _get_public_tables), pero sí deben poder concederse como una tabla más."""
+    cur.execute('''
+        SELECT table_name FROM information_schema.tables
+        WHERE table_schema = 'public' AND table_type = 'VIEW'
         ORDER BY table_name
     ''')
     return [row[0] for row in cur.fetchall() if row[0] not in EXCLUDED_TABLES]
@@ -597,7 +651,7 @@ def admin_list_tables():
         return jsonify({'error': 'Error de conexión a BD'}), 500
     try:
         cur = conn.cursor()
-        return jsonify({'tables': _get_public_tables(cur)}), 200
+        return jsonify({'tables': _get_public_tables(cur) + _get_public_views(cur)}), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500
     finally:
@@ -675,7 +729,7 @@ def admin_create_user():
         if cur.fetchone():
             return jsonify({'error': 'Ese nombre de usuario ya existe'}), 409
 
-        tablas_validas = set(_get_public_tables(cur))
+        tablas_validas = set(_get_public_tables(cur)) | set(_get_public_views(cur))
         permisos_limpios = []
         for tp in table_permissions:
             tabla = tp.get('table')
@@ -751,7 +805,7 @@ def admin_update_user_permissions(user_id):
             return jsonify({'error': 'Usuario no encontrado'}), 404
 
         pg_role = pg_role_for_user(user_id)
-        tablas_validas = set(_get_public_tables(cur))
+        tablas_validas = set(_get_public_tables(cur)) | set(_get_public_views(cur))
 
         cur.execute('SELECT table_name FROM user_table_permissions WHERE user_id = %s', (user_id,))
         actuales = {row[0] for row in cur.fetchall()}

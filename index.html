@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Visualizador Universidad - 3D VR Experience</title>
 
   <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
@@ -835,6 +835,12 @@
       join: null, joinColumns: []
     };
 
+    // Estado del gesto "arrastrar tabla sobre tabla" para crear un JOIN (PASO 2 del
+    // constructor de consultas). No sustituye al click normal: un mousedown+mouseup sobre
+    // la MISMA caja sigue disparando el click de siempre (selección de una sola tabla);
+    // esto solo actúa cuando el mouseup ocurre sobre una caja DISTINTA a la del mousedown.
+    let dragJoinState = { active: false, tabla: null, wrapper: null };
+
     let datosActuales = [];
     let paginaActual = 0;
     const filasPorPagina = 6;
@@ -1477,6 +1483,9 @@
       if (action === "qb_create_remove_col") return qb_create_remove_col();
       if (action === "qb_create_exec") return qb_create_exec();
 
+      if (action === "qb_drop_tabla") return qb_selDropTabla(param);
+      if (action === "qb_drop_exec") return qb_drop_exec();
+
       if (action === "iniciarConsultasGuiadas") return iniciarConsultasGuiadas();
       if (action === "ejecutarConsultaGuiada") return ejecutarConsultaGuiada(param);
 
@@ -1604,6 +1613,8 @@
           ? s.createColumns.map(c => `${c.name} ${c.type}`).join(", ")
           : "...";
         sql = `CREATE TABLE ${s.createTableName || "nombre_tabla"} (\n  ${cols}\n);`;
+      } else if (s.operation === "DROP_TABLE") {
+        sql = `DROP TABLE ${s.table || "nombre_tabla"};`;
       } else if (s.operation) {
         sql = `${s.operation} ...`;
       }
@@ -1625,6 +1636,7 @@
         titleEl.setAttribute("value", "PASO 1 · OPERACIÓN SQL");
         const ops = ["SELECT"];
         if (tienePermiso("admin_create_table")) ops.push("CREATE TABLE");
+        if (tienePermiso("admin_drop_table")) ops.push("DROP TABLE");
 
         opciones = ops.map((op, i) => ({
           label: op,
@@ -1635,7 +1647,7 @@
         }));
       }
       else if (queryState.step === 2 && queryState.operation === "SELECT") {
-        titleEl.setAttribute("value", "PASO 2 · TABLA PRINCIPAL");
+        titleEl.setAttribute("value", "PASO 2 · TABLA PRINCIPAL\n(mantén pulsado y suelta sobre otra tabla para unirlas)");
         opciones = tablas.map(t => ({ label: t.toUpperCase(), action: "qb_tabla", param: t }));
       }
       else if (queryState.step === 2.5 && queryState.operation === "SELECT") {
@@ -1854,7 +1866,31 @@
         hint.appendChild(t);
       }
 
+      else if (queryState.step === 2 && queryState.operation === "DROP_TABLE") {
+        titleEl.setAttribute("value", "PASO 2 · ELEGIR TABLA A ELIMINAR");
+        opciones = tablasParaDrop.map(t => ({
+          label: t.toUpperCase(), action: "qb_drop_tabla", param: t, emissive: rol.peligro, textColor: rol.peligro
+        }));
+      }
+      else if (queryState.step === 3 && queryState.operation === "DROP_TABLE") {
+        titleEl.setAttribute("value", "⚠ CONFIRMAR ELIMINACIÓN");
+        extraButtons.push({ label: "▶ EJECUTAR DROP", action: "qb_drop_exec", bg: "#2A0000", color: rol.peligro, w: 7 });
+
+        const t = document.createElement("a-text");
+        t.setAttribute("value",
+          `Esta acción es IRREVERSIBLE.\nSe eliminará la tabla "${queryState.table}" y todos sus datos.`
+        );
+        t.setAttribute("color", rol.peligro);
+        t.setAttribute("align", "center");
+        t.setAttribute("width", "11");
+        t.setAttribute("position", "0 -2 0");
+        hint.appendChild(t);
+      }
+
       layoutBotones(cont, opciones, { maxCols: 3, gapX: 1.5, gapY: 2.2, maxWidth: 20 });
+      if (queryState.step === 2 && queryState.operation === "SELECT") {
+        habilitarArrastreJoin(cont);
+      }
 
       const controlBtns = [
         ...extraButtons.map(btn => ({
@@ -1876,12 +1912,19 @@
       });
     }
 
-    function qb_selOp(op) {
+    async function qb_selOp(op) {
       if (op === "CREATE TABLE") {
         queryState.operation = "CREATE_TABLE";
         queryState.step = 2;
         queryState.createTableName = "";
         queryState.createColumns = [];
+      } else if (op === "DROP TABLE") {
+        queryState.operation = "DROP_TABLE";
+        queryState.step = 2;
+        queryState.table = "";
+        document.getElementById("query-step-title").setAttribute("value", "CARGANDO TABLAS...");
+        limpiarEntidad("query-options-container");
+        await cargarTablasParaDrop();
       } else {
         queryState.operation = op;
         queryState.step = op === "SELECT" ? 2 : 6;
@@ -1890,19 +1933,65 @@
       renderQBOpciones();
     }
 
-    async function qb_selTabla(tabla) {
-      queryState.table = tabla;
-      document.getElementById("query-step-title").setAttribute("value", "CARGANDO COLUMNAS...");
-      limpiarEntidad("query-options-container");
+    // Todas las tablas del sistema (no solo las que el usuario tiene permitidas para
+    // datos): admin_drop_table es un permiso de esquema, independiente de can_read/can_write.
+    let tablasParaDrop = [];
+    async function cargarTablasParaDrop() {
+      try {
+        const res = await fetch('/api/admin/tables');
+        const data = await res.json();
+        tablasParaDrop = res.ok ? (data.tables || []) : [];
+      } catch (e) {
+        tablasParaDrop = [];
+      }
+    }
 
+    function qb_selDropTabla(tabla) {
+      queryState.table = tabla;
+      queryState.step = 3;
+      actualizarDisplaySQL();
+      renderQBOpciones();
+    }
+
+    async function qb_drop_exec() {
+      if (!queryState.table) {
+        mostrarToastHUD("❌ Falta seleccionar tabla");
+        return;
+      }
+      try {
+        const resp = await fetch('/api/admin/drop_table', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ table_name: queryState.table })
+        });
+        const data = await resp.json();
+        if (resp.ok) {
+          mostrarToastHUD("✅ Tabla eliminada");
+        } else {
+          mostrarToastHUD(`❌ ${data.error || "Error"}`);
+        }
+      } catch (e) {
+        mostrarToastHUD("❌ Error de red");
+      }
+    }
+
+    async function cargarSchemaEnVivo(tabla) {
       try {
         const res = await postgrestFetch(`${API_URL}/${tabla}?limit=1`);
         const raw = await res.json();
         const arr = parseApiArray(raw);
         if (arr.length) schemasMock[tabla] = Object.keys(arr[0]);
       } catch (e) {
-        console.warn("No se pudieron cargar columnas en vivo. Se usa schema local.");
+        console.warn(`No se pudieron cargar columnas en vivo de ${tabla}. Se usa schema local.`);
       }
+    }
+
+    async function qb_selTabla(tabla) {
+      queryState.table = tabla;
+      document.getElementById("query-step-title").setAttribute("value", "CARGANDO COLUMNAS...");
+      limpiarEntidad("query-options-container");
+
+      await cargarSchemaEnVivo(tabla);
 
       queryState.step = queryState.operation === "SELECT" ? 2.5 : 6;
       actualizarDisplaySQL();
@@ -1935,14 +2024,7 @@
       document.getElementById("query-step-title").setAttribute("value", "CARGANDO COLUMNAS...");
       limpiarEntidad("query-options-container");
 
-      try {
-        const res = await postgrestFetch(`${API_URL}/${tabla}?limit=1`);
-        const raw = await res.json();
-        const arr = parseApiArray(raw);
-        if (arr.length) schemasMock[tabla] = Object.keys(arr[0]);
-      } catch (e) {
-        console.warn(`No se pudieron cargar columnas en vivo de ${tabla}. Se usa schema local.`);
-      }
+      await cargarSchemaEnVivo(tabla);
 
       const relations = await getForeignKeys();
       const found = findJoinColumns(queryState.table, tabla, relations);
@@ -1952,6 +2034,91 @@
       queryState.step = found ? 2.8 : 2.6;
       actualizarDisplaySQL();
       renderQBOpciones();
+    }
+
+    // ---- Gesto de arrastre: unir dos tablas del PASO 2 con mantener-pulsado + soltar ----
+    //
+    // Reutiliza los eventos "mousedown"/"mouseup" que A-Frame ya emite tanto para el ratón
+    // (escritorio) como para el trigger de un mando VR real (vía laser-controls), así que
+    // funciona igual en ambos casos sin código específico por dispositivo. No interfiere con
+    // el click normal: si mousedown y mouseup ocurren sobre la MISMA caja, el "click" de
+    // siempre se dispara en paralelo (selección de una sola tabla, sin JOIN).
+    // look-controls (cámara de escritorio) escucha el arrastre del ratón para rotar la vista,
+    // sin distinguir si empezó sobre un botón — compite con este gesto por el mismo arrastre.
+    // Se desactiva mientras dura el gesto y se reactiva al soltar (mousedown/mouseup de abajo,
+    // más un "mouseup" global de seguridad por si se suelta fuera de cualquier caja).
+    function setLookControlsHabilitado(habilitado) {
+      const camEl = document.querySelector("#camera");
+      if (camEl) camEl.setAttribute("look-controls", "enabled", habilitado);
+    }
+    document.addEventListener("mouseup", () => setLookControlsHabilitado(true));
+
+    function habilitarArrastreJoin(cont) {
+      Array.from(cont.children).forEach(wrapper => {
+        const box = wrapper.querySelector(".clickable");
+        if (!box) return;
+        const tabla = box.getAttribute("data-param");
+        if (!tabla) return;
+
+        box.addEventListener("mousedown", () => {
+          dragJoinState = { active: true, tabla, wrapper };
+          setLookControlsHabilitado(false);
+        });
+
+        box.addEventListener("mouseup", () => {
+          setLookControlsHabilitado(true);
+          if (dragJoinState.active && dragJoinState.tabla && dragJoinState.tabla !== tabla) {
+            const origen = dragJoinState.tabla;
+            const wrapperOrigen = dragJoinState.wrapper;
+            dragJoinState = { active: false, tabla: null, wrapper: null };
+            animarFusionYUnir(origen, tabla, wrapperOrigen, wrapper, cont);
+          } else {
+            dragJoinState = { active: false, tabla: null, wrapper: null };
+          }
+        });
+      });
+    }
+
+    function animarFusionYUnir(tablaA, tablaB, wrapperA, wrapperB, cont) {
+      const rol = rolesActuales();
+      const posA = wrapperA.getAttribute("position");
+      const posB = wrapperB.getAttribute("position");
+      const mid = {
+        x: (posA.x + posB.x) / 2,
+        y: (posA.y + posB.y) / 2,
+        z: (posA.z + posB.z) / 2
+      };
+
+      [wrapperA, wrapperB].forEach(w => {
+        w.setAttribute("animation__fusion_pos", `property: position; to: ${mid.x} ${mid.y} ${mid.z}; dur: 550; easing: easeInQuad`);
+        w.setAttribute("animation__fusion_scale", "property: scale; to: 0.05 0.05 0.05; dur: 550; easing: easeInQuad");
+      });
+
+      const cubo = document.createElement("a-entity");
+      cubo.setAttribute("position", `${mid.x} ${mid.y} ${mid.z}`);
+      cubo.setAttribute("scale", "0.05 0.05 0.05");
+      cubo.setAttribute("slow-rotate", "speed: 0.6; axis: y");
+      cubo.innerHTML = `
+        <a-box width="1.6" height="1.6" depth="1.6"
+               material="color: #0a1020; emissive: ${rol.terciario}; emissiveIntensity: 0.5; opacity: 0.95"></a-box>
+        <a-text value="${tablaA.toUpperCase()}\n⋈ JOIN ⋈\n${tablaB.toUpperCase()}" align="center"
+                position="0 0 0.9" width="7" color="${rol.terciario}"></a-text>
+      `;
+      cont.appendChild(cubo);
+      cubo.setAttribute("animation__cubo_scale", "property: scale; to: 1 1 1; dur: 550; delay: 150; easing: easeOutBack");
+
+      setTimeout(() => {
+        limpiarEntidad("query-options-container");
+        qb_dragJoin(tablaA, tablaB);
+      }, 750);
+    }
+
+    async function qb_dragJoin(tablaA, tablaB) {
+      queryState.table = tablaA;
+      document.getElementById("query-step-title").setAttribute("value", "CARGANDO COLUMNAS...");
+
+      await cargarSchemaEnVivo(tablaA);
+      await qb_selJoinTabla(tablaB);
     }
 
     function qb_joinColA(col) {
@@ -2294,25 +2461,48 @@
     ];
     let _vrkbMode = "upper"; // "upper" | "lower" | "num"
 
+    // El teclado solo se abre desde dentro de "escena-query-builder" (ver qb_create_set_name /
+    // qb_create_add_col), así que en vez de calcular su posición a partir de hacia dónde mira
+    // la cámara en ese instante (poco fiable: dependía de la inclinación y el giro del usuario),
+    // lo anclamos a un sitio fijo y conocido de esa escena, y desplazamos la propia escena hacia
+    // arriba para dejarle sitio libre debajo, tal cual una tabla que se aparta para dejar hueco.
+    const QB_BASE_Y = 0;       // posición original de #escena-query-builder (position="7 0 -10")
+    const QB_SHIFT_UP = 10;    // cuánto se desplaza hacia arriba mientras el teclado está abierto
+    const QB_KEYBOARD_POS = { x: 7, y: 3, z: -12 }; // misma profundidad que el panel del constructor
+    const QB_KEYBOARD_SCALE = "1.3 1.25 1"; // más ancho y un poco más alto, sin acercarlo
+
     function abrirTecladoVR(titulo, valorInicial, callback) {
       _vrkbCallback = callback;
       _vrkbText = valorInicial || "";
       _vrkbMode = "upper";
       const panel = document.getElementById("vr-keyboard-panel");
       panel.setAttribute("visible", "true");
-      // Posicionar frente a la cámara
+      panel.setAttribute("position", QB_KEYBOARD_POS);
+      panel.setAttribute("rotation", "0 0 0");
+      panel.setAttribute("scale", QB_KEYBOARD_SCALE);
+
+      const qb = document.getElementById("escena-query-builder");
+      if (qb) {
+        const pos = qb.getAttribute("position");
+        qb.setAttribute("position", { x: pos.x, y: QB_BASE_Y + QB_SHIFT_UP, z: pos.z });
+      }
+
+      // Recentra la vista (mismo mecanismo que resetVista(), tecla R): recoloca el rig al
+      // punto de vista de la escena (RESET_POS, actualizando también rigPos para que el bucle
+      // de movimiento WASD no lo sobrescriba en el siguiente tick) y nivela la cámara, para que
+      // el teclado, que aparece siempre en la misma posición fija, quede centrado delante del
+      // usuario sin importar dónde estuviera mirando o hasta dónde se hubiera desplazado.
+      rigPos.x = RESET_POS.x;
+      rigPos.y = RESET_POS.y;
+      rigPos.z = RESET_POS.z;
+      rig.setAttribute("position", `${rigPos.x} ${rigPos.y} ${rigPos.z}`);
+
       const cam = document.querySelector("#camera");
-      const rig = document.querySelector("#rig");
-      if (cam && rig) {
-        const rigPos = rig.getAttribute("position");
-        const camRot = cam.getAttribute("rotation") || { x: 0, y: 0, z: 0 };
-        const yRad = (camRot.y || 0) * Math.PI / 180;
-        panel.setAttribute("position", {
-          x: (rigPos.x || 7) - Math.sin(yRad) * 6,
-          y: (rigPos.y || 3) + 1,
-          z: (rigPos.z || 8) - Math.cos(yRad) * 6
-        });
-        panel.setAttribute("rotation", { x: 0, y: -(camRot.y || 0), z: 0 });
+      if (cam && cam.components["look-controls"]) {
+        const lc = cam.components["look-controls"];
+        if (lc.pitchObject) lc.pitchObject.rotation.set(0, 0, 0);
+        if (lc.yawObject)   lc.yawObject.rotation.set(0, 0, 0);
+        cam.setAttribute("rotation", "0 0 0");
       }
       document.getElementById("vrkb-title").setAttribute("value", titulo.toUpperCase());
       _vrkbActualizar();
@@ -2322,6 +2512,12 @@
     function cerrarTecladoVR() {
       document.getElementById("vr-keyboard-panel").setAttribute("visible", "false");
       _vrkbCallback = null;
+
+      const qb = document.getElementById("escena-query-builder");
+      if (qb) {
+        const pos = qb.getAttribute("position");
+        qb.setAttribute("position", { x: pos.x, y: QB_BASE_Y, z: pos.z });
+      }
     }
 
     function _vrkbActualizar() {
