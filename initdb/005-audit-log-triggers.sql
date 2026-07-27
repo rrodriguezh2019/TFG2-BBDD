@@ -71,3 +71,34 @@ DROP TRIGGER IF EXISTS trg_audit_matriculas ON matriculas;
 CREATE TRIGGER trg_audit_matriculas
     AFTER INSERT OR UPDATE OR DELETE ON matriculas
     FOR EACH ROW EXECUTE FUNCTION fn_audit_log();
+
+-- 4) Vista para visualizar el log (pedido por el tutor: los triggers no valen de nada si
+--    nadie puede ver lo que registran). Se llama "triggers_..._log" y no "vista_..." para
+--    distinguirla de vista_estudiante/vista_profesor: aquella son vistas de datos, esta es
+--    la ventana de administración sobre lo que han hecho los triggers de auditoría. Reutiliza
+--    el mismo truco de propietario que las vistas de rol (ver docs/vistas-por-rol.md): se
+--    ejecuta con los privilegios de quien la crea, así que "admin" puede tener SELECT solo
+--    sobre esta vista sin necesitar GRANT directo sobre audit_log. Solo estas 5 columnas (sin
+--    old_data/new_data): el renderizador de tablas de la escena VR no sabe pintar JSON (sale
+--    "[object Object]"), así que para ver el detalle completo de un cambio se sigue consultando
+--    audit_log desde pgAdmin; esta vista es el "qué pasó, quién y cuándo" de un vistazo en la app.
+--    DROP + CREATE (no CREATE OR REPLACE) porque esta vista ya tuvo más columnas antes en
+--    algún entorno donde se probó, y CREATE OR REPLACE VIEW no permite quitar columnas.
+DROP VIEW IF EXISTS vista_admin_audit_log;
+DROP VIEW IF EXISTS triggers_audit_log;
+CREATE VIEW triggers_audit_log AS
+SELECT
+    log_id,
+    table_name,
+    operation,
+    changed_by,
+    changed_at
+FROM audit_log
+ORDER BY changed_at DESC;
+
+-- Se registra como tabla-por-defecto del rol "admin", mismo mecanismo que las vistas de
+-- profesor/estudiante: precarga el checklist del panel de admin al crear un usuario admin.
+DELETE FROM role_default_tables WHERE role_name = 'admin' AND table_name = 'vista_admin_audit_log';
+INSERT INTO role_default_tables (role_name, table_name, can_write) VALUES
+    ('admin', 'triggers_audit_log', FALSE)
+ON CONFLICT (role_name, table_name) DO NOTHING;
