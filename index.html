@@ -7,6 +7,13 @@
 
   <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/aframe-extras@6.1.1/dist/aframe-extras.min.js"></script>
+  <!-- El texto "text" (a-text) de A-Frame usa una fuente MSDF (Roboto) que solo cubre
+       ASCII 32-126: no tiene ninguna letra acentuada ni ñ, en ninguna combinación de
+       mayúscula/minúscula. aframe-troika-text renderiza el texto 3D a partir de un TTF
+       real (ver fonts/NotoSans-Regular.ttf, cargado más abajo en <a-assets>), que sí
+       tiene cobertura completa de acentos y ñ. Registra el primitivo <a-troika-text>
+       y el componente troika-text. -->
+  <script src="https://cdn.jsdelivr.net/npm/aframe-troika-text@0.14.0/dist/aframe-troika-text.min.js"></script>
 
   <style>
     body {
@@ -499,6 +506,12 @@
     fog="type: linear; color: #000; far: 120; near: 0.1"
     xr-mode-ui="XRMode: xr"
   >
+    <a-assets>
+      <!-- Fuente con soporte real de acentos/ñ para todo el texto 3D (ver troika-text
+           más arriba). Precargada aquí para no repetir la URL en cada <a-troika-text>. -->
+      <a-asset-item id="font-noto-sans" src="fonts/NotoSans-Regular.ttf"></a-asset-item>
+    </a-assets>
+
     <!-- Luces -->
     <a-light id="light-ambient" type="ambient" intensity="0.5" color="#fff"></a-light>
     <a-light id="light-dir-1" type="directional" intensity="1" color="#00E5FF" position="20 30 20"></a-light>
@@ -639,10 +652,10 @@
       <a-entity position="0 6 -5">
         <a-box color="#111" depth="0.5" height="3.2" width="19" opacity="0.92"></a-box>
         
-        <a-text id="query-display" value="Esperando instruccion..." position="-9 0 0.3" color="#00E5FF" data-rol="primario" width="16.8" wrap-count="40"></a-text>      </a-entity>
+        <a-troika-text id="query-display" value="Esperando instrucción..." position="-9 0 0.3" color="#00E5FF" data-rol="primario" font="#font-noto-sans" font-size="0.42" max-width="16" overflow-wrap="break-word" line-height="1.2" align="left" anchor="left"></a-troika-text>      </a-entity>
 
       <a-entity position="0 3.8 -2">
-        <a-text id="query-step-title" value="PASO 1 - OPERACION SQL" align="center" color="#FFF" width="12"></a-text>      </a-entity>
+        <a-troika-text id="query-step-title" value="PASO 1 - OPERACIÓN SQL" align="center" color="#FFF" font="#font-noto-sans" font-size="0.5" max-width="11" overflow-wrap="break-word" line-height="1.15"></a-troika-text>      </a-entity>
 
       <a-entity id="query-options-container" position="0 2.2 -2"></a-entity>
       <a-entity id="query-hint-container" position="0 0 -2"></a-entity>
@@ -675,7 +688,7 @@
     <a-entity id="escena-tabla" visible="false" position="7 0 -15">
       <a-entity position="0 6 0">
         <a-box color="#0a0a0a" depth="0.4" height="1" width="14" opacity="0.95"></a-box>
-        <a-text id="texto-tabla" value="" align="center" position="0 0 0.25" width="18" color="#00E5FF"></a-text>
+        <a-troika-text id="texto-tabla" value="" align="center" position="0 0 0.25" font="#font-noto-sans" font-size="0.45" max-width="17" overflow-wrap="break-word" color="#00E5FF"></a-troika-text>
       </a-entity>
 
       <a-entity id="controles-lateral" position="-6.2 2.5 0">
@@ -780,7 +793,7 @@
       <!-- Título (igual que escena-tabla) -->
       <a-entity position="0 6 0">
         <a-box color="#0a0a0a" depth="0.4" height="1" width="14" opacity="0.95"></a-box>
-        <a-text id="qr-titulo" value="" align="center" position="0 0 0.25" width="18" color="#00E5FF"></a-text>
+        <a-troika-text id="qr-titulo" value="" align="center" position="0 0 0.25" font="#font-noto-sans" font-size="0.45" max-width="17" overflow-wrap="break-word" color="#00E5FF"></a-troika-text>
       </a-entity>
 
       <!-- GRÁFICO 3D ROTATIVO — a la izquierda del todo -->
@@ -853,14 +866,14 @@
              material="color: #00E5FF; emissive: #00E5FF; emissiveIntensity: 1; opacity: 0.85"></a-box>
 
       <!-- Título -->
-      <a-text id="vrkb-title" value="INTRODUCE TEXTO" align="center"
-              position="0 2.85 0.12" width="13" color="#00E5FF" data-rol="primario"></a-text>
+      <a-troika-text id="vrkb-title" value="INTRODUCE TEXTO" align="center"
+              position="0 2.85 0.12" font="#font-noto-sans" font-size="0.45" max-width="12" overflow-wrap="break-word" color="#00E5FF" data-rol="primario"></a-troika-text>
 
       <!-- Display del texto introducido -->
       <a-box width="12.8" height="0.9" depth="0.14" position="0 2.2 0.05" data-rol="primario" data-rol-target="material-emissive"
              material="color: #000D1A; emissive: #00E5FF; emissiveIntensity: 0.08; opacity: 0.98"></a-box>
-      <a-text id="vrkb-display" value="" align="left"
-              position="-6.0 2.2 0.14" width="13" color="#00FF88" data-rol="terciario" wrap-count="36"></a-text>
+      <a-troika-text id="vrkb-display" value="" align="left" anchor="left"
+              position="-6.0 2.2 0.14" font="#font-noto-sans" font-size="0.32" max-width="12.5" overflow-wrap="break-word" color="#00FF88" data-rol="terciario"></a-troika-text>
       <!-- Cursor parpadeante -->
       <a-box id="vrkb-cursor" width="0.06" height="0.55" depth="0.12" position="0 2.2 0.14" data-rol="terciario" data-rol-target="material-both"
              material="color: #00FF88; emissive: #00FF88; emissiveIntensity: 1; opacity: 0.9"
@@ -936,6 +949,27 @@
       matriculas: ["matricula", "idasignatura", "fechamatriculacion", "notanumerica", "notatexto"]
     };
 
+    // Nombres de tabla/columna "bonitos" (con tilde/ñ) solo para lo que se MUESTRA en botones
+    // y títulos 3D. El identificador real (minúsculas, sin tilde) es el que se usa siempre
+    // para el SQL/data-param: aquí no se toca la BD, solo la etiqueta visible, ahora que
+    // troika-text sí puede renderizar acentos (ver troikaLabelAttrs más arriba).
+    const NOMBRES_BONITOS = {
+      matricula: "MATRÍCULA",
+      telefono: "TELÉFONO",
+      correoelectronico: "CORREO ELECTRÓNICO",
+      direccion: "DIRECCIÓN",
+      creditos: "CRÉDITOS",
+      notanumerica: "NOTA NUMÉRICA",
+      notatexto: "NOTA TEXTO",
+      fechamatriculacion: "FECHA DE MATRICULACIÓN",
+      matriculas: "MATRÍCULAS"
+    };
+
+    function nombreBonito(id) {
+      const key = String(id || "").toLowerCase();
+      return NOMBRES_BONITOS[key] || key.toUpperCase();
+    }
+
     const accionesEnProgreso = new Set();
     const colores = {
       celda:"#1a1a2e",
@@ -1008,6 +1042,15 @@
       return `#${f(0)}${f(8)}${f(4)}`;
     }
 
+    // Tamaño de letra 3D (troika-text) para una caja de botón de w x h metros. Sustituye a la
+    // heurística de wrap-count de a-text: aquí troika hace el ajuste de línea real según el
+    // ancho en metros, no por nº de caracteres.
+    function troikaLabelAttrs(w, h) {
+      const fontSize = Math.max(0.22, h * 0.32).toFixed(3);
+      const maxWidth = Math.max(0.5, w * 0.86).toFixed(3);
+      return `font-size="${fontSize}" max-width="${maxWidth}" overflow-wrap="break-word" line-height="1.05"`;
+    }
+
     function crearBoton(label, action, param, bg="#111", color="#FF00FF", width) {
       const e = document.createElement("a-entity");
       const pAttr = param !== undefined ? `data-param="${String(param).replace(/"/g, "&quot;")}"` : "";
@@ -1017,9 +1060,9 @@
         <a-box class="clickable" interactable width="${size.width}" height="${size.height}" depth="0.4"
                material="color: ${bg}; emissive: ${color}; emissiveIntensity: 0.32"
                data-action="${action}" ${pAttr}>
-          <a-text value="${label}" align="center" position="0 0 0.22"
-                  width="${size.width * 1.25}" wrap-count="${size.wrap}"
-                  color="#0A0A0A"></a-text>
+          <a-troika-text value="${label}" align="center" position="0 0 0.22"
+                  ${troikaLabelAttrs(size.width, size.height)}
+                  font="#font-noto-sans" color="#0A0A0A"></a-troika-text>
         </a-box>
       `;
       return e;
@@ -1073,9 +1116,9 @@
                    width="${op._w}" height="${op._h}" depth="0.35"
                    material="color: #0a1020; emissive: ${emisivoDefecto}; emissiveIntensity: ${op.emissive ? 0.3 : 0.18}"
                    data-action="${op.action}" ${op.param !== undefined ? `data-param="${String(op.param).replace(/"/g, "&quot;")}"` : ""}>
-              <a-text value="${op.label}" align="center" position="0 0 0.19"
-                      width="${op._w * 1.25}" wrap-count="${op.wrap || op._wrap}"
-                      color="#0A0A0A"></a-text>
+              <a-troika-text value="${op.label}" align="center" position="0 0 0.19"
+                      ${troikaLabelAttrs(op._w, op._h)}
+                      font="#font-noto-sans" color="#0A0A0A"></a-troika-text>
             </a-box>
           `;
           cont.appendChild(ent);
@@ -1708,7 +1751,7 @@
         btn.innerHTML = `
           <a-box class="clickable" interactable width="4.2" height="1.2" depth="0.5" color="#222"
                  data-action="cargarTabla" data-param="${nombre}">
-            <a-text value="${nombre.toUpperCase()}" align="center" position="0 0 0.26" width="7" color="${rolesActuales().primario}"></a-text>
+            <a-troika-text value="${nombreBonito(nombre)}" align="center" position="0 0 0.26" font="#font-noto-sans" font-size="0.32" max-width="3.6" overflow-wrap="break-word" color="${rolesActuales().primario}"></a-troika-text>
           </a-box>
         `;
         menu.appendChild(btn);
@@ -1787,7 +1830,7 @@
       let extraButtons = [];
 
       if (queryState.step === 1) {
-        titleEl.setAttribute("value", "PASO 1 - OPERACION SQL");
+        titleEl.setAttribute("value", "PASO 1 - OPERACIÓN SQL");
         // "CREAR USUARIO" NO va aquí: no es una operación SQL, es gestión de usuarios.
         // Se llega a ese wizard directo desde el botón "GESTIONAR USUARIOS" de la consola
         // (abrirCrearUsuarioVR llama a qb_selOp("CREAR USUARIO") sin pasar por este menú).
@@ -1807,29 +1850,29 @@
         }));
       }
       else if (queryState.step === 2 && queryState.operation === "SELECT") {
-        titleEl.setAttribute("value", "PASO 2 - TABLA PRINCIPAL\n(manten pulsado y suelta sobre otra tabla para unirlas)");
-        opciones = tablas.map(t => ({ label: t.toUpperCase(), action: "qb_tabla", param: t }));
+        titleEl.setAttribute("value", "PASO 2 - TABLA PRINCIPAL\n(mantén pulsado y suelta sobre otra tabla para unirlas)");
+        opciones = tablas.map(t => ({ label: nombreBonito(t), action: "qb_tabla", param: t }));
       }
       else if (queryState.step === 2.5 && queryState.operation === "SELECT") {
         titleEl.setAttribute("value", "PASO 2.5 - SEGUNDA TABLA? (JOIN opcional)");
         opciones = tablas.filter(t => t !== queryState.table).map(t => ({
-          label: t.toUpperCase(), action: "qb_join_tabla", param: t, w: 6
+          label: nombreBonito(t), action: "qb_join_tabla", param: t, w: 6
         }));
         extraButtons.push({ label: "SIN JOIN, CONTINUAR", action: "qb_skip", bg: "#111", color: rol.secundario, w: 7.5 });
       }
       else if (queryState.step === 2.6 && queryState.operation === "SELECT") {
-        titleEl.setAttribute("value", `PASO 2.6 - COLUMNA DE UNION EN ${queryState.table.toUpperCase()}`);
+        titleEl.setAttribute("value", `PASO 2.6 - COLUMNA DE UNIÓN EN ${nombreBonito(queryState.table)}`);
         const colsA = schemasMock[queryState.table] || [];
         opciones = colsA.map(c => ({
-          label: c.toUpperCase(), action: "qb_join_col_a", param: c, w: 5.5,
+          label: nombreBonito(c), action: "qb_join_col_a", param: c, w: 5.5,
           emissive: queryState.join.onA === c ? rol.ambar : rol.primario
         }));
       }
       else if (queryState.step === 2.7 && queryState.operation === "SELECT") {
-        titleEl.setAttribute("value", `PASO 2.7 - COLUMNA DE UNION EN ${queryState.join.table.toUpperCase()}`);
+        titleEl.setAttribute("value", `PASO 2.7 - COLUMNA DE UNIÓN EN ${nombreBonito(queryState.join.table)}`);
         const colsB = schemasMock[queryState.join.table] || [];
         opciones = colsB.map(c => ({
-          label: c.toUpperCase(), action: "qb_join_col_b", param: c, w: 5.5,
+          label: nombreBonito(c), action: "qb_join_col_b", param: c, w: 5.5,
           emissive: queryState.join.onB === c ? rol.ambar : rol.primario
         }));
       }
@@ -1838,37 +1881,40 @@
         opciones.push({ label: "CAMBIAR COLUMNAS", action: "qb_join_manual", w: 7, h: 1.1, emissive: rol.secundario, textColor: rol.secundario });
         extraButtons.push({ label: `TIPO: ${queryState.join.type}`, action: "qb_join_toggle_type", bg: "#0E1C2B", color: rol.primario, w: 6 });
         extraButtons.push({ label: "CONTINUAR ->", action: "qb_skip", bg: "#1A1A2E", color: rol.terciario, w: 5.5 });
-        const t = document.createElement("a-text");
+        const t = document.createElement("a-troika-text");
         t.setAttribute("value",
-          `${queryState.table.toUpperCase()}.${queryState.join.onA} = ${queryState.join.table.toUpperCase()}.${queryState.join.onB}` +
-          (queryState.join.auto ? "\n(sugerido automaticamente por clave foranea)" : "")
+          `${nombreBonito(queryState.table)}.${queryState.join.onA} = ${nombreBonito(queryState.join.table)}.${queryState.join.onB}` +
+          (queryState.join.auto ? "\n(sugerido automáticamente por clave foránea)" : "")
         );
         t.setAttribute("color", rol.ambar);
         t.setAttribute("align", "center");
-        t.setAttribute("width", "12");
+        t.setAttribute("font", "#font-noto-sans");
+        t.setAttribute("font-size", "0.4");
+        t.setAttribute("max-width", "12");
+        t.setAttribute("overflow-wrap", "break-word");
         t.setAttribute("position", "0 -1 0");
         hint.appendChild(t);
       }
       else if (queryState.step === 3 && queryState.operation === "SELECT" && queryState.join) {
-        titleEl.setAttribute("value", `PASO 3 - COLUMNAS DE ${queryState.table.toUpperCase()}`);
+        titleEl.setAttribute("value", `PASO 3 - COLUMNAS DE ${nombreBonito(queryState.table)}`);
         const colsA = schemasMock[queryState.table] || [];
         opciones = colsA.map(col => {
           const selected = queryState.joinColumns.some(c => c.table === queryState.table && c.col === col);
           return {
-            label: col.toUpperCase(), action: "qb_join_col", param: `${queryState.table}::${col}`,
+            label: nombreBonito(col), action: "qb_join_col", param: `${queryState.table}::${col}`,
             w: 5.5, h: 1.0, emissive: selected ? rol.ambar : rol.primario, textColor: selected ? rol.ambar : rol.primario
           };
         });
         extraButtons.push({ label: "TODAS LAS COLUMNAS", action: "qb_join_cols_all", bg: "#111", color: rol.secundario, w: 6.5 });
-        extraButtons.push({ label: `TABLA ${queryState.join.table.toUpperCase()} ->`, action: "qb_join_cols_next", bg: "#1A1A2E", color: rol.primario, w: 6.5 });
+        extraButtons.push({ label: `TABLA ${nombreBonito(queryState.join.table)} ->`, action: "qb_join_cols_next", bg: "#1A1A2E", color: rol.primario, w: 6.5 });
       }
       else if (queryState.step === 3.5 && queryState.operation === "SELECT" && queryState.join) {
-        titleEl.setAttribute("value", `PASO 3.5 - COLUMNAS DE ${queryState.join.table.toUpperCase()}`);
+        titleEl.setAttribute("value", `PASO 3.5 - COLUMNAS DE ${nombreBonito(queryState.join.table)}`);
         const colsB = schemasMock[queryState.join.table] || [];
         opciones = colsB.map(col => {
           const selected = queryState.joinColumns.some(c => c.table === queryState.join.table && c.col === col);
           return {
-            label: col.toUpperCase(), action: "qb_join_col", param: `${queryState.join.table}::${col}`,
+            label: nombreBonito(col), action: "qb_join_col", param: `${queryState.join.table}::${col}`,
             w: 5.5, h: 1.0, emissive: selected ? rol.ambar : rol.primario, textColor: selected ? rol.ambar : rol.primario
           };
         });
@@ -1876,10 +1922,10 @@
       extraButtons.push({ label: "PASO 4 ->", action: "qb_join_cols_done", bg: "#1A1A2E", color: rol.primario, w: 5 });
       }
       else if (queryState.step === 3 && queryState.operation === "SELECT") {
-        titleEl.setAttribute("value", "PASO 3 - COLUMNAS (seleccion multiple)");
+        titleEl.setAttribute("value", "PASO 3 - COLUMNAS (selección múltiple)");
         const cols = ["*", ...(schemasMock[queryState.table] || ["id", "nombre"])];
         opciones = cols.map(c => ({
-          label: c.toUpperCase(),
+          label: c === "*" ? "*" : nombreBonito(c),
           action: "qb_col",
           param: c,
           w: 5.5,
@@ -1907,7 +1953,7 @@
         extraButtons.push({ label: "SALTAR WHERE", action: "qb_skip", bg: "#111", color: rol.secundario, w: 5.8 });
       }
       else if (queryState.step === 4.5 && queryState.operation === "SELECT" && queryState.join) {
-        titleEl.setAttribute("value", `PASO 4.5 - VALOR DE ${queryState.whereCol.table.toUpperCase()}.${queryState.whereCol.col.toUpperCase()}`);
+        titleEl.setAttribute("value", `PASO 4.5 - VALOR DE ${nombreBonito(queryState.whereCol.table)}.${nombreBonito(queryState.whereCol.col)}`);
         opciones = queryState.whereOptions.map((v, idx) => ({
           label: `= '${String(v).length > 14 ? String(v).slice(0, 11) + "..." : String(v)}'`,
           action: "qb_where_val",
@@ -1916,7 +1962,7 @@
         extraButtons.push({ label: "CANCELAR WHERE", action: "qb_skip", bg: "#111", color: rol.secundario, w: 6.0 });
       }
       else if (queryState.step === 4.5 && queryState.operation === "SELECT") {
-        titleEl.setAttribute("value", `PASO 4.5 - VALOR DE ${queryState.whereCol?.toUpperCase() || "WHERE"}`);
+        titleEl.setAttribute("value", `PASO 4.5 - VALOR DE ${queryState.whereCol ? nombreBonito(queryState.whereCol) : "WHERE"}`);
         opciones = queryState.whereOptions.map((v, idx) => ({
           label: `= '${String(v).length > 14 ? String(v).slice(0, 11) + "..." : String(v)}'`,
           action: "qb_where_val",
@@ -1933,7 +1979,7 @@
           label: `ORDER ${table}.${col}`, action: "qb_join_order_col", param: `${table}::${col}`, w: 5.5
         }));
         extraButtons.push({
-          label: `DIRECCION: ${queryState.orderDir}`,          action: "qb_toggle_order_dir",
+          label: `DIRECCIÓN: ${queryState.orderDir}`,          action: "qb_toggle_order_dir",
           bg: "#0E1C2B",
           color: rol.primario,
           w: 6.0
@@ -1945,7 +1991,7 @@
         const cols = queryState.columns[0] === "*" ? (schemasMock[queryState.table] || []) : queryState.columns;
         opciones = cols.map(c => ({ label: `ORDER ${c}`, action: "qb_order_col", param: c }));
         extraButtons.push({
-          label: `DIRECCION: ${queryState.orderDir}`,          action: "qb_toggle_order_dir",
+          label: `DIRECCIÓN: ${queryState.orderDir}`,          action: "qb_toggle_order_dir",
           bg: "#0E1C2B",
           color: rol.primario,
           w: 6.0
@@ -1955,9 +2001,9 @@
       else if (queryState.step === 6 && queryState.operation === "SELECT" && queryState.join) {
         titleEl.setAttribute("value", "QUERY LISTA");
         extraButtons.push({ label: "EJECUTAR QUERY", action: "qb_ejecutar", bg: "#001800", color: rol.terciario, w: 6.5 });
-        const t = document.createElement("a-text");
+        const t = document.createElement("a-troika-text");
         t.setAttribute("value",
-          `${queryState.table.toUpperCase()} ${queryState.join.type} JOIN ${queryState.join.table.toUpperCase()} ` +
+          `${nombreBonito(queryState.table)} ${queryState.join.type} JOIN ${nombreBonito(queryState.join.table)} ` +
           `ON ${queryState.table}.${queryState.join.onA} = ${queryState.join.table}.${queryState.join.onB}\n` +
           `Cols: ${queryState.joinColumns.length ? queryState.joinColumns.map(c => `${c.table}.${c.col}`).join(", ") : "todas"}\n` +
           `WHERE: ${queryState.whereCol?.col ? `${queryState.whereCol.table}.${queryState.whereCol.col}` : "ninguno"}  ` +
@@ -1965,21 +2011,27 @@
         );
         t.setAttribute("color", rol.ambar);
         t.setAttribute("align", "center");
-        t.setAttribute("width", "13");
+        t.setAttribute("font", "#font-noto-sans");
+        t.setAttribute("font-size", "0.36");
+        t.setAttribute("max-width", "13");
+        t.setAttribute("overflow-wrap", "break-word");
         t.setAttribute("position", "0 -2 0");
         hint.appendChild(t);
       }
       else if (queryState.step === 6 && queryState.operation === "SELECT") {
         titleEl.setAttribute("value", "QUERY LISTA");
         extraButtons.push({ label: "EJECUTAR QUERY", action: "qb_ejecutar", bg: "#001800", color: rol.terciario, w: 6.5 });
-        const t = document.createElement("a-text");
+        const t = document.createElement("a-troika-text");
         t.setAttribute("value",
-          `Tabla: ${queryState.table.toUpperCase()}  Cols: ${queryState.columns.join(", ")}\n` +
+          `Tabla: ${nombreBonito(queryState.table)}  Cols: ${queryState.columns.join(", ")}\n` +
           `WHERE: ${queryState.whereCol || "ninguno"}  ORDER: ${queryState.orderCol ? `${queryState.orderCol} ${queryState.orderDir}` : "ninguno"}`
         );
         t.setAttribute("color", rol.ambar);
         t.setAttribute("align", "center");
-        t.setAttribute("width", "10");
+        t.setAttribute("font", "#font-noto-sans");
+        t.setAttribute("font-size", "0.36");
+        t.setAttribute("max-width", "10");
+        t.setAttribute("overflow-wrap", "break-word");
         t.setAttribute("position", "0 -2 0");
         hint.appendChild(t);
       }
@@ -2002,19 +2054,22 @@
           w: 5.5,
           h: 1.0
         }));
-        extraButtons.push({ label: "QUITAR ULTIMA", action: "qb_create_remove_col", bg: "#3A1111", color: rol.peligro, w: 6 }); extraButtons.push({ label: "PASO 4 ->", action: "qb_skip", bg: "#1A1A2E", color: rol.primario, w: 5 });
+        extraButtons.push({ label: "QUITAR ÚLTIMA", action: "qb_create_remove_col", bg: "#3A1111", color: rol.peligro, w: 6 }); extraButtons.push({ label: "PASO 4 ->", action: "qb_skip", bg: "#1A1A2E", color: rol.primario, w: 5 });
       }
       else if (queryState.step === 4 && queryState.operation === "CREATE_TABLE") {
         titleEl.setAttribute("value", "LISTO PARA CREAR");
         extraButtons.push({ label: "EJECUTAR CREATE", action: "qb_create_exec", bg: "#001800", color: rol.terciario, w: 7 });
-        const t = document.createElement("a-text");
+        const t = document.createElement("a-troika-text");
         t.setAttribute("value",
           `Tabla: ${queryState.createTableName || "?"}\n` +
           `Columnas: ${queryState.createColumns.map(c => `${c.name} ${c.type}`).join(", ") || "ninguna"}`
         );
         t.setAttribute("color", rol.ambar);
         t.setAttribute("align", "center");
-        t.setAttribute("width", "12");
+        t.setAttribute("font", "#font-noto-sans");
+        t.setAttribute("font-size", "0.38");
+        t.setAttribute("max-width", "12");
+        t.setAttribute("overflow-wrap", "break-word");
         t.setAttribute("position", "0 -2 0");
         hint.appendChild(t);
       }
@@ -2033,7 +2088,7 @@
       if (cu.username) extraButtons.push({ label: "PASO 3 ->", action: "cu_next", bg: "#1A1A2E", color: rol.primario, w: 5 });
       }
       else if (queryState.step === 3 && queryState.operation === "CREAR_USUARIO") {
-        titleEl.setAttribute("value", "PASO 3 - CONTRASENA");
+        titleEl.setAttribute("value", "PASO 3 - CONTRASEÑA");
         const cu = queryState.cu;
         opciones = [{
           label: cu.password ? `CONTRASEÑA: ${"*".repeat(Math.min(cu.password.length, 12))}` : "CONTRASEÑA (tocar)",
@@ -2062,7 +2117,7 @@
         const cu = queryState.cu;
         const idx = cu.tableIndex || 0;
         const tabla = tablasDisponibles[idx];
-        titleEl.setAttribute("value", `PASO 5 - TABLA ${idx + 1}/${tablasDisponibles.length}: ${tabla ? tabla.toUpperCase() : "?"}`);
+        titleEl.setAttribute("value", `PASO 5 - TABLA ${idx + 1}/${tablasDisponibles.length}: ${tabla ? nombreBonito(tabla) : "?"}`);
         const p = cu.tablePerms[tabla] || { read: false, write: false };
         opciones = [
           {
@@ -2089,14 +2144,17 @@
 
         const tablasTxt = Object.entries(cu.tablePerms)
           .filter(([, p]) => p.read)
-          .map(([tabla, p]) => `${tabla}${p.write ? "(R/E)" : "(R)"}`)
+          .map(([tabla, p]) => `${nombreBonito(tabla)}${p.write ? "(R/E)" : "(R)"}`)
           .join(", ") || "ninguna";
 
-        const t = document.createElement("a-text");
+        const t = document.createElement("a-troika-text");
         t.setAttribute("value", `Usuario: ${cu.username}   Rol: ${rolFinal || "?"}\nTablas (${nTablas}): ${tablasTxt}`);
         t.setAttribute("color", rol.ambar);
         t.setAttribute("align", "center");
-        t.setAttribute("width", "13");
+        t.setAttribute("font", "#font-noto-sans");
+        t.setAttribute("font-size", "0.38");
+        t.setAttribute("max-width", "13");
+        t.setAttribute("overflow-wrap", "break-word");
         t.setAttribute("position", "0 -2 0");
         hint.appendChild(t);
       }
@@ -2104,19 +2162,22 @@
       else if (queryState.step === 2 && queryState.operation === "DROP_TABLE") {
         titleEl.setAttribute("value", "PASO 2 - ELEGIR TABLA A ELIMINAR");
         opciones = tablasParaDrop.map(t => ({
-          label: t.toUpperCase(), action: "qb_drop_tabla", param: t, emissive: rol.peligro, textColor: rol.peligro
+          label: nombreBonito(t), action: "qb_drop_tabla", param: t, emissive: rol.peligro, textColor: rol.peligro
         }));
       }
       else if (queryState.step === 3 && queryState.operation === "DROP_TABLE") {
-        titleEl.setAttribute("value", "CONFIRMAR ELIMINACION");
+        titleEl.setAttribute("value", "CONFIRMAR ELIMINACIÓN");
         extraButtons.push({ label: "EJECUTAR DROP", action: "qb_drop_exec", bg: "#2A0000", color: rol.peligro, w: 7 });
-        const t = document.createElement("a-text");
+        const t = document.createElement("a-troika-text");
         t.setAttribute("value",
-          `Esta accion es IRREVERSIBLE.\nSe eliminara la tabla "${queryState.table}" y todos sus datos.`
+          `Esta acción es IRREVERSIBLE.\nSe eliminará la tabla "${nombreBonito(queryState.table)}" y todos sus datos.`
         );
         t.setAttribute("color", rol.peligro);
         t.setAttribute("align", "center");
-        t.setAttribute("width", "11");
+        t.setAttribute("font", "#font-noto-sans");
+        t.setAttribute("font-size", "0.36");
+        t.setAttribute("max-width", "11");
+        t.setAttribute("overflow-wrap", "break-word");
         t.setAttribute("position", "0 -2 0");
         hint.appendChild(t);
       }
@@ -2362,7 +2423,7 @@
       cubo.innerHTML = `
         <a-box width="1.6" height="1.6" depth="1.6"
                material="color: #0a1020; emissive: ${rol.terciario}; emissiveIntensity: 0.5; opacity: 0.95"></a-box>
-        <a-text value="${tablaA.toUpperCase()}\n== JOIN ==\n${tablaB.toUpperCase()}" align="center"                position="0 0 0.9" width="7" color="${rol.terciario}"></a-text>
+        <a-troika-text value="${nombreBonito(tablaA)}\n== JOIN ==\n${nombreBonito(tablaB)}" align="center" position="0 0 0.9" font="#font-noto-sans" font-size="0.34" max-width="6" overflow-wrap="break-word" line-height="1.2" color="${rol.terciario}"></a-troika-text>
       `;
       cont.appendChild(cubo);
       cubo.setAttribute("animation__cubo_scale", "property: scale; to: 1 1 1; dur: 550; delay: 150; easing: easeOutBack");
@@ -2561,7 +2622,7 @@
       if (queryState.join) {
         const j = queryState.join;
         document.getElementById("qr-titulo").setAttribute("value",
-          `${queryState.table.toUpperCase()} ${j.type} JOIN ${j.table.toUpperCase()}`);
+          `${nombreBonito(queryState.table)} ${j.type} JOIN ${nombreBonito(j.table)}`);
 
         try {
           const resp = await fetch('/api/query/join', {
@@ -2595,7 +2656,7 @@
         return;
       }
 
-      const titulo = `${queryState.operation} ${queryState.table.toUpperCase()}`;
+      const titulo = `${queryState.operation} ${nombreBonito(queryState.table)}`;
       document.getElementById("qr-titulo").setAttribute("value", titulo);
 
       try {
@@ -2827,8 +2888,8 @@
                    width="${keyW}" height="${keyH}" depth="0.22"
                    material="color: ${bg}; emissive: ${emissive}; emissiveIntensity: 0.32; opacity: 0.98"
                    data-action="vrkb_key" data-param="${char}">
-              <a-text value="${char}" align="center" position="0 0 0.13"
-                      width="${keyW * 2.9}" color="#0A0A0A"></a-text>
+              <a-troika-text value="${char}" align="center" position="0 0 0.13"
+                      font="#font-noto-sans" font-size="0.42" max-width="${keyW * 0.9}" color="#0A0A0A"></a-troika-text>
             </a-box>
           `;
           cont.appendChild(ent);
@@ -2838,7 +2899,7 @@
       // Fila especial: SHIFT/MAYUS | ESPACIO | BORRAR | NÚMEROS
       const bottomY = -(rowsTotal * (keyH + gapY)) - 0.15;
       const specialKeys = [
-        { label: _vrkbMode === "num" ? "ABC" : (_vrkbMode === "upper" ? "minus" : "MAYUS"), param: "vrkb_toggle_case", w: 2.2, color: rol.secundario },
+        { label: _vrkbMode === "num" ? "ABC" : (_vrkbMode === "upper" ? "minus" : "MAYÚS"), param: "vrkb_toggle_case", w: 2.2, color: rol.secundario },
         { label: "ESPACIO", param: "vrkb_space", w: 4.2, color: rol.terciario },
         { label: "BORRAR", param: "vrkb_back", w: 1.6, color: rol.ambar },        { label: _vrkbMode === "num" ? "ABC" : "123", param: "vrkb_toggle_num", w: 2.0, color: rol.violeta }
       ];
@@ -2852,8 +2913,8 @@
                  width="${k.w}" height="${keyH}" depth="0.22"
                  material="color: #0D0020; emissive: ${k.color}; emissiveIntensity: 0.4; opacity: 0.98"
                  data-action="${k.param}">
-            <a-text value="${k.label}" align="center" position="0 0 0.13"
-                    width="${k.w * 2.2}" color="#0A0A0A"></a-text>
+            <a-troika-text value="${k.label}" align="center" position="0 0 0.13"
+                    font="#font-noto-sans" font-size="0.3" max-width="${k.w * 0.9}" overflow-wrap="break-word" color="#0A0A0A"></a-troika-text>
           </a-box>
         `;
         cont.appendChild(ent);
@@ -3261,7 +3322,7 @@
       tablaActual = nombre;
       paginaActual = 0;
       tablaVista = "2d";
-      document.getElementById("texto-tabla").setAttribute("value", `SELECT ${nombre.toUpperCase()}`);
+      document.getElementById("texto-tabla").setAttribute("value", `SELECT ${nombreBonito(nombre)}`);
 
       try {
         const res = await postgrestFetch(`${API_URL}/${nombre}?limit=1000`);
@@ -3320,11 +3381,14 @@
         box.setAttribute("color", colores.cabecera);
         box.setAttribute("opacity", "0.9");
 
-        const txt = document.createElement("a-text");
-        txt.setAttribute("value", col.toUpperCase());
+        const txt = document.createElement("a-troika-text");
+        txt.setAttribute("value", nombreBonito(col));
         txt.setAttribute("position", `${x} 0 0.25`);
         txt.setAttribute("color", colores.cabeceraTexto);
-        txt.setAttribute("width", "6.6");
+        txt.setAttribute("font", "#font-noto-sans");
+        txt.setAttribute("font-size", "0.26");
+        txt.setAttribute("max-width", "2.6");
+        txt.setAttribute("overflow-wrap", "break-word");
         txt.setAttribute("align", "center");
 
         cabeceraBG.appendChild(box);
@@ -3364,13 +3428,16 @@
           box.setAttribute("color", rowI % 2 === 0 ? colores.celda : colores.fila_alt);
           box.setAttribute("opacity", "0.86");
 
-          const txt = document.createElement("a-text");
+          const txt = document.createElement("a-troika-text");
           let val = fila[col] ?? "-";
           val = String(val);
           if (val.length > 20) val = val.slice(0, 17) + "...";
           txt.setAttribute("value", val);
           txt.setAttribute("position", `${x} 0 0.25`);
-          txt.setAttribute("width", "5.6");
+          txt.setAttribute("font", "#font-noto-sans");
+          txt.setAttribute("font-size", "0.26");
+          txt.setAttribute("max-width", "2.6");
+          txt.setAttribute("overflow-wrap", "break-word");
           txt.setAttribute("color", colores.celdaTexto);
           txt.setAttribute("align", "center");
 
@@ -3413,8 +3480,8 @@
                  material="color:${colores.cabecera}; emissive:${colores.cabeceraTexto}; emissiveIntensity:0.26; opacity:0.96"></a-box>
           <a-box width="2.33" height="0.05" depth="0.55" position="0 0.36 0"
                  material="color:${colores.cabeceraTexto}; emissive:${colores.cabeceraTexto}; emissiveIntensity:0.8; opacity:0.7"></a-box>
-          <a-text value="${col.toUpperCase()}" align="center" position="0 0 0.30"
-                  width="5.2" color="${colores.cabeceraTexto}"></a-text>
+          <a-troika-text value="${nombreBonito(col)}" align="center" position="0 0 0.30"
+                  font="#font-noto-sans" font-size="0.22" max-width="2.1" overflow-wrap="break-word" color="${colores.cabeceraTexto}"></a-troika-text>
         `;
         cabecera.appendChild(h);
       });
@@ -3454,8 +3521,8 @@
                    material="color:${colorBase}; emissive:${colores.celdaTexto}; emissiveIntensity:0.08; opacity:0.94"></a-box>
             <a-box width="2.3" height="0.03" depth="0.50" position="0 -0.4 0"
                    material="color:${colores.celdaTexto}; emissive:${colores.celdaTexto}; emissiveIntensity:0.5; opacity:0.18"></a-box>
-            <a-text value="${val}" align="center" position="0 0 0.27"
-                    width="4.6" color="${colores.celdaTexto}"></a-text>
+            <a-troika-text value="${val}" align="center" position="0 0 0.27"
+                    font="#font-noto-sans" font-size="0.24" max-width="2.1" overflow-wrap="break-word" color="${colores.celdaTexto}"></a-troika-text>
           `;
           row.appendChild(cell);
         });
