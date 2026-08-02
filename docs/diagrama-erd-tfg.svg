@@ -1,0 +1,308 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1370 1154" width="1370" height="1154" font-family="Segoe UI, Arial, sans-serif">
+<defs>
+<marker id="arrowB" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L7,3 L0,6 Z" fill="#334155"/></marker>
+<marker id="arrowGrn" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L7,3 L0,6 Z" fill="#047857"/></marker>
+<marker id="arrowGreyB" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L7,3 L0,6 Z" fill="#94a3b8"/></marker>
+<marker id="arrowPurple" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L7,3 L0,6 Z" fill="#a78bfa"/></marker>
+</defs>
+<rect x="0" y="0" width="1370" height="1154" fill="#ffffff"/>
+<text x="685.0" y="32" text-anchor="middle" font-size="21" font-weight="700" fill="#0f172a">Diagrama entidad-relacion &#8212; Base de datos Universidad</text>
+<rect x="50" y="70" width="650" height="442" rx="12" fill="none" stroke="#1d4ed8" stroke-width="1" stroke-dasharray="2,4" opacity="0.45"/>
+<text x="60" y="90" font-size="12.5" font-weight="700" fill="#1d4ed8">NUCLEO ACADEMICO</text>
+<rect x="730" y="70" width="630" height="618" rx="12" fill="none" stroke="#047857" stroke-width="1" stroke-dasharray="2,4" opacity="0.45"/>
+<text x="740" y="90" font-size="12.5" font-weight="700" fill="#047857">SISTEMA DE AUTENTICACION Y PERMISOS</text>
+<rect x="50" y="688" width="990" height="326" rx="12" fill="none" stroke="#7c3aed" stroke-width="1" stroke-dasharray="2,4" opacity="0.45"/>
+<text x="60" y="708" font-size="12.5" font-weight="700" fill="#7c3aed">VISTAS POR ROL (solo lectura, derivadas)</text>
+<rect x="80" y="110" width="250" height="156" rx="7" fill="#ffffff" stroke="#1d4ed8" stroke-width="1.6"/>
+<path d="M80,117 q0,-7 7,-7 h236 q7,0 7,7 v23 h-250 Z" fill="#eff6ff" stroke="#1d4ed8" stroke-width="1.6"/>
+<text x="205.0" y="130" text-anchor="middle" font-size="13" font-weight="700" fill="#0f172a">profesores</text>
+<text x="86" y="154" font-size="7.6" font-weight="700" fill="#b45309">PK</text>
+<text x="104" y="154" font-size="10.6" font-weight="700" fill="#0f172a">idprofesor</text>
+<text x="322" y="154" text-anchor="end" font-size="9.3" fill="#94a3b8">INT</text>
+<line x1="80" y1="160" x2="330" y2="160" stroke="#e5e7eb" stroke-width="1"/>
+<text x="90" y="174" font-size="10.6" font-weight="400" fill="#0f172a">nombre</text>
+<text x="322" y="174" text-anchor="end" font-size="9.3" fill="#94a3b8">VARCHAR(50)</text>
+<line x1="80" y1="180" x2="330" y2="180" stroke="#e5e7eb" stroke-width="1"/>
+<text x="90" y="194" font-size="10.6" font-weight="400" fill="#0f172a">apellido</text>
+<text x="322" y="194" text-anchor="end" font-size="9.3" fill="#94a3b8">VARCHAR(50)</text>
+<line x1="80" y1="200" x2="330" y2="200" stroke="#e5e7eb" stroke-width="1"/>
+<text x="90" y="214" font-size="10.6" font-weight="400" fill="#0f172a">correoelectronico</text>
+<text x="322" y="214" text-anchor="end" font-size="9.3" fill="#94a3b8">VARCHAR(100)</text>
+<line x1="80" y1="220" x2="330" y2="220" stroke="#e5e7eb" stroke-width="1"/>
+<text x="90" y="234" font-size="10.6" font-weight="400" fill="#0f172a">departamento</text>
+<text x="322" y="234" text-anchor="end" font-size="9.3" fill="#94a3b8">VARCHAR(50)</text>
+<line x1="80" y1="240" x2="330" y2="240" stroke="#e5e7eb" stroke-width="1"/>
+<text x="90" y="254" font-size="10.6" font-weight="400" fill="#0f172a">salario</text>
+<text x="322" y="254" text-anchor="end" font-size="9.3" fill="#94a3b8">DECIMAL(10,2)</text>
+<rect x="420" y="110" width="250" height="156" rx="7" fill="#ffffff" stroke="#1d4ed8" stroke-width="1.6"/>
+<path d="M420,117 q0,-7 7,-7 h236 q7,0 7,7 v23 h-250 Z" fill="#eff6ff" stroke="#1d4ed8" stroke-width="1.6"/>
+<text x="545.0" y="130" text-anchor="middle" font-size="13" font-weight="700" fill="#0f172a">asignaturas</text>
+<text x="426" y="154" font-size="7.6" font-weight="700" fill="#b45309">PK</text>
+<text x="444" y="154" font-size="10.6" font-weight="700" fill="#0f172a">idasignatura</text>
+<text x="662" y="154" text-anchor="end" font-size="9.3" fill="#94a3b8">INT</text>
+<line x1="420" y1="160" x2="670" y2="160" stroke="#e5e7eb" stroke-width="1"/>
+<text x="430" y="174" font-size="10.6" font-weight="400" fill="#0f172a">nombre</text>
+<text x="662" y="174" text-anchor="end" font-size="9.3" fill="#94a3b8">VARCHAR(100)</text>
+<line x1="420" y1="180" x2="670" y2="180" stroke="#e5e7eb" stroke-width="1"/>
+<text x="430" y="194" font-size="10.6" font-weight="400" fill="#0f172a">creditos</text>
+<text x="662" y="194" text-anchor="end" font-size="9.3" fill="#94a3b8">INT</text>
+<line x1="420" y1="200" x2="670" y2="200" stroke="#e5e7eb" stroke-width="1"/>
+<text x="430" y="214" font-size="10.6" font-weight="400" fill="#0f172a">curso</text>
+<text x="662" y="214" text-anchor="end" font-size="9.3" fill="#94a3b8">INT</text>
+<line x1="420" y1="220" x2="670" y2="220" stroke="#e5e7eb" stroke-width="1"/>
+<text x="430" y="234" font-size="10.6" font-weight="400" fill="#0f172a">semestre</text>
+<text x="662" y="234" text-anchor="end" font-size="9.3" fill="#94a3b8">INT</text>
+<line x1="420" y1="240" x2="670" y2="240" stroke="#e5e7eb" stroke-width="1"/>
+<text x="426" y="254" font-size="7.6" font-weight="700" fill="#0369a1">FK</text>
+<text x="444" y="254" font-size="10.6" font-weight="400" font-style="italic" fill="#0f172a">idprofesor</text>
+<text x="662" y="254" text-anchor="end" font-size="9.3" fill="#94a3b8">INT</text>
+<rect x="80" y="306" width="250" height="176" rx="7" fill="#ffffff" stroke="#1d4ed8" stroke-width="1.6"/>
+<path d="M80,313 q0,-7 7,-7 h236 q7,0 7,7 v23 h-250 Z" fill="#eff6ff" stroke="#1d4ed8" stroke-width="1.6"/>
+<text x="205.0" y="326" text-anchor="middle" font-size="13" font-weight="700" fill="#0f172a">estudiantes</text>
+<text x="86" y="350" font-size="7.6" font-weight="700" fill="#b45309">PK</text>
+<text x="104" y="350" font-size="10.6" font-weight="700" fill="#0f172a">matricula</text>
+<text x="322" y="350" text-anchor="end" font-size="9.3" fill="#94a3b8">INT</text>
+<line x1="80" y1="356" x2="330" y2="356" stroke="#e5e7eb" stroke-width="1"/>
+<text x="90" y="370" font-size="10.6" font-weight="400" fill="#0f172a">nombre</text>
+<text x="322" y="370" text-anchor="end" font-size="9.3" fill="#94a3b8">VARCHAR(50)</text>
+<line x1="80" y1="376" x2="330" y2="376" stroke="#e5e7eb" stroke-width="1"/>
+<text x="90" y="390" font-size="10.6" font-weight="400" fill="#0f172a">apellido</text>
+<text x="322" y="390" text-anchor="end" font-size="9.3" fill="#94a3b8">VARCHAR(50)</text>
+<line x1="80" y1="396" x2="330" y2="396" stroke="#e5e7eb" stroke-width="1"/>
+<text x="90" y="410" font-size="10.6" font-weight="400" fill="#0f172a">telefono</text>
+<text x="322" y="410" text-anchor="end" font-size="9.3" fill="#94a3b8">VARCHAR(15)</text>
+<line x1="80" y1="416" x2="330" y2="416" stroke="#e5e7eb" stroke-width="1"/>
+<text x="90" y="430" font-size="10.6" font-weight="400" fill="#0f172a">correoelectronico</text>
+<text x="322" y="430" text-anchor="end" font-size="9.3" fill="#94a3b8">VARCHAR(100)</text>
+<line x1="80" y1="436" x2="330" y2="436" stroke="#e5e7eb" stroke-width="1"/>
+<text x="90" y="450" font-size="10.6" font-weight="400" fill="#0f172a">direccion</text>
+<text x="322" y="450" text-anchor="end" font-size="9.3" fill="#94a3b8">VARCHAR(100)</text>
+<line x1="80" y1="456" x2="330" y2="456" stroke="#e5e7eb" stroke-width="1"/>
+<text x="90" y="470" font-size="10.6" font-weight="400" fill="#0f172a">edad</text>
+<text x="322" y="470" text-anchor="end" font-size="9.3" fill="#94a3b8">INT</text>
+<rect x="420" y="306" width="250" height="136" rx="7" fill="#ffffff" stroke="#1d4ed8" stroke-width="1.6"/>
+<path d="M420,313 q0,-7 7,-7 h236 q7,0 7,7 v23 h-250 Z" fill="#eff6ff" stroke="#1d4ed8" stroke-width="1.6"/>
+<text x="545.0" y="326" text-anchor="middle" font-size="13" font-weight="700" fill="#0f172a">matriculas</text>
+<text x="426" y="350" font-size="7.6" font-weight="700" fill="#7c3aed">PK,FK</text>
+<text x="452" y="350" font-size="10.6" font-weight="700" fill="#0f172a">matricula</text>
+<text x="662" y="350" text-anchor="end" font-size="9.3" fill="#94a3b8">INT</text>
+<line x1="420" y1="356" x2="670" y2="356" stroke="#e5e7eb" stroke-width="1"/>
+<text x="426" y="370" font-size="7.6" font-weight="700" fill="#7c3aed">PK,FK</text>
+<text x="452" y="370" font-size="10.6" font-weight="700" fill="#0f172a">idasignatura</text>
+<text x="662" y="370" text-anchor="end" font-size="9.3" fill="#94a3b8">INT</text>
+<line x1="420" y1="376" x2="670" y2="376" stroke="#e5e7eb" stroke-width="1"/>
+<text x="430" y="390" font-size="10.6" font-weight="400" fill="#0f172a">fechamatriculacion</text>
+<text x="662" y="390" text-anchor="end" font-size="9.3" fill="#94a3b8">DATE</text>
+<line x1="420" y1="396" x2="670" y2="396" stroke="#e5e7eb" stroke-width="1"/>
+<text x="430" y="410" font-size="10.6" font-weight="400" fill="#0f172a">notanumerica</text>
+<text x="662" y="410" text-anchor="end" font-size="9.3" fill="#94a3b8">DECIMAL(4,2)</text>
+<line x1="420" y1="416" x2="670" y2="416" stroke="#e5e7eb" stroke-width="1"/>
+<text x="430" y="430" font-size="10.6" font-weight="400" fill="#0f172a">notatexto</text>
+<text x="662" y="430" text-anchor="end" font-size="9.3" fill="#94a3b8">VARCHAR(50)</text>
+<rect x="760" y="110" width="250" height="176" rx="7" fill="#ffffff" stroke="#047857" stroke-width="1.6"/>
+<path d="M760,117 q0,-7 7,-7 h236 q7,0 7,7 v23 h-250 Z" fill="#ecfdf5" stroke="#047857" stroke-width="1.6"/>
+<text x="885.0" y="130" text-anchor="middle" font-size="13" font-weight="700" fill="#0f172a">users</text>
+<text x="766" y="154" font-size="7.6" font-weight="700" fill="#b45309">PK</text>
+<text x="784" y="154" font-size="10.6" font-weight="700" fill="#0f172a">user_id</text>
+<text x="1002" y="154" text-anchor="end" font-size="9.3" fill="#94a3b8">SERIAL</text>
+<line x1="760" y1="160" x2="1010" y2="160" stroke="#e5e7eb" stroke-width="1"/>
+<text x="770" y="174" font-size="10.6" font-weight="400" fill="#0f172a">username</text>
+<text x="1002" y="174" text-anchor="end" font-size="9.3" fill="#94a3b8">VARCHAR(50)</text>
+<line x1="760" y1="180" x2="1010" y2="180" stroke="#e5e7eb" stroke-width="1"/>
+<text x="770" y="194" font-size="10.6" font-weight="400" fill="#0f172a">password_hash</text>
+<text x="1002" y="194" text-anchor="end" font-size="9.3" fill="#94a3b8">VARCHAR</text>
+<line x1="760" y1="200" x2="1010" y2="200" stroke="#e5e7eb" stroke-width="1"/>
+<text x="770" y="214" font-size="10.6" font-weight="400" fill="#0f172a">email</text>
+<text x="1002" y="214" text-anchor="end" font-size="9.3" fill="#94a3b8">VARCHAR(100)</text>
+<line x1="760" y1="220" x2="1010" y2="220" stroke="#e5e7eb" stroke-width="1"/>
+<text x="770" y="234" font-size="10.6" font-weight="400" fill="#0f172a">role</text>
+<text x="1002" y="234" text-anchor="end" font-size="9.3" fill="#94a3b8">VARCHAR(50)</text>
+<line x1="760" y1="240" x2="1010" y2="240" stroke="#e5e7eb" stroke-width="1"/>
+<text x="770" y="254" font-size="10.6" font-weight="400" fill="#0f172a">created_at</text>
+<text x="1002" y="254" text-anchor="end" font-size="9.3" fill="#94a3b8">TIMESTAMP</text>
+<line x1="760" y1="260" x2="1010" y2="260" stroke="#e5e7eb" stroke-width="1"/>
+<text x="770" y="274" font-size="10.6" font-weight="400" fill="#0f172a">is_active</text>
+<text x="1002" y="274" text-anchor="end" font-size="9.3" fill="#94a3b8">BOOLEAN</text>
+<rect x="1080" y="110" width="250" height="116" rx="7" fill="#ffffff" stroke="#047857" stroke-width="1.6"/>
+<path d="M1080,117 q0,-7 7,-7 h236 q7,0 7,7 v23 h-250 Z" fill="#ecfdf5" stroke="#047857" stroke-width="1.6"/>
+<text x="1205.0" y="130" text-anchor="middle" font-size="13" font-weight="700" fill="#0f172a">permissions</text>
+<text x="1086" y="154" font-size="7.6" font-weight="700" fill="#b45309">PK</text>
+<text x="1104" y="154" font-size="10.6" font-weight="700" fill="#0f172a">permission_id</text>
+<text x="1322" y="154" text-anchor="end" font-size="9.3" fill="#94a3b8">SERIAL</text>
+<line x1="1080" y1="160" x2="1330" y2="160" stroke="#e5e7eb" stroke-width="1"/>
+<text x="1090" y="174" font-size="10.6" font-weight="400" fill="#0f172a">role_name</text>
+<text x="1322" y="174" text-anchor="end" font-size="9.3" fill="#94a3b8">VARCHAR(50)</text>
+<line x1="1080" y1="180" x2="1330" y2="180" stroke="#e5e7eb" stroke-width="1"/>
+<text x="1090" y="194" font-size="10.6" font-weight="400" fill="#0f172a">permission_name</text>
+<text x="1322" y="194" text-anchor="end" font-size="9.3" fill="#94a3b8">VARCHAR(100)</text>
+<line x1="1080" y1="200" x2="1330" y2="200" stroke="#e5e7eb" stroke-width="1"/>
+<text x="1090" y="214" font-size="10.6" font-weight="400" fill="#0f172a">description</text>
+<text x="1322" y="214" text-anchor="end" font-size="9.3" fill="#94a3b8">VARCHAR</text>
+<rect x="1080" y="266" width="250" height="96" rx="7" fill="#ffffff" stroke="#047857" stroke-width="1.6"/>
+<path d="M1080,273 q0,-7 7,-7 h236 q7,0 7,7 v23 h-250 Z" fill="#ecfdf5" stroke="#047857" stroke-width="1.6"/>
+<text x="1205.0" y="286" text-anchor="middle" font-size="13" font-weight="700" fill="#0f172a">role_default_tables</text>
+<text x="1086" y="310" font-size="7.6" font-weight="700" fill="#b45309">PK</text>
+<text x="1104" y="310" font-size="10.6" font-weight="700" fill="#0f172a">role_name</text>
+<text x="1322" y="310" text-anchor="end" font-size="9.3" fill="#94a3b8">VARCHAR(50)</text>
+<line x1="1080" y1="316" x2="1330" y2="316" stroke="#e5e7eb" stroke-width="1"/>
+<text x="1086" y="330" font-size="7.6" font-weight="700" fill="#b45309">PK</text>
+<text x="1104" y="330" font-size="10.6" font-weight="700" fill="#0f172a">table_name</text>
+<text x="1322" y="330" text-anchor="end" font-size="9.3" fill="#94a3b8">VARCHAR(100)</text>
+<line x1="1080" y1="336" x2="1330" y2="336" stroke="#e5e7eb" stroke-width="1"/>
+<text x="1090" y="350" font-size="10.6" font-weight="400" fill="#0f172a">can_write</text>
+<text x="1322" y="350" text-anchor="end" font-size="9.3" fill="#94a3b8">BOOLEAN</text>
+<rect x="760" y="326" width="250" height="116" rx="7" fill="#ffffff" stroke="#047857" stroke-width="1.6"/>
+<path d="M760,333 q0,-7 7,-7 h236 q7,0 7,7 v23 h-250 Z" fill="#ecfdf5" stroke="#047857" stroke-width="1.6"/>
+<text x="885.0" y="346" text-anchor="middle" font-size="13" font-weight="700" fill="#0f172a">user_table_permissions</text>
+<text x="766" y="370" font-size="7.6" font-weight="700" fill="#7c3aed">PK,FK</text>
+<text x="792" y="370" font-size="10.6" font-weight="700" fill="#0f172a">user_id</text>
+<text x="1002" y="370" text-anchor="end" font-size="9.3" fill="#94a3b8">INT</text>
+<line x1="760" y1="376" x2="1010" y2="376" stroke="#e5e7eb" stroke-width="1"/>
+<text x="766" y="390" font-size="7.6" font-weight="700" fill="#b45309">PK</text>
+<text x="784" y="390" font-size="10.6" font-weight="700" fill="#0f172a">table_name</text>
+<text x="1002" y="390" text-anchor="end" font-size="9.3" fill="#94a3b8">VARCHAR(100)</text>
+<line x1="760" y1="396" x2="1010" y2="396" stroke="#e5e7eb" stroke-width="1"/>
+<text x="770" y="410" font-size="10.6" font-weight="400" fill="#0f172a">can_read</text>
+<text x="1002" y="410" text-anchor="end" font-size="9.3" fill="#94a3b8">BOOLEAN</text>
+<line x1="760" y1="416" x2="1010" y2="416" stroke="#e5e7eb" stroke-width="1"/>
+<text x="770" y="430" font-size="10.6" font-weight="400" fill="#0f172a">can_write</text>
+<text x="1002" y="430" text-anchor="end" font-size="9.3" fill="#94a3b8">BOOLEAN</text>
+<rect x="760" y="482" width="250" height="176" rx="7" fill="#ffffff" stroke="#047857" stroke-width="1.6"/>
+<path d="M760,489 q0,-7 7,-7 h236 q7,0 7,7 v23 h-250 Z" fill="#ecfdf5" stroke="#047857" stroke-width="1.6"/>
+<text x="885.0" y="502" text-anchor="middle" font-size="13" font-weight="700" fill="#0f172a">audit_log</text>
+<text x="766" y="526" font-size="7.6" font-weight="700" fill="#b45309">PK</text>
+<text x="784" y="526" font-size="10.6" font-weight="700" fill="#0f172a">log_id</text>
+<text x="1002" y="526" text-anchor="end" font-size="9.3" fill="#94a3b8">BIGSERIAL</text>
+<line x1="760" y1="532" x2="1010" y2="532" stroke="#e5e7eb" stroke-width="1"/>
+<text x="770" y="546" font-size="10.6" font-weight="400" fill="#0f172a">table_name</text>
+<text x="1002" y="546" text-anchor="end" font-size="9.3" fill="#94a3b8">VARCHAR(100)</text>
+<line x1="760" y1="552" x2="1010" y2="552" stroke="#e5e7eb" stroke-width="1"/>
+<text x="770" y="566" font-size="10.6" font-weight="400" fill="#0f172a">operation</text>
+<text x="1002" y="566" text-anchor="end" font-size="9.3" fill="#94a3b8">VARCHAR(10)</text>
+<line x1="760" y1="572" x2="1010" y2="572" stroke="#e5e7eb" stroke-width="1"/>
+<text x="770" y="586" font-size="10.6" font-weight="400" fill="#0f172a">changed_by</text>
+<text x="1002" y="586" text-anchor="end" font-size="9.3" fill="#94a3b8">VARCHAR(100)</text>
+<line x1="760" y1="592" x2="1010" y2="592" stroke="#e5e7eb" stroke-width="1"/>
+<text x="770" y="606" font-size="10.6" font-weight="400" fill="#0f172a">changed_at</text>
+<text x="1002" y="606" text-anchor="end" font-size="9.3" fill="#94a3b8">TIMESTAMP</text>
+<line x1="760" y1="612" x2="1010" y2="612" stroke="#e5e7eb" stroke-width="1"/>
+<text x="770" y="626" font-size="10.6" font-weight="400" fill="#0f172a">old_data</text>
+<text x="1002" y="626" text-anchor="end" font-size="9.3" fill="#94a3b8">JSONB</text>
+<line x1="760" y1="632" x2="1010" y2="632" stroke="#e5e7eb" stroke-width="1"/>
+<text x="770" y="646" font-size="10.6" font-weight="400" fill="#0f172a">new_data</text>
+<text x="1002" y="646" text-anchor="end" font-size="9.3" fill="#94a3b8">JSONB</text>
+<rect x="80" y="728" width="260" height="256" rx="7" fill="#ffffff" stroke="#7c3aed" stroke-width="1.6" stroke-dasharray="5,4"/>
+<path d="M80,735 q0,-7 7,-7 h246 q7,0 7,7 v23 h-260 Z" fill="#f5f3ff" stroke="#7c3aed" stroke-width="1.6" stroke-dasharray="5,4"/>
+<text x="210.0" y="748" text-anchor="middle" font-size="13" font-weight="700" fill="#0f172a">vista_estudiante (VIEW)</text>
+<text x="90" y="772" font-size="10.6" font-weight="400" fill="#0f172a">idasignatura</text>
+<text x="332" y="772" text-anchor="end" font-size="9.3" fill="#94a3b8">INT</text>
+<line x1="80" y1="778" x2="340" y2="778" stroke="#e5e7eb" stroke-width="1"/>
+<text x="90" y="792" font-size="10.6" font-weight="400" fill="#0f172a">asignatura</text>
+<text x="332" y="792" text-anchor="end" font-size="9.3" fill="#94a3b8">VARCHAR(100)</text>
+<line x1="80" y1="798" x2="340" y2="798" stroke="#e5e7eb" stroke-width="1"/>
+<text x="90" y="812" font-size="10.6" font-weight="400" fill="#0f172a">creditos</text>
+<text x="332" y="812" text-anchor="end" font-size="9.3" fill="#94a3b8">INT</text>
+<line x1="80" y1="818" x2="340" y2="818" stroke="#e5e7eb" stroke-width="1"/>
+<text x="90" y="832" font-size="10.6" font-weight="400" fill="#0f172a">curso</text>
+<text x="332" y="832" text-anchor="end" font-size="9.3" fill="#94a3b8">INT</text>
+<line x1="80" y1="838" x2="340" y2="838" stroke="#e5e7eb" stroke-width="1"/>
+<text x="90" y="852" font-size="10.6" font-weight="400" fill="#0f172a">semestre</text>
+<text x="332" y="852" text-anchor="end" font-size="9.3" fill="#94a3b8">INT</text>
+<line x1="80" y1="858" x2="340" y2="858" stroke="#e5e7eb" stroke-width="1"/>
+<text x="90" y="872" font-size="10.6" font-weight="400" fill="#0f172a">profesor_nombre</text>
+<text x="332" y="872" text-anchor="end" font-size="9.3" fill="#94a3b8">VARCHAR(50)</text>
+<line x1="80" y1="878" x2="340" y2="878" stroke="#e5e7eb" stroke-width="1"/>
+<text x="90" y="892" font-size="10.6" font-weight="400" fill="#0f172a">profesor_apellido</text>
+<text x="332" y="892" text-anchor="end" font-size="9.3" fill="#94a3b8">VARCHAR(50)</text>
+<line x1="80" y1="898" x2="340" y2="898" stroke="#e5e7eb" stroke-width="1"/>
+<text x="90" y="912" font-size="10.6" font-weight="400" fill="#0f172a">matricula</text>
+<text x="332" y="912" text-anchor="end" font-size="9.3" fill="#94a3b8">INT</text>
+<line x1="80" y1="918" x2="340" y2="918" stroke="#e5e7eb" stroke-width="1"/>
+<text x="90" y="932" font-size="10.6" font-weight="400" fill="#0f172a">fechamatriculacion</text>
+<text x="332" y="932" text-anchor="end" font-size="9.3" fill="#94a3b8">DATE</text>
+<line x1="80" y1="938" x2="340" y2="938" stroke="#e5e7eb" stroke-width="1"/>
+<text x="90" y="952" font-size="10.6" font-weight="400" fill="#0f172a">notanumerica</text>
+<text x="332" y="952" text-anchor="end" font-size="9.3" fill="#94a3b8">DECIMAL(4,2)</text>
+<line x1="80" y1="958" x2="340" y2="958" stroke="#e5e7eb" stroke-width="1"/>
+<text x="90" y="972" font-size="10.6" font-weight="400" fill="#0f172a">notatexto</text>
+<text x="332" y="972" text-anchor="end" font-size="9.3" fill="#94a3b8">VARCHAR(50)</text>
+<rect x="400" y="728" width="260" height="216" rx="7" fill="#ffffff" stroke="#7c3aed" stroke-width="1.6" stroke-dasharray="5,4"/>
+<path d="M400,735 q0,-7 7,-7 h246 q7,0 7,7 v23 h-260 Z" fill="#f5f3ff" stroke="#7c3aed" stroke-width="1.6" stroke-dasharray="5,4"/>
+<text x="530.0" y="748" text-anchor="middle" font-size="13" font-weight="700" fill="#0f172a">vista_profesor (VIEW)</text>
+<text x="410" y="772" font-size="10.6" font-weight="400" fill="#0f172a">idasignatura</text>
+<text x="652" y="772" text-anchor="end" font-size="9.3" fill="#94a3b8">INT</text>
+<line x1="400" y1="778" x2="660" y2="778" stroke="#e5e7eb" stroke-width="1"/>
+<text x="410" y="792" font-size="10.6" font-weight="400" fill="#0f172a">asignatura</text>
+<text x="652" y="792" text-anchor="end" font-size="9.3" fill="#94a3b8">VARCHAR(100)</text>
+<line x1="400" y1="798" x2="660" y2="798" stroke="#e5e7eb" stroke-width="1"/>
+<text x="410" y="812" font-size="10.6" font-weight="400" fill="#0f172a">creditos</text>
+<text x="652" y="812" text-anchor="end" font-size="9.3" fill="#94a3b8">INT</text>
+<line x1="400" y1="818" x2="660" y2="818" stroke="#e5e7eb" stroke-width="1"/>
+<text x="410" y="832" font-size="10.6" font-weight="400" fill="#0f172a">curso</text>
+<text x="652" y="832" text-anchor="end" font-size="9.3" fill="#94a3b8">INT</text>
+<line x1="400" y1="838" x2="660" y2="838" stroke="#e5e7eb" stroke-width="1"/>
+<text x="410" y="852" font-size="10.6" font-weight="400" fill="#0f172a">semestre</text>
+<text x="652" y="852" text-anchor="end" font-size="9.3" fill="#94a3b8">INT</text>
+<line x1="400" y1="858" x2="660" y2="858" stroke="#e5e7eb" stroke-width="1"/>
+<text x="410" y="872" font-size="10.6" font-weight="400" fill="#0f172a">profesor_nombre</text>
+<text x="652" y="872" text-anchor="end" font-size="9.3" fill="#94a3b8">VARCHAR(50)</text>
+<line x1="400" y1="878" x2="660" y2="878" stroke="#e5e7eb" stroke-width="1"/>
+<text x="410" y="892" font-size="10.6" font-weight="400" fill="#0f172a">profesor_apellido</text>
+<text x="652" y="892" text-anchor="end" font-size="9.3" fill="#94a3b8">VARCHAR(50)</text>
+<line x1="400" y1="898" x2="660" y2="898" stroke="#e5e7eb" stroke-width="1"/>
+<text x="410" y="912" font-size="10.6" font-weight="400" fill="#0f172a">num_alumnos_matriculados</text>
+<text x="652" y="912" text-anchor="end" font-size="9.3" fill="#94a3b8">COUNT(*)</text>
+<line x1="400" y1="918" x2="660" y2="918" stroke="#e5e7eb" stroke-width="1"/>
+<text x="410" y="932" font-size="10.6" font-weight="400" fill="#0f172a">nota_media</text>
+<text x="652" y="932" text-anchor="end" font-size="9.3" fill="#94a3b8">AVG(...)</text>
+<rect x="760" y="728" width="250" height="136" rx="7" fill="#ffffff" stroke="#7c3aed" stroke-width="1.6" stroke-dasharray="5,4"/>
+<path d="M760,735 q0,-7 7,-7 h236 q7,0 7,7 v23 h-250 Z" fill="#f5f3ff" stroke="#7c3aed" stroke-width="1.6" stroke-dasharray="5,4"/>
+<text x="885.0" y="748" text-anchor="middle" font-size="13" font-weight="700" fill="#0f172a">triggers_audit_log (VIEW)</text>
+<text x="770" y="772" font-size="10.6" font-weight="400" fill="#0f172a">log_id</text>
+<text x="1002" y="772" text-anchor="end" font-size="9.3" fill="#94a3b8">BIGINT</text>
+<line x1="760" y1="778" x2="1010" y2="778" stroke="#e5e7eb" stroke-width="1"/>
+<text x="770" y="792" font-size="10.6" font-weight="400" fill="#0f172a">table_name</text>
+<text x="1002" y="792" text-anchor="end" font-size="9.3" fill="#94a3b8">VARCHAR(100)</text>
+<line x1="760" y1="798" x2="1010" y2="798" stroke="#e5e7eb" stroke-width="1"/>
+<text x="770" y="812" font-size="10.6" font-weight="400" fill="#0f172a">operation</text>
+<text x="1002" y="812" text-anchor="end" font-size="9.3" fill="#94a3b8">VARCHAR(10)</text>
+<line x1="760" y1="818" x2="1010" y2="818" stroke="#e5e7eb" stroke-width="1"/>
+<text x="770" y="832" font-size="10.6" font-weight="400" fill="#0f172a">changed_by</text>
+<text x="1002" y="832" text-anchor="end" font-size="9.3" fill="#94a3b8">VARCHAR(100)</text>
+<line x1="760" y1="838" x2="1010" y2="838" stroke="#e5e7eb" stroke-width="1"/>
+<text x="770" y="852" font-size="10.6" font-weight="400" fill="#0f172a">changed_at</text>
+<text x="1002" y="852" text-anchor="end" font-size="9.3" fill="#94a3b8">TIMESTAMP</text>
+<path d="M420,250.0 L330,150.0" stroke="#1d4ed8" stroke-width="1.6" fill="none" marker-end="url(#arrowB)"/>
+<rect x="344.0" y="191.0" width="62.0" height="14" fill="#ffffff"/>
+<text x="375.0" y="202.0" text-anchor="middle" font-size="9.5" fill="#1d4ed8">idprofesor</text>
+<path d="M420,346.0 L330,346.0" stroke="#1d4ed8" stroke-width="1.6" fill="none" marker-end="url(#arrowB)"/>
+<rect x="346.7" y="337.0" width="56.6" height="14" fill="#ffffff"/>
+<text x="375.0" y="348.0" text-anchor="middle" font-size="9.5" fill="#1d4ed8">matricula</text>
+<path d="M525.0,306 L525.0,266" stroke="#1d4ed8" stroke-width="1.6" fill="none" marker-end="url(#arrowB)"/>
+<rect x="488.6" y="277.0" width="72.80000000000001" height="14" fill="#ffffff"/>
+<text x="525.0" y="288.0" text-anchor="middle" font-size="9.5" fill="#1d4ed8">idasignatura</text>
+<path d="M760,366.0 L735,366.0 L735,150.0 L760,150.0" stroke="#047857" stroke-width="1.6" fill="none" marker-end="url(#arrowGrn)"/>
+<rect x="712.1" y="249.0" width="45.800000000000004" height="14" fill="#ffffff"/>
+<text x="735" y="260.0" text-anchor="middle" font-size="9.5" fill="#047857">user_id</text>
+<path d="M1010,128 L1080,170.0" stroke="#64748b" stroke-width="1.6" fill="none" marker-end="url(#arrowGreyB)" stroke-dasharray="6,4"/>
+<path d="M1205.0,226 L1205.0,266" stroke="#64748b" stroke-width="1.6" fill="none" marker-end="url(#arrowGreyB)" stroke-dasharray="6,4"/>
+<rect x="1176.7" y="237.0" width="56.6" height="14" fill="#ffffff"/>
+<text x="1205.0" y="248.0" text-anchor="middle" font-size="9.5" fill="#64748b">role_name</text>
+<path d="M330,462 L80,768" stroke="#7c3aed" stroke-width="1.6" fill="none" marker-end="url(#arrowPurple)" stroke-dasharray="6,4"/>
+<path d="M205.0,266 L180.0,728" stroke="#7c3aed" stroke-width="1.6" fill="none" marker-end="url(#arrowPurple)" stroke-dasharray="6,4"/>
+<path d="M440,442 L310,728" stroke="#7c3aed" stroke-width="1.6" fill="none" marker-end="url(#arrowPurple)" stroke-dasharray="6,4"/>
+<path d="M670,250.0 L700,250.0 L700,748 L660,748" stroke="#7c3aed" stroke-width="1.6" fill="none" marker-end="url(#arrowPurple)" stroke-dasharray="6,4"/>
+<rect x="674.4" y="490.0" width="51.2" height="14" fill="#ffffff"/>
+<text x="700.0" y="501.0" text-anchor="middle" font-size="9.5" fill="#7c3aed">GROUP BY</text>
+<path d="M670,422 L640,728" stroke="#7c3aed" stroke-width="1.6" fill="none" marker-end="url(#arrowPurple)" stroke-dasharray="6,4"/>
+<path d="M760,522.0 L1010,768.0" stroke="#7c3aed" stroke-width="1.6" fill="none" marker-end="url(#arrowPurple)" stroke-dasharray="6,4"/>
+<text x="50" y="1039" font-size="12.5" font-weight="700" fill="#0f172a">Leyenda</text>
+<path d="M50,1059 L92,1059" stroke="#1d4ed8" stroke-width="1.6" fill="none" marker-end="url(#arrowB)"/>
+<text x="100" y="1063" font-size="11" fill="#334155">FOREIGN KEY real (constraint en el esquema SQL)</text>
+<path d="M50,1081 L92,1081" stroke="#64748b" stroke-width="1.6" fill="none" stroke-dasharray="6,4" marker-end="url(#arrowGreyB)"/>
+<text x="100" y="1085" font-size="11" fill="#334155">Coincide por valor, sin FK real en el esquema (p.ej. role / role_name)</text>
+<path d="M560,1059 L602,1059" stroke="#7c3aed" stroke-width="1.6" fill="none" stroke-dasharray="6,4" marker-end="url(#arrowPurple)"/>
+<text x="610" y="1063" font-size="11" fill="#334155">Vista derivada: de que tablas base lee (SELECT/JOIN, no es FK)</text>
+<text x="560" y="1085" font-size="11" fill="#334155"><tspan font-weight="700" fill="#b45309">PK</tspan> clave primaria &#183; <tspan font-weight="700" fill="#0369a1">FK</tspan> clave foranea</text>
+<text x="50" y="1107" font-size="10.5" fill="#94a3b8">Generado a partir del esquema real (SQLs_Universidad/BDEjemploUni_Create.sql + initdb/002-005-*.sql) para la memoria del TFG.</text>
+</svg>

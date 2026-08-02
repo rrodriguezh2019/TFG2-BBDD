@@ -177,6 +177,17 @@
         this.el.addEventListener("raycaster-intersected", this.onHoverStart);
         this.el.addEventListener("raycaster-intersected-cleared", this.onHoverEnd);
 
+        // look-controls (rotar la vista arrastrando) escucha el mismo mousedown/mousemove que
+        // el cursor usa para decidir si hay click, sin distinguir si el gesto empezó sobre un
+        // botón — un arrastre mínimo (habitual con ratón o con la puntería de un mando/táctil)
+        // mueve la cámara a mitad de la pulsación y el click se pierde o cae sobre otra caja.
+        // Antes esto solo se evitaba para el arrastre de unir tablas (habilitarArrastreJoin);
+        // se generaliza aquí a CUALQUIER elemento interactable (botones normales, teclado VR...)
+        // desactivando look-controls mientras dura la pulsación. setLookControlsHabilitado()
+        // está definida más abajo en el archivo pero es function declaration => hoisted.
+        this.onMouseDown = () => setLookControlsHabilitado(false);
+        this.el.addEventListener("mousedown", this.onMouseDown);
+
         this.el.addEventListener("click", (e) => {
           let current = this.el;
           let isVisible = true;
@@ -204,6 +215,7 @@
         this.el.removeEventListener("mouseleave", this.onHoverEnd);
         this.el.removeEventListener("raycaster-intersected", this.onHoverStart);
         this.el.removeEventListener("raycaster-intersected-cleared", this.onHoverEnd);
+        this.el.removeEventListener("mousedown", this.onMouseDown);
       }
     });
 
@@ -506,8 +518,7 @@
     <a-entity id="escena-bienvenida" visible="true">
       <a-entity position="7 5 -15" animation="property: rotation; to: 0 360 0; dur: 20000; easing: linear; loop: true">
         <a-box color="#0a0a0a" depth="1" height="2.5" width="16" opacity="0.92"></a-box>
-        <a-text id="titulo-bienvenida-1" value="SISTEMA DE GESTIÓN" align="center" position="0 0.8 0.6" width="21" color="#00E5FF"></a-text>
-        <a-text id="titulo-bienvenida-2" value="UNIVERSITARIA" align="center" position="0 0.2 0.6" width="21" color="#00E5FF"></a-text>
+        <a-text id="titulo-bienvenida-1" value="SISTEMA DE GESTION" align="center" position="0 0.8 0.6" width="21" color="#00E5FF"></a-text>        <a-text id="titulo-bienvenida-2" value="UNIVERSITARIA" align="center" position="0 0.2 0.6" width="21" color="#00E5FF"></a-text>
       </a-entity>
 
       <a-entity position="7 3 -10">
@@ -531,6 +542,79 @@
             <a-text id="btn-guiadas-text" value="CONSULTAS\nGUIADAS" align="center" position="0 0 0.5" width="7" color="#001A0E"></a-text>
           </a-box>
         </a-entity>
+
+        <!-- Consola de control 3D, SOLO para VR/AR (equivalente inmersivo de la UI 2D fija:
+             #btn-entorno, #user-info-panel). Objeto fijo EN EL ESPACIO junto al resto de la
+             escena de bienvenida (no anclado a la cámara como un HUD) — se muestra/oculta con
+             enter-vr/exit-vr igual que antes, ver onEnterVR()/onExitVR(). En escritorio se
+             sigue usando la UI 2D de siempre. -->
+        <a-entity id="hud-xr-root" visible="false" position="0 -3.4 0">
+
+          <!-- Cambiar entorno -->
+          <a-box id="hud-entorno-toggle" class="clickable" interactable
+                 width="4" height="1.2" depth="0.6" color="#001A22" opacity="0.92"
+                 position="-7 0 0" data-action="toggleEntornoVR">
+            <a-text value="ENTORNO" align="center" width="4.8" color="#00E5FF" position="0 0 0.31"></a-text>
+          </a-box>
+
+          <!-- Fila horizontal (no columna): apilados en vertical, vistos desde el ángulo
+               inclinado hacia abajo con el que se mira esta consola, se solapaban entre sí
+               visualmente y el rayo solo llegaba a golpear el de más al frente (Cyberpunk). En
+               horizontal, igual que la fila VER TABLAS/CONSTRUIR CONSULTA de arriba, no pasa. -->
+          <a-entity id="hud-entorno-panel" visible="false" position="-7 -2.9 0">
+            <a-box width="13.6" height="1.3" depth="0.3" color="#001018" opacity="0.94" position="0 0 -0.3"></a-box>
+
+            <a-box id="hud-entorno-btn-cyberpunk" class="clickable" interactable
+                   width="4" height="1" depth="0.3" color="#0057B7"
+                   position="-4.6 0 0" data-action="cambiarEntornoVR" data-param="cyberpunk">
+              <a-text value="CYBERPUNK" align="center" width="3.4" color="#FFF" position="-0.3 0 0.16"></a-text>
+              <a-text id="hud-entorno-check-cyberpunk" value="X" align="center" width="1.4" color="#FFF"
+                      position="1.6 0 0.16" visible="false"></a-text>
+            </a-box>
+
+            <a-box id="hud-entorno-btn-bosque" class="clickable" interactable
+                   width="4" height="1" depth="0.3" color="#2F6B3A"
+                   position="0 0 0" data-action="cambiarEntornoVR" data-param="bosque">
+              <a-text value="BOSQUE" align="center" width="2.6" color="#FFF" position="-0.3 0 0.16"></a-text>
+              <a-text id="hud-entorno-check-bosque" value="X" align="center" width="1.4" color="#FFF"
+                      position="1.6 0 0.16" visible="false"></a-text>
+            </a-box>
+
+            <a-box id="hud-entorno-btn-desierto" class="clickable" interactable
+                   width="4" height="1" depth="0.3" color="#B9862E"
+                   position="4.6 0 0" data-action="cambiarEntornoVR" data-param="desierto">
+              <a-text value="DESIERTO" align="center" width="3" color="#FFF" position="-0.3 0 0.16"></a-text>
+              <a-text id="hud-entorno-check-desierto" value="X" align="center" width="1.4" color="#FFF"
+                      position="1.6 0 0.16" visible="false"></a-text>
+            </a-box>
+          </a-entity>
+
+          <!-- Identidad + gestionar usuarios + cerrar sesión (equivalente 3D de #user-info-panel) -->
+          <a-entity id="hud-user-panel" position="0.5 0 0">
+            <a-box width="5.6" height="3.8" depth="0.3" color="#001A15" opacity="0.9" position="0 0 -0.3"></a-box>
+            <a-text id="hud-user-name" value="usuario" align="center" width="5" color="#00FF88" position="0 1.4 0.16"></a-text>
+            <a-text id="hud-user-role" value="rol" align="center" width="5" color="#00FF88" position="0 0.75 0.16"></a-text>
+
+            <a-box id="hud-user-gestionar" class="clickable" interactable visible="false"
+                   width="5" height="1" depth="0.3" color="#0057B7"
+                   position="0 -0.3 0" data-action="abrirCrearUsuarioVR">
+              <a-text value="GESTIONAR USUARIOS" align="center" width="4.6" color="#FFF" position="0 0 0.16"></a-text>
+            </a-box>
+
+            <a-box id="hud-user-salir" class="clickable" interactable
+                   width="5" height="1" depth="0.3" color="#B34700"
+                   position="0 -1.5 0" data-action="logoutXR">
+              <a-text value="SALIR SESION" align="center" width="2.6" color="#FFF" position="0 0 0.16"></a-text>
+            </a-box>
+          </a-entity>
+
+          <!-- Salir de la sesión VR/AR -->
+          <a-box id="hud-salir-xr" class="clickable" interactable
+                 width="4" height="1.2" depth="0.6" color="#2A0000" opacity="0.92"
+                 position="8 0 0" data-action="salirXR">
+            <a-text value="SALIR XR" align="center" width="4.2" color="#FF6B6B" position="0 0 0.31"></a-text>
+          </a-box>
+        </a-entity>
       </a-entity>
     </a-entity>
 
@@ -543,8 +627,7 @@
 
       <a-entity position="7 0 -4">
         <a-box class="clickable" interactable color="#FF6B00" depth="0.5" width="3.6" height="0.8" data-action="volver">
-          <a-text value="← VOLVER" align="center" position="0 0 0.3" width="6" color="#FFF"></a-text>
-        </a-box>
+        <a-text value="<- VOLVER" align="center" position="0 0 0.3" width="6" color="#FFF"></a-text>        </a-box>
       </a-entity>
     </a-entity>
 
@@ -556,12 +639,10 @@
       <a-entity position="0 6 -5">
         <a-box color="#111" depth="0.5" height="3.2" width="19" opacity="0.92"></a-box>
         
-        <a-text id="query-display" value="Esperando instrucción..." position="-9 0 0.3" color="#00E5FF" data-rol="primario" width="16.8" wrap-count="40"></a-text>
-      </a-entity>
+        <a-text id="query-display" value="Esperando instruccion..." position="-9 0 0.3" color="#00E5FF" data-rol="primario" width="16.8" wrap-count="40"></a-text>      </a-entity>
 
       <a-entity position="0 3.8 -2">
-        <a-text id="query-step-title" value="PASO 1 · OPERACIÓN SQL" align="center" color="#FFF" width="12"></a-text>
-      </a-entity>
+        <a-text id="query-step-title" value="PASO 1 - OPERACION SQL" align="center" color="#FFF" width="12"></a-text>      </a-entity>
 
       <a-entity id="query-options-container" position="0 2.2 -2"></a-entity>
       <a-entity id="query-hint-container" position="0 0 -2"></a-entity>
@@ -576,18 +657,15 @@
                material="color: #00FF88; emissive: #00FF88; emissiveIntensity: 1; opacity: 0.9"></a-box>
         <a-box color="#00FF88" depth="0.26" height="0.04" width="14" position="0 -0.78 0" data-rol="terciario" data-rol-target="material-both"
                material="color: #00FF88; emissive: #00FF88; emissiveIntensity: 1; opacity: 0.9"></a-box>
-        <a-text value="ANÁLISIS · CONSULTAS GUIADAS" align="center" position="0 0.28 0.14"
-                width="13" color="#00FF88" data-rol="terciario"></a-text>
-        <a-text value="Selecciona un análisis para visualizar datos en 3D o 2D"
-                align="center" position="0 -0.25 0.14" width="11" color="#4DFFBB" data-rol="verdeClaro"></a-text>
+                <a-text value="ANALISIS - CONSULTAS GUIADAS" align="center" position="0 0.28 0.14"                width="13" color="#00FF88" data-rol="terciario"></a-text>
+        <a-text value="Selecciona un analisis para visualizar datos en 3D o 2D"                align="center" position="0 -0.25 0.14" width="11" color="#4DFFBB" data-rol="verdeClaro"></a-text>
       </a-entity>
 
       <a-entity position="-7.5 6.8 -6">
         <a-box class="clickable" interactable depth="0.3" width="3.2" height="0.9" data-rol="volver" data-rol-target="material-emissive"
                material="color: #1A0800; emissive: #FF6B00; emissiveIntensity: 0.35"
                data-action="volver">
-          <a-text value="← VOLVER" align="center" position="0 0 0.16" width="6" color="#FF9944" data-rol="volverTexto"></a-text>
-        </a-box>
+        <a-text value="<- VOLVER" align="center" position="0 0 0.16" width="6" color="#FF9944" data-rol="volverTexto"></a-text>        </a-box>
       </a-entity>
 
       <a-entity id="consultas-guiadas-container" position="0 4.6 -4"></a-entity>
@@ -611,8 +689,7 @@
         </a-entity>
 
         <a-entity position="0 0.35 0.2">
-          <a-text id="label-pagina" value="PÁG.\n1 / 1" align="center" color="#FFF" width="4.8"></a-text>
-        </a-entity>
+          <a-text id="label-pagina" value="PAG.\n1 / 1" align="center" color="#FFF" width="4.8"></a-text>        </a-entity>
 
         <a-entity position="0 -0.6 0.15">
           <a-box id="btn-siguiente" class="clickable" interactable color="#222" width="1.8" height="0.7" depth="0.3" data-action="cambiarPagina" data-param="1">
@@ -647,8 +724,7 @@
 
       <a-entity position="0 -2.5 0">
         <a-box class="clickable" interactable color="#FF6B00" data-rol="volver" depth="0.3" width="3.8" height="0.7" data-action="volver">
-          <a-text value="← VOLVER" align="center" position="0 0 0.2" width="6.2" color="#FFF"></a-text>
-        </a-box>
+        <a-text value="<- VOLVER" align="center" position="0 0 0.2" width="6.2" color="#FFF"></a-text>        </a-box>
       </a-entity>
     </a-entity>
 
@@ -656,15 +732,13 @@
     <a-entity id="escena-analisis-edades" visible="false" position="7 0 -15">
       <a-entity position="0 6.8 0">
         <a-box color="#0a0a0a" depth="0.4" height="1" width="16" opacity="0.95"></a-box>
-        <a-text id="titulo-analisis" value="ANÁLISIS" align="center" position="0 0 0.25" width="18" color="#9D4EDD" data-rol="violeta"></a-text>
-      </a-entity>
+        <a-text id="titulo-analisis" value="ANALISIS" align="center" position="0 0 0.25" width="18" color="#9D4EDD" data-rol="violeta"></a-text>      </a-entity>
 
       <a-entity position="-10 6.8 0">
         <a-box class="clickable" interactable depth="0.35" width="3.4" height="0.9" data-rol="volver" data-rol-target="material-emissive"
                material="color: #1A0800; emissive: #FF6B00; emissiveIntensity: 0.4"
                data-action="volver">
-          <a-text value="← VOLVER" align="center" position="0 0 0.19" width="6.2" color="#FF9944" data-rol="volverTexto"></a-text>
-        </a-box>
+        <a-text value="<- VOLVER" align="center" position="0 0 0.19" width="6.2" color="#FF9944" data-rol="volverTexto"></a-text>        </a-box>
       </a-entity>
 
       <a-entity id="switch-vista-analisis" position="-10 5.6 0.05">
@@ -690,10 +764,8 @@
                material="color: #0A0F0A; emissive: #9D4EDD; emissiveIntensity: 0.06; opacity: 0.92"></a-box>
         <a-box depth="0.31" height="5.8" width="0.04" position="-1.3 0 0" data-rol="violeta" data-rol-target="material-both"
                material="color: #9D4EDD; emissive: #9D4EDD; emissiveIntensity: 0.8; opacity: 0.7"></a-box>
-        <a-text value="ESTADÍSTICAS" position="0 2.4 0.17" align="center" color="#9D4EDD" data-rol="violeta" width="4.6"></a-text>
-        <a-text id="stat-edad-min" value="MIN: --" position="0 1.5 0.17" align="center" color="#00FF88" width="4.6"></a-text>
-        <a-text id="stat-edad-max" value="MÁX: --" position="0 0.7 0.17" align="center" color="#FF88FF" width="4.6"></a-text>
-        <a-text id="stat-edad-prom" value="PROM: --" position="0 -0.1 0.17" align="center" color="#00E5FF" width="4.6"></a-text>
+        <a-text value="ESTADISTICAS" position="0 2.4 0.17" align="center" color="#9D4EDD" data-rol="violeta" width="4.6"></a-text>        <a-text id="stat-edad-min" value="MIN: --" position="0 1.5 0.17" align="center" color="#00FF88" width="4.6"></a-text>
+        <a-text id="stat-edad-max" value="MAX: --" position="0 0.7 0.17" align="center" color="#FF88FF" width="4.6"></a-text>        <a-text id="stat-edad-prom" value="PROM: --" position="0 -0.1 0.17" align="center" color="#00E5FF" width="4.6"></a-text>
         <a-text id="stat-total" value="TOTAL: --" position="0 -0.9 0.17" align="center" color="#FFB700" width="4.6"></a-text>
       </a-entity>
 
@@ -729,8 +801,7 @@
         </a-entity>
 
         <a-entity position="0 0.35 0.2">
-          <a-text id="qr-label-pagina" value="PÁG.\n1 / 1" align="center" color="#FFF" width="4.8"></a-text>
-        </a-entity>
+          <a-text id="qr-label-pagina" value="PAG.\n1 / 1" align="center" color="#FFF" width="4.8"></a-text>        </a-entity>
 
         <a-entity position="0 -0.6 0.15">
           <a-box class="clickable" interactable color="#222" width="1.8" height="0.7" depth="0.3"
@@ -767,8 +838,7 @@
       <!-- VOLVER -->
       <a-entity position="0 -2.5 0">
         <a-box class="clickable" interactable color="#FF6B00" data-rol="volver" depth="0.3" width="3.8" height="0.7" data-action="volver">
-          <a-text value="← VOLVER" align="center" position="0 0 0.2" width="6.2" color="#FFF"></a-text>
-        </a-box>
+        <a-text value="<- VOLVER" align="center" position="0 0 0.2" width="6.2" color="#FFF"></a-text>        </a-box>
       </a-entity>
 
     </a-entity>
@@ -878,12 +948,7 @@
     // "rol" referencia una clave de PALETAS_UI[entorno].roles, resuelta en iniciarConsultasGuiadas()
     // al momento de pintar las tarjetas (así cambian de color con el entorno activo).
     const CONSULTAS_GUIADAS = [
-      { id:"edad-distribucion", label:"Distribución\nde Edades", emoji:"◈", rol:"primario" },
-      { id:"edad-prom-curso", label:"Edad Promedio\nGlobal", emoji:"◉", rol:"terciario" },
-      { id:"prof-departamento", label:"Profesores por\nDepartamento", emoji:"◆", rol:"secundario" },
-      { id:"salario-departamento", label:"Salario Promedio\npor Depto.", emoji:"◈", rol:"ambar" },
-      { id:"asignaturas-curso", label:"Asignaturas\npor Curso", emoji:"◉", rol:"violeta" },
-      { id:"nota-asignatura", label:"Nota Promedio\npor Asignatura", emoji:"◆", rol:"rosaClaro" }
+      { id:"edad-distribucion", label:"Distribucion\nde Edades", emoji:"", rol:"primario" },      { id:"edad-prom-curso", label:"Edad Promedio\nGlobal", emoji:"", rol:"terciario" },      { id:"prof-departamento", label:"Profesores por\nDepartamento", emoji:"", rol:"secundario" },      { id:"salario-departamento", label:"Salario Promedio\npor Depto.", emoji:"", rol:"ambar" },      { id:"asignaturas-curso", label:"Asignaturas\npor Curso", emoji:"", rol:"violeta" },      { id:"nota-asignatura", label:"Nota Promedio\npor Asignatura", emoji:"", rol:"rosaClaro" }
     ];
 
     class NavigationManager {
@@ -1254,6 +1319,67 @@
       document.getElementById("menu-entorno").classList.toggle("abierto");
     }
 
+    // Version inmersiva del selector de entorno (mismo aplicarEntorno() de abajo, pero
+    // accionable con el rayo del mando VR sobre un panel anclado a la camara en vez de
+    // un <select>/botones 2D). Vive como hijo de #camera para poder abrirse desde
+    // cualquier escena, igual que el boton 2D #btn-entorno.
+    function toggleEntornoVR() {
+      const panel = document.getElementById("hud-entorno-panel");
+      if (!panel) return;
+      const abierto = panel.getAttribute("visible") === true || panel.getAttribute("visible") === "true";
+      panel.setAttribute("visible", !abierto);
+    }
+
+    function cerrarEntornoVR() {
+      document.getElementById("hud-entorno-panel")?.setAttribute("visible", false);
+    }
+
+    // Atajo de la barra HUD: entra directo al wizard "CREAR USUARIO" del constructor de
+    // consultas (ver PASO 1 en renderQBOpciones), sin pasar por el panel 2D. Es el
+    // equivalente inmersivo del botón "GESTIONAR USUARIOS" del panel 2D (#admin-users-btn).
+    async function abrirCrearUsuarioVR() {
+      iniciarQueryBuilder();
+      await qb_selOp("CREAR USUARIO");
+    }
+
+    // Sale de la sesión inmersiva (VR o AR). Necesario como botón en la propia escena porque
+    // el control nativo del navegador para salir de AR puede ser difícil de alcanzar o no
+    // mostrarse con claridad sobre el vídeo de la cámara (passthrough).
+    function salirXR() {
+      const scene = document.querySelector("a-scene");
+      if (scene && scene.exitVR) scene.exitVR();
+    }
+
+    // Cerrar sesión desde dentro de VR/AR: el modal de login es 2D (no se vería dentro de la
+    // sesión inmersiva), así que además de cerrar sesión salimos de VR/AR para que el usuario
+    // vuelva a ver la pantalla normal de login.
+    function logoutXR() {
+      hacerLogout();
+      salirXR();
+    }
+
+    // El HUD 3D (hud-xr-root) solo tiene sentido dentro de una sesión VR/AR: en escritorio se
+    // sigue usando la UI 2D de siempre (#btn-reset-vista, #btn-entorno, #user-info-panel), que
+    // por el contrario no se renderiza dentro de una sesión inmersiva real (el DOM 2D no se
+    // compone dentro del casco/passthrough). Se alterna con los eventos enter-vr/exit-vr que
+    // dispara la propia escena al entrar o salir (sea VR o AR).
+    function onEnterVR() {
+      document.getElementById("btn-reset-vista").style.display = "none";
+      document.getElementById("btn-entorno").style.display = "none";
+      document.getElementById("menu-entorno").classList.remove("abierto");
+      document.getElementById("user-info-panel").style.display = "none";
+      document.getElementById("hud-xr-root")?.setAttribute("visible", true);
+    }
+    function onExitVR() {
+      document.getElementById("btn-reset-vista").style.display = "";
+      document.getElementById("btn-entorno").style.display = "";
+      document.getElementById("user-info-panel").style.display = usuarioActual ? "block" : "none";
+      document.getElementById("hud-xr-root")?.setAttribute("visible", false);
+      cerrarEntornoVR();
+    }
+    document.querySelector("a-scene").addEventListener("enter-vr", onEnterVR);
+    document.querySelector("a-scene").addEventListener("exit-vr", onExitVR);
+
     function posicionAleatoriaAnillo(centroX, centroZ, rMin, rMax) {
       const ang = Math.random() * Math.PI * 2;
       const r = rMin + Math.random() * (rMax - rMin);
@@ -1344,6 +1470,10 @@
 
       document.querySelectorAll(".entorno-btn").forEach(b => b.classList.remove("activo"));
       document.getElementById(`entorno-btn-${nombre}`)?.classList.add("activo");
+
+      Object.keys(ENTORNOS).forEach(k => {
+        document.getElementById(`hud-entorno-check-${k}`)?.setAttribute("visible", k === nombre);
+      });
 
       if (!opts.silent) mostrarToastHUD(`🌍 ENTORNO: ${cfg.label.toUpperCase()}`);
     }
@@ -1483,6 +1613,17 @@
       if (action === "qb_create_remove_col") return qb_create_remove_col();
       if (action === "qb_create_exec") return qb_create_exec();
 
+      // Crear usuario (wizard VR)
+      if (action === "cu_set_username") return cu_set_username();
+      if (action === "cu_set_password") return cu_set_password();
+      if (action === "cu_set_role") return cu_set_role(param);
+      if (action === "cu_next") return cu_next();
+      if (action === "cu_toggle_read") return cu_toggle_read(param);
+      if (action === "cu_toggle_write") return cu_toggle_write(param);
+      if (action === "cu_next_table") return cu_next_table();
+      if (action === "cu_prev_table") return cu_prev_table();
+      if (action === "cu_exec") return cu_exec();
+
       if (action === "qb_drop_tabla") return qb_selDropTabla(param);
       if (action === "qb_drop_exec") return qb_drop_exec();
 
@@ -1493,6 +1634,13 @@
       if (action === "analisis_ver_2d") return setVistaAnalisis("2d");
 
       if (action === "resetVista") return resetVista();
+
+      // HUD VR: selector de entorno (equivalente inmersivo de #menu-entorno)
+      if (action === "toggleEntornoVR") return toggleEntornoVR();
+      if (action === "cambiarEntornoVR") { aplicarEntorno(param); cerrarEntornoVR(); return; }
+      if (action === "abrirCrearUsuarioVR") return abrirCrearUsuarioVR();
+      if (action === "salirXR") return salirXR();
+      if (action === "logoutXR") return logoutXR();
 
       if (action === "qr_pag") return qr_cambiarPagina(parseInt(param, 10));
 
@@ -1577,7 +1725,8 @@
         orderCol: "", orderDir: "ASC",
         createTableName: "",
         createColumns: [],
-        join: null, joinColumns: []
+        join: null, joinColumns: [],
+        cu: { username: "", password: "", role: "", roleCustom: "", tablePerms: {}, tableIndex: 0 }
       };
       limpiarEntidad("query-hint-container");
       actualizarDisplaySQL();
@@ -1615,11 +1764,16 @@
         sql = `CREATE TABLE ${s.createTableName || "nombre_tabla"} (\n  ${cols}\n);`;
       } else if (s.operation === "DROP_TABLE") {
         sql = `DROP TABLE ${s.table || "nombre_tabla"};`;
+      } else if (s.operation === "CREAR_USUARIO") {
+        const cu = s.cu;
+        const rolFinal = cu.role === "otro" ? (cu.roleCustom || "?") : (cu.role || "?");
+        const nTablas = Object.values(cu.tablePerms).filter(p => p.read).length;
+        sql = `-- Crear usuario\nusername: ${cu.username || "..."}\nrol: ${rolFinal}\ntablas concedidas: ${nTablas}`;
       } else if (s.operation) {
         sql = `${s.operation} ...`;
       }
 
-      document.getElementById("query-display").setAttribute("value", sql || "-- Selecciona una operación");
+      document.getElementById("query-display").setAttribute("value", sql || "-- Selecciona una operacion");
     }
 
     function renderQBOpciones() {
@@ -1633,32 +1787,38 @@
       let extraButtons = [];
 
       if (queryState.step === 1) {
-        titleEl.setAttribute("value", "PASO 1 · OPERACIÓN SQL");
+        titleEl.setAttribute("value", "PASO 1 - OPERACION SQL");
+        // "CREAR USUARIO" NO va aquí: no es una operación SQL, es gestión de usuarios.
+        // Se llega a ese wizard directo desde el botón "GESTIONAR USUARIOS" de la consola
+        // (abrirCrearUsuarioVR llama a qb_selOp("CREAR USUARIO") sin pasar por este menú).
         const ops = ["SELECT"];
         if (tienePermiso("admin_create_table")) ops.push("CREATE TABLE");
         if (tienePermiso("admin_drop_table")) ops.push("DROP TABLE");
 
-        opciones = ops.map((op, i) => ({
+        // Color por nombre de operación (no por posición): así "DROP TABLE" siempre sale en
+        // rojo de aviso pase lo que pase con qué otras operaciones estén disponibles.
+        const colorPorOp = { "SELECT": rol.primario, "CREATE TABLE": rol.terciario, "DROP TABLE": rol.peligro };
+        opciones = ops.map(op => ({
           label: op,
           action: "qb_op",
           param: op,
-          emissive: [rol.primario, rol.terciario, rol.ambar, rol.peligro][i],
-          textColor: [rol.primario, rol.terciario, rol.ambar, rol.peligro][i]
+          emissive: colorPorOp[op] || rol.primario,
+          textColor: colorPorOp[op] || rol.primario
         }));
       }
       else if (queryState.step === 2 && queryState.operation === "SELECT") {
-        titleEl.setAttribute("value", "PASO 2 · TABLA PRINCIPAL\n(mantén pulsado y suelta sobre otra tabla para unirlas)");
+        titleEl.setAttribute("value", "PASO 2 - TABLA PRINCIPAL\n(manten pulsado y suelta sobre otra tabla para unirlas)");
         opciones = tablas.map(t => ({ label: t.toUpperCase(), action: "qb_tabla", param: t }));
       }
       else if (queryState.step === 2.5 && queryState.operation === "SELECT") {
-        titleEl.setAttribute("value", "PASO 2.5 · ¿SEGUNDA TABLA? (JOIN opcional)");
+        titleEl.setAttribute("value", "PASO 2.5 - SEGUNDA TABLA? (JOIN opcional)");
         opciones = tablas.filter(t => t !== queryState.table).map(t => ({
           label: t.toUpperCase(), action: "qb_join_tabla", param: t, w: 6
         }));
         extraButtons.push({ label: "SIN JOIN, CONTINUAR", action: "qb_skip", bg: "#111", color: rol.secundario, w: 7.5 });
       }
       else if (queryState.step === 2.6 && queryState.operation === "SELECT") {
-        titleEl.setAttribute("value", `PASO 2.6 · COLUMNA DE UNIÓN EN ${queryState.table.toUpperCase()}`);
+        titleEl.setAttribute("value", `PASO 2.6 - COLUMNA DE UNION EN ${queryState.table.toUpperCase()}`);
         const colsA = schemasMock[queryState.table] || [];
         opciones = colsA.map(c => ({
           label: c.toUpperCase(), action: "qb_join_col_a", param: c, w: 5.5,
@@ -1666,7 +1826,7 @@
         }));
       }
       else if (queryState.step === 2.7 && queryState.operation === "SELECT") {
-        titleEl.setAttribute("value", `PASO 2.7 · COLUMNA DE UNIÓN EN ${queryState.join.table.toUpperCase()}`);
+        titleEl.setAttribute("value", `PASO 2.7 - COLUMNA DE UNION EN ${queryState.join.table.toUpperCase()}`);
         const colsB = schemasMock[queryState.join.table] || [];
         opciones = colsB.map(c => ({
           label: c.toUpperCase(), action: "qb_join_col_b", param: c, w: 5.5,
@@ -1674,15 +1834,14 @@
         }));
       }
       else if (queryState.step === 2.8 && queryState.operation === "SELECT") {
-        titleEl.setAttribute("value", "PASO 2.8 · CONFIRMAR JOIN");
+        titleEl.setAttribute("value", "PASO 2.8 - CONFIRMAR JOIN");
         opciones.push({ label: "CAMBIAR COLUMNAS", action: "qb_join_manual", w: 7, h: 1.1, emissive: rol.secundario, textColor: rol.secundario });
         extraButtons.push({ label: `TIPO: ${queryState.join.type}`, action: "qb_join_toggle_type", bg: "#0E1C2B", color: rol.primario, w: 6 });
-        extraButtons.push({ label: "CONTINUAR →", action: "qb_skip", bg: "#1A1A2E", color: rol.terciario, w: 5.5 });
-
+        extraButtons.push({ label: "CONTINUAR ->", action: "qb_skip", bg: "#1A1A2E", color: rol.terciario, w: 5.5 });
         const t = document.createElement("a-text");
         t.setAttribute("value",
           `${queryState.table.toUpperCase()}.${queryState.join.onA} = ${queryState.join.table.toUpperCase()}.${queryState.join.onB}` +
-          (queryState.join.auto ? "\n(sugerido automáticamente por clave foránea)" : "")
+          (queryState.join.auto ? "\n(sugerido automaticamente por clave foranea)" : "")
         );
         t.setAttribute("color", rol.ambar);
         t.setAttribute("align", "center");
@@ -1691,7 +1850,7 @@
         hint.appendChild(t);
       }
       else if (queryState.step === 3 && queryState.operation === "SELECT" && queryState.join) {
-        titleEl.setAttribute("value", `PASO 3 · COLUMNAS DE ${queryState.table.toUpperCase()}`);
+        titleEl.setAttribute("value", `PASO 3 - COLUMNAS DE ${queryState.table.toUpperCase()}`);
         const colsA = schemasMock[queryState.table] || [];
         opciones = colsA.map(col => {
           const selected = queryState.joinColumns.some(c => c.table === queryState.table && c.col === col);
@@ -1701,10 +1860,10 @@
           };
         });
         extraButtons.push({ label: "TODAS LAS COLUMNAS", action: "qb_join_cols_all", bg: "#111", color: rol.secundario, w: 6.5 });
-        extraButtons.push({ label: `TABLA ${queryState.join.table.toUpperCase()} →`, action: "qb_join_cols_next", bg: "#1A1A2E", color: rol.primario, w: 6.5 });
+        extraButtons.push({ label: `TABLA ${queryState.join.table.toUpperCase()} ->`, action: "qb_join_cols_next", bg: "#1A1A2E", color: rol.primario, w: 6.5 });
       }
       else if (queryState.step === 3.5 && queryState.operation === "SELECT" && queryState.join) {
-        titleEl.setAttribute("value", `PASO 3.5 · COLUMNAS DE ${queryState.join.table.toUpperCase()}`);
+        titleEl.setAttribute("value", `PASO 3.5 - COLUMNAS DE ${queryState.join.table.toUpperCase()}`);
         const colsB = schemasMock[queryState.join.table] || [];
         opciones = colsB.map(col => {
           const selected = queryState.joinColumns.some(c => c.table === queryState.join.table && c.col === col);
@@ -1714,10 +1873,10 @@
           };
         });
         extraButtons.push({ label: "TODAS LAS COLUMNAS", action: "qb_join_cols_all", bg: "#111", color: rol.secundario, w: 6.5 });
-        extraButtons.push({ label: "PASO 4 →", action: "qb_join_cols_done", bg: "#1A1A2E", color: rol.primario, w: 5 });
+      extraButtons.push({ label: "PASO 4 ->", action: "qb_join_cols_done", bg: "#1A1A2E", color: rol.primario, w: 5 });
       }
       else if (queryState.step === 3 && queryState.operation === "SELECT") {
-        titleEl.setAttribute("value", "PASO 3 · COLUMNAS (selección múltiple)");
+        titleEl.setAttribute("value", "PASO 3 - COLUMNAS (seleccion multiple)");
         const cols = ["*", ...(schemasMock[queryState.table] || ["id", "nombre"])];
         opciones = cols.map(c => ({
           label: c.toUpperCase(),
@@ -1729,11 +1888,11 @@
           textColor: queryState.columns.includes(c) ? rol.ambar : rol.primario
         }));
         if (queryState.columns.length > 0) {
-          extraButtons.push({ label: "PASO 4 →", action: "qb_skip", bg: "#1A1A2E", color: rol.primario, w: 5 });
+          extraButtons.push({ label: "PASO 4 ->", action: "qb_skip", bg: "#1A1A2E", color: rol.primario, w: 5 });
         }
       }
       else if (queryState.step === 4 && queryState.operation === "SELECT" && queryState.join) {
-        titleEl.setAttribute("value", "PASO 4 · FILTRO WHERE (opcional)");
+        titleEl.setAttribute("value", "PASO 4 - FILTRO WHERE (opcional)");
         const colsA = (schemasMock[queryState.table] || []).map(c => ({ table: queryState.table, col: c }));
         const colsB = (schemasMock[queryState.join.table] || []).map(c => ({ table: queryState.join.table, col: c }));
         opciones = [...colsA, ...colsB].map(({ table, col }) => ({
@@ -1742,13 +1901,13 @@
         extraButtons.push({ label: "SALTAR WHERE", action: "qb_skip", bg: "#111", color: rol.secundario, w: 5.8 });
       }
       else if (queryState.step === 4 && queryState.operation === "SELECT") {
-        titleEl.setAttribute("value", "PASO 4 · FILTRO WHERE (opcional)");
+        titleEl.setAttribute("value", "PASO 4 - FILTRO WHERE (opcional)");
         const cols = schemasMock[queryState.table] || [];
         opciones = cols.map(c => ({ label: `WHERE ${c}`, action: "qb_where_col", param: c }));
         extraButtons.push({ label: "SALTAR WHERE", action: "qb_skip", bg: "#111", color: rol.secundario, w: 5.8 });
       }
       else if (queryState.step === 4.5 && queryState.operation === "SELECT" && queryState.join) {
-        titleEl.setAttribute("value", `PASO 4.5 · VALOR DE ${queryState.whereCol.table.toUpperCase()}.${queryState.whereCol.col.toUpperCase()}`);
+        titleEl.setAttribute("value", `PASO 4.5 - VALOR DE ${queryState.whereCol.table.toUpperCase()}.${queryState.whereCol.col.toUpperCase()}`);
         opciones = queryState.whereOptions.map((v, idx) => ({
           label: `= '${String(v).length > 14 ? String(v).slice(0, 11) + "..." : String(v)}'`,
           action: "qb_where_val",
@@ -1757,7 +1916,7 @@
         extraButtons.push({ label: "CANCELAR WHERE", action: "qb_skip", bg: "#111", color: rol.secundario, w: 6.0 });
       }
       else if (queryState.step === 4.5 && queryState.operation === "SELECT") {
-        titleEl.setAttribute("value", `PASO 4.5 · VALOR DE ${queryState.whereCol?.toUpperCase() || "WHERE"}`);
+        titleEl.setAttribute("value", `PASO 4.5 - VALOR DE ${queryState.whereCol?.toUpperCase() || "WHERE"}`);
         opciones = queryState.whereOptions.map((v, idx) => ({
           label: `= '${String(v).length > 14 ? String(v).slice(0, 11) + "..." : String(v)}'`,
           action: "qb_where_val",
@@ -1766,7 +1925,7 @@
         extraButtons.push({ label: "CANCELAR WHERE", action: "qb_skip", bg: "#111", color: rol.secundario, w: 6.0 });
       }
       else if (queryState.step === 5 && queryState.operation === "SELECT" && queryState.join) {
-        titleEl.setAttribute("value", "PASO 5 · ORDER BY (opcional)");
+        titleEl.setAttribute("value", "PASO 5 - ORDER BY (opcional)");
         const colsA = (schemasMock[queryState.table] || []).map(c => ({ table: queryState.table, col: c }));
         const colsB = (schemasMock[queryState.join.table] || []).map(c => ({ table: queryState.join.table, col: c }));
         const cols = queryState.joinColumns.length ? queryState.joinColumns : [...colsA, ...colsB];
@@ -1774,8 +1933,7 @@
           label: `ORDER ${table}.${col}`, action: "qb_join_order_col", param: `${table}::${col}`, w: 5.5
         }));
         extraButtons.push({
-          label: `DIRECCIÓN: ${queryState.orderDir}`,
-          action: "qb_toggle_order_dir",
+          label: `DIRECCION: ${queryState.orderDir}`,          action: "qb_toggle_order_dir",
           bg: "#0E1C2B",
           color: rol.primario,
           w: 6.0
@@ -1783,12 +1941,11 @@
         extraButtons.push({ label: "SALTAR ORDER", action: "qb_skip", bg: "#111", color: rol.secundario, w: 5.6 });
       }
       else if (queryState.step === 5 && queryState.operation === "SELECT") {
-        titleEl.setAttribute("value", "PASO 5 · ORDER BY (opcional)");
+        titleEl.setAttribute("value", "PASO 5 - ORDER BY (opcional)");
         const cols = queryState.columns[0] === "*" ? (schemasMock[queryState.table] || []) : queryState.columns;
         opciones = cols.map(c => ({ label: `ORDER ${c}`, action: "qb_order_col", param: c }));
         extraButtons.push({
-          label: `DIRECCIÓN: ${queryState.orderDir}`,
-          action: "qb_toggle_order_dir",
+          label: `DIRECCION: ${queryState.orderDir}`,          action: "qb_toggle_order_dir",
           bg: "#0E1C2B",
           color: rol.primario,
           w: 6.0
@@ -1796,9 +1953,8 @@
         extraButtons.push({ label: "SALTAR ORDER", action: "qb_skip", bg: "#111", color: rol.secundario, w: 5.6 });
       }
       else if (queryState.step === 6 && queryState.operation === "SELECT" && queryState.join) {
-        titleEl.setAttribute("value", "✓ QUERY LISTA");
-        extraButtons.push({ label: "▶ EJECUTAR QUERY", action: "qb_ejecutar", bg: "#001800", color: rol.terciario, w: 6.5 });
-
+        titleEl.setAttribute("value", "QUERY LISTA");
+        extraButtons.push({ label: "EJECUTAR QUERY", action: "qb_ejecutar", bg: "#001800", color: rol.terciario, w: 6.5 });
         const t = document.createElement("a-text");
         t.setAttribute("value",
           `${queryState.table.toUpperCase()} ${queryState.join.type} JOIN ${queryState.join.table.toUpperCase()} ` +
@@ -1814,9 +1970,8 @@
         hint.appendChild(t);
       }
       else if (queryState.step === 6 && queryState.operation === "SELECT") {
-        titleEl.setAttribute("value", "✓ QUERY LISTA");
-        extraButtons.push({ label: "▶ EJECUTAR QUERY", action: "qb_ejecutar", bg: "#001800", color: rol.terciario, w: 6.5 });
-
+        titleEl.setAttribute("value", "QUERY LISTA");
+        extraButtons.push({ label: "EJECUTAR QUERY", action: "qb_ejecutar", bg: "#001800", color: rol.terciario, w: 6.5 });
         const t = document.createElement("a-text");
         t.setAttribute("value",
           `Tabla: ${queryState.table.toUpperCase()}  Cols: ${queryState.columns.join(", ")}\n` +
@@ -1830,15 +1985,15 @@
       }
 
       else if (queryState.step === 2 && queryState.operation === "CREATE_TABLE") {
-        titleEl.setAttribute("value", "PASO 2 · NOMBRE DE TABLA");
+        titleEl.setAttribute("value", "PASO 2 - NOMBRE DE TABLA");
         opciones = [{
           label: queryState.createTableName ? `TABLA: ${queryState.createTableName}` : "ELEGIR NOMBRE",
           action: "qb_create_set_name"
         }];
-        extraButtons.push({ label: "PASO 3 →", action: "qb_skip", bg: "#1A1A2E", color: rol.primario, w: 5 });
+      extraButtons.push({ label: "PASO 3 ->", action: "qb_skip", bg: "#1A1A2E", color: rol.primario, w: 5 });
       }
       else if (queryState.step === 3 && queryState.operation === "CREATE_TABLE") {
-        titleEl.setAttribute("value", "PASO 3 · COLUMNAS");
+        titleEl.setAttribute("value", "PASO 3 - COLUMNAS");
         const tipos = ["TEXT", "INTEGER","REAL"];
         opciones = tipos.map(t => ({
           label: `+ ${t}`,
@@ -1847,13 +2002,11 @@
           w: 5.5,
           h: 1.0
         }));
-        extraButtons.push({ label: "QUITAR ULTIMA", action: "qb_create_remove_col", bg: "#3A1111", color: rol.peligro, w: 6 });
-        extraButtons.push({ label: "PASO 4 →", action: "qb_skip", bg: "#1A1A2E", color: rol.primario, w: 5 });
+        extraButtons.push({ label: "QUITAR ULTIMA", action: "qb_create_remove_col", bg: "#3A1111", color: rol.peligro, w: 6 }); extraButtons.push({ label: "PASO 4 ->", action: "qb_skip", bg: "#1A1A2E", color: rol.primario, w: 5 });
       }
       else if (queryState.step === 4 && queryState.operation === "CREATE_TABLE") {
-        titleEl.setAttribute("value", "✓ LISTO PARA CREAR");
-        extraButtons.push({ label: "▶ EJECUTAR CREATE", action: "qb_create_exec", bg: "#001800", color: rol.terciario, w: 7 });
-
+        titleEl.setAttribute("value", "LISTO PARA CREAR");
+        extraButtons.push({ label: "EJECUTAR CREATE", action: "qb_create_exec", bg: "#001800", color: rol.terciario, w: 7 });
         const t = document.createElement("a-text");
         t.setAttribute("value",
           `Tabla: ${queryState.createTableName || "?"}\n` +
@@ -1866,19 +2019,100 @@
         hint.appendChild(t);
       }
 
+      // ---- CREAR USUARIO: asistente paso a paso (equivalente inmersivo del panel 2D "Crear
+      // usuario", mismo endpoint /api/admin/users) — una decisión por pantalla: usuario,
+      // contraseña, rol, y luego UNA tabla a la vez (con sus dos casillas Lectura/Escritura y
+      // navegación anterior/siguiente), en vez de mostrarlo todo junto de golpe.
+      else if (queryState.step === 2 && queryState.operation === "CREAR_USUARIO") {
+        titleEl.setAttribute("value", "PASO 2 - NOMBRE DE USUARIO");
+        const cu = queryState.cu;
+        opciones = [{
+          label: cu.username ? `USUARIO: ${cu.username}` : "USUARIO (tocar)",
+          action: "cu_set_username", w: 7
+        }];
+      if (cu.username) extraButtons.push({ label: "PASO 3 ->", action: "cu_next", bg: "#1A1A2E", color: rol.primario, w: 5 });
+      }
+      else if (queryState.step === 3 && queryState.operation === "CREAR_USUARIO") {
+        titleEl.setAttribute("value", "PASO 3 - CONTRASENA");
+        const cu = queryState.cu;
+        opciones = [{
+          label: cu.password ? `CONTRASEÑA: ${"*".repeat(Math.min(cu.password.length, 12))}` : "CONTRASEÑA (tocar)",
+          action: "cu_set_password", w: 7
+        }];
+      if (cu.password) extraButtons.push({ label: "PASO 4 ->", action: "cu_next", bg: "#1A1A2E", color: rol.primario, w: 5 });
+      }
+      else if (queryState.step === 4 && queryState.operation === "CREAR_USUARIO") {
+        titleEl.setAttribute("value", "PASO 4 - ROL");
+        const cu = queryState.cu;
+        const rolesBase = ["profesor", "estudiante", "admin"];
+        opciones = rolesBase.map(r => ({
+          label: r.toUpperCase(), action: "cu_set_role", param: r,
+          emissive: cu.role === r ? rol.ambar : rol.primario
+        }));
+        opciones.push({
+          label: cu.role === "otro" ? `OTRO: ${cu.roleCustom || "..."}` : "OTRO ROL...",
+          action: "cu_set_role", param: "otro",
+          emissive: cu.role === "otro" ? rol.ambar : rol.primario
+        });
+        if (cu.role && (cu.role !== "otro" || cu.roleCustom)) {
+          extraButtons.push({ label: "PASO 5 ->", action: "cu_next", bg: "#1A1A2E", color: rol.primario, w: 5 });
+        }
+      }
+      else if (queryState.step === 5 && queryState.operation === "CREAR_USUARIO") {
+        const cu = queryState.cu;
+        const idx = cu.tableIndex || 0;
+        const tabla = tablasDisponibles[idx];
+        titleEl.setAttribute("value", `PASO 5 - TABLA ${idx + 1}/${tablasDisponibles.length}: ${tabla ? tabla.toUpperCase() : "?"}`);
+        const p = cu.tablePerms[tabla] || { read: false, write: false };
+        opciones = [
+          {
+            label: `LECTURA: ${p.read ? "SI" : "NO"}`, action: "cu_toggle_read", param: tabla,
+            emissive: p.read ? rol.terciario : rol.secundario, w: 6
+          },
+          {
+            label: `ESCRITURA: ${p.write ? "SI" : "NO"}`, action: "cu_toggle_write", param: tabla,
+            emissive: p.write ? rol.peligro : rol.secundario, w: 6.5
+          }
+        ];
+        if (idx > 0) extraButtons.push({ label: "<- ANTERIOR", action: "cu_prev_table", bg: "#111", color: rol.secundario, w: 5.5 });
+        extraButtons.push({
+          label: idx < tablasDisponibles.length - 1 ? "SIGUIENTE TABLA →" : "FINALIZAR →",
+          action: "cu_next_table", bg: "#1A1A2E", color: rol.primario, w: 7
+        });
+      }
+      else if (queryState.step === 6 && queryState.operation === "CREAR_USUARIO") {
+        titleEl.setAttribute("value", "LISTO PARA CREAR USUARIO");
+        const cu = queryState.cu;
+        const rolFinal = cu.role === "otro" ? cu.roleCustom : cu.role;
+        const nTablas = Object.values(cu.tablePerms).filter(p => p.read).length;
+        extraButtons.push({ label: "CREAR USUARIO", action: "cu_exec", bg: "#001800", color: rol.terciario, w: 7 });
+
+        const tablasTxt = Object.entries(cu.tablePerms)
+          .filter(([, p]) => p.read)
+          .map(([tabla, p]) => `${tabla}${p.write ? "(R/E)" : "(R)"}`)
+          .join(", ") || "ninguna";
+
+        const t = document.createElement("a-text");
+        t.setAttribute("value", `Usuario: ${cu.username}   Rol: ${rolFinal || "?"}\nTablas (${nTablas}): ${tablasTxt}`);
+        t.setAttribute("color", rol.ambar);
+        t.setAttribute("align", "center");
+        t.setAttribute("width", "13");
+        t.setAttribute("position", "0 -2 0");
+        hint.appendChild(t);
+      }
+
       else if (queryState.step === 2 && queryState.operation === "DROP_TABLE") {
-        titleEl.setAttribute("value", "PASO 2 · ELEGIR TABLA A ELIMINAR");
+        titleEl.setAttribute("value", "PASO 2 - ELEGIR TABLA A ELIMINAR");
         opciones = tablasParaDrop.map(t => ({
           label: t.toUpperCase(), action: "qb_drop_tabla", param: t, emissive: rol.peligro, textColor: rol.peligro
         }));
       }
       else if (queryState.step === 3 && queryState.operation === "DROP_TABLE") {
-        titleEl.setAttribute("value", "⚠ CONFIRMAR ELIMINACIÓN");
-        extraButtons.push({ label: "▶ EJECUTAR DROP", action: "qb_drop_exec", bg: "#2A0000", color: rol.peligro, w: 7 });
-
+        titleEl.setAttribute("value", "CONFIRMAR ELIMINACION");
+        extraButtons.push({ label: "EJECUTAR DROP", action: "qb_drop_exec", bg: "#2A0000", color: rol.peligro, w: 7 });
         const t = document.createElement("a-text");
         t.setAttribute("value",
-          `Esta acción es IRREVERSIBLE.\nSe eliminará la tabla "${queryState.table}" y todos sus datos.`
+          `Esta accion es IRREVERSIBLE.\nSe eliminara la tabla "${queryState.table}" y todos sus datos.`
         );
         t.setAttribute("color", rol.peligro);
         t.setAttribute("align", "center");
@@ -1897,7 +2131,7 @@
           label: btn.label, action: btn.action,
           bg: btn.bg, color: btn.color, w: btn.w || 6
         })),
-        { label: "← CANCELAR", action: "volver", bg: rol.volver, color: "#FFF", w: 5.0 }
+      { label: "<- CANCELAR", action: "volver", bg: rol.volver, color: "#FFF", w: 5.0 }
       ];
 
       const gapControl = 1.2;
@@ -1925,6 +2159,13 @@
         document.getElementById("query-step-title").setAttribute("value", "CARGANDO TABLAS...");
         limpiarEntidad("query-options-container");
         await cargarTablasParaDrop();
+      } else if (op === "CREAR USUARIO") {
+        queryState.operation = "CREAR_USUARIO";
+        queryState.step = 2;
+        queryState.cu = { username: "", password: "", role: "", roleCustom: "", tablePerms: {}, tableIndex: 0 };
+        document.getElementById("query-step-title").setAttribute("value", "CARGANDO TABLAS Y ROLES...");
+        limpiarEntidad("query-options-container");
+        await cargarDatosCrearUsuario();
       } else {
         queryState.operation = op;
         queryState.step = op === "SELECT" ? 2 : 6;
@@ -1943,6 +2184,26 @@
         tablasParaDrop = res.ok ? (data.tables || []) : [];
       } catch (e) {
         tablasParaDrop = [];
+      }
+    }
+
+    // Reutiliza las mismas variables globales que el panel 2D de administración
+    // (tablasDisponibles/rolesDisponibles, declaradas más abajo junto a abrirPanelAdminUsuarios):
+    // así ambos caminos —el panel 2D y este wizard VR— comparten el mismo dato cargado del
+    // servidor en vez de mantener dos copias que podrían desincronizarse.
+    async function cargarDatosCrearUsuario() {
+      try {
+        const [resTablas, resRoles] = await Promise.all([
+          fetch("/api/admin/tables"),
+          fetch("/api/admin/roles")
+        ]);
+        if (!resTablas.ok || !resRoles.ok) throw new Error("No autorizado o error de servidor");
+        tablasDisponibles = (await resTablas.json()).tables || [];
+        rolesDisponibles = (await resRoles.json()).roles || {};
+      } catch (e) {
+        tablasDisponibles = [];
+        rolesDisponibles = {};
+        mostrarToastHUD("❌ Error cargando tablas/roles");
       }
     }
 
@@ -2101,8 +2362,7 @@
       cubo.innerHTML = `
         <a-box width="1.6" height="1.6" depth="1.6"
                material="color: #0a1020; emissive: ${rol.terciario}; emissiveIntensity: 0.5; opacity: 0.95"></a-box>
-        <a-text value="${tablaA.toUpperCase()}\n⋈ JOIN ⋈\n${tablaB.toUpperCase()}" align="center"
-                position="0 0 0.9" width="7" color="${rol.terciario}"></a-text>
+        <a-text value="${tablaA.toUpperCase()}\n== JOIN ==\n${tablaB.toUpperCase()}" align="center"                position="0 0 0.9" width="7" color="${rol.terciario}"></a-text>
       `;
       cont.appendChild(cubo);
       cubo.setAttribute("animation__cubo_scale", "property: scale; to: 1 1 1; dur: 550; delay: 150; easing: easeOutBack");
@@ -2466,8 +2726,13 @@
     // la cámara en ese instante (poco fiable: dependía de la inclinación y el giro del usuario),
     // lo anclamos a un sitio fijo y conocido de esa escena, y desplazamos la propia escena hacia
     // arriba para dejarle sitio libre debajo, tal cual una tabla que se aparta para dejar hueco.
-    const QB_BASE_Y = 0;       // posición original de #escena-query-builder (position="7 0 -10")
-    const QB_SHIFT_UP = 10;    // cuánto se desplaza hacia arriba mientras el teclado está abierto
+    const QB_BASE_Y = 0;
+       // posición original de #escena-query-builder (position="7 0 -10")
+    const QB_SHIFT_UP = 18;
+    // cuánto se desplaza hacia arriba mientras el teclado está abierto
+                                // (subido de 10 a 18: la tarjeta de "crear usuario" es mucho más
+                                // alta que cualquier otro paso del constructor y con 10 el teclado
+                                // se solapaba con las filas de tablas de más abajo)
     const QB_KEYBOARD_POS = { x: 7, y: 3, z: -12 }; // misma profundidad que el panel del constructor
     const QB_KEYBOARD_SCALE = "1.3 1.25 1"; // más ancho y un poco más alto, sin acercarlo
 
@@ -2573,10 +2838,9 @@
       // Fila especial: SHIFT/MAYUS | ESPACIO | BORRAR | NÚMEROS
       const bottomY = -(rowsTotal * (keyH + gapY)) - 0.15;
       const specialKeys = [
-        { label: _vrkbMode === "num" ? "ABC" : (_vrkbMode === "upper" ? "minús" : "MAYÚS"), param: "vrkb_toggle_case", w: 2.2, color: rol.secundario },
+        { label: _vrkbMode === "num" ? "ABC" : (_vrkbMode === "upper" ? "minus" : "MAYUS"), param: "vrkb_toggle_case", w: 2.2, color: rol.secundario },
         { label: "ESPACIO", param: "vrkb_space", w: 4.2, color: rol.terciario },
-        { label: "⌫", param: "vrkb_back", w: 1.6, color: rol.ambar },
-        { label: _vrkbMode === "num" ? "ABC" : "123", param: "vrkb_toggle_num", w: 2.0, color: rol.violeta }
+        { label: "BORRAR", param: "vrkb_back", w: 1.6, color: rol.ambar },        { label: _vrkbMode === "num" ? "ABC" : "123", param: "vrkb_toggle_num", w: 2.0, color: rol.violeta }
       ];
       const totalSpecialW = specialKeys.reduce((a, k) => a + k.w, 0) + (specialKeys.length - 1) * 0.15;
       let sx = -totalSpecialW / 2;
@@ -2603,15 +2867,13 @@
           <a-box class="clickable" interactable width="4.0" height="0.78" depth="0.22"
                  material="color: #001800; emissive: ${rol.terciario}; emissiveIntensity: 0.55; opacity: 0.98"
                  data-action="vrkb_confirm">
-            <a-text value="✓ CONFIRMAR" align="center" position="0 0 0.13" width="7.5" color="#0A0A0A"></a-text>
-          </a-box>
+          <a-text value="CONFIRMAR" align="center" position="0 0 0.13" width="7.5" color="#0A0A0A"></a-text>          </a-box>
         </a-entity>
         <a-entity position="2.6 0 0">
           <a-box class="clickable" interactable width="4.0" height="0.78" depth="0.22"
                  material="color: #1A0000; emissive: ${rol.peligro}; emissiveIntensity: 0.5; opacity: 0.98"
                  data-action="vrkb_cancel">
-            <a-text value="✗ CANCELAR" align="center" position="0 0 0.13" width="7.5" color="#0A0A0A"></a-text>
-          </a-box>
+          <a-text value="CANCELAR" align="center" position="0 0 0.13" width="7.5" color="#0A0A0A"></a-text>          </a-box>
         </a-entity>
       `;
     }
@@ -2663,6 +2925,132 @@
         } else {
           mostrarToastHUD(`❌ ${data.error || "Error"}`);
         }
+      } catch (e) {
+        mostrarToastHUD("❌ Error de red");
+      }
+    }
+
+    // ---- CREAR USUARIO (wizard VR): mismo POST /api/admin/users que crearUsuarioAdmin() (panel 2D) ----
+
+    function cu_set_username() {
+      abrirTecladoVR("Nombre de usuario", queryState.cu.username, (val) => {
+        if (val && val.trim()) {
+          queryState.cu.username = val.trim();
+          actualizarDisplaySQL();
+          renderQBOpciones();
+        }
+      });
+    }
+
+    function cu_set_password() {
+      abrirTecladoVR("Contraseña", queryState.cu.password, (val) => {
+        if (val) {
+          queryState.cu.password = val;
+          actualizarDisplaySQL();
+          renderQBOpciones();
+        }
+      });
+    }
+
+    function cu_set_role(rolNombre) {
+      if (rolNombre === "otro") {
+        abrirTecladoVR("Nombre del rol", queryState.cu.roleCustom, (val) => {
+          if (val && val.trim()) {
+            queryState.cu.role = "otro";
+            queryState.cu.roleCustom = val.trim();
+            actualizarDisplaySQL();
+            renderQBOpciones();
+          }
+        });
+        return;
+      }
+      queryState.cu.role = rolNombre;
+      queryState.cu.roleCustom = "";
+      // Precarga las tablas por defecto del rol (role_default_tables), igual que
+      // onCambioRolNuevoUsuario() en el panel 2D — editable después en el paso siguiente.
+      queryState.cu.tablePerms = {};
+      (rolesDisponibles[rolNombre] || []).forEach(d => {
+        queryState.cu.tablePerms[d.table] = { read: true, write: !!d.can_write };
+      });
+      actualizarDisplaySQL();
+      renderQBOpciones();
+    }
+
+    // Casillas "Lectura"/"Escritura" independientes, igual que el panel 2D: marcar Escritura
+    // implica marcar también Lectura; desmarcar Lectura desmarca Escritura (no tiene sentido
+    // poder escribir sin poder leer).
+    function cu_toggle_read(tabla) {
+      const cur = queryState.cu.tablePerms[tabla] || { read: false, write: false };
+      const read = !cur.read;
+      queryState.cu.tablePerms[tabla] = { read, write: read ? cur.write : false };
+      actualizarDisplaySQL();
+      renderQBOpciones();
+    }
+
+    function cu_toggle_write(tabla) {
+      const cur = queryState.cu.tablePerms[tabla] || { read: false, write: false };
+      const write = !cur.write;
+      queryState.cu.tablePerms[tabla] = { read: write ? true : cur.read, write };
+      actualizarDisplaySQL();
+      renderQBOpciones();
+    }
+
+    // Avanza de paso en paso (usuario -> contraseña -> rol -> primera tabla).
+    function cu_next() {
+      queryState.step += 1;
+      if (queryState.step === 5) queryState.cu.tableIndex = 0;
+      actualizarDisplaySQL();
+      renderQBOpciones();
+    }
+
+    // Navegación tabla a tabla del paso 5 (una tabla por pantalla, con sus dos casillas).
+    function cu_next_table() {
+      const idx = queryState.cu.tableIndex || 0;
+      if (idx < tablasDisponibles.length - 1) {
+        queryState.cu.tableIndex = idx + 1;
+      } else {
+        queryState.step = 6;
+      }
+      actualizarDisplaySQL();
+      renderQBOpciones();
+    }
+
+    function cu_prev_table() {
+      const idx = queryState.cu.tableIndex || 0;
+      if (idx > 0) queryState.cu.tableIndex = idx - 1;
+      actualizarDisplaySQL();
+      renderQBOpciones();
+    }
+
+    async function cu_exec() {
+      const cu = queryState.cu;
+      const role = cu.role === "otro" ? cu.roleCustom : cu.role;
+      const table_permissions = Object.entries(cu.tablePerms)
+        .filter(([, p]) => p.read)
+        .map(([table, p]) => ({ table, can_read: true, can_write: !!p.write }));
+
+      if (!cu.username || !cu.password || !role) {
+        mostrarToastHUD("❌ Usuario, contraseña y rol son obligatorios");
+        return;
+      }
+      if (!table_permissions.length) {
+        mostrarToastHUD("❌ Selecciona al menos una tabla");
+        return;
+      }
+
+      try {
+        const resp = await fetch("/api/admin/users", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username: cu.username, password: cu.password, role, table_permissions })
+        });
+        const data = await resp.json();
+        if (!resp.ok) {
+          mostrarToastHUD(`❌ ${data.error || "Error creando usuario"}`);
+          return;
+        }
+        mostrarToastHUD(`✅ Usuario ${cu.username} creado`);
+        nav.goBack();
       } catch (e) {
         mostrarToastHUD("❌ Error de red");
       }
@@ -2841,7 +3229,7 @@
 
       document.getElementById("titulo-analisis").setAttribute("value", titulo);
       document.getElementById("stat-edad-min").setAttribute("value", `MIN: ${stats.min}`);
-      document.getElementById("stat-edad-max").setAttribute("value", `MÁX: ${stats.max}`);
+      document.getElementById("stat-edad-max").setAttribute("value", `MAX: ${stats.max}`);
       document.getElementById("stat-edad-prom").setAttribute("value", `PROM: ${stats.avg}`);
       document.getElementById("stat-total").setAttribute("value", `TOTAL: ${stats.total}`);
 
@@ -2952,7 +3340,7 @@
         msg.setAttribute("width", "10");
         msg.setAttribute("align", "center");
         cuerpo.appendChild(msg);
-        document.getElementById("label-pagina").setAttribute("value", "PÁG.\n0 / 0");
+      document.getElementById("label-pagina").setAttribute("value", "PAG.\n0 / 0");
         return;
       }
 
@@ -2993,7 +3381,7 @@
         cuerpo.appendChild(filaEnt);
       });
 
-      document.getElementById("label-pagina").setAttribute("value", `PÁG.\n${paginaActual + 1} / ${totalPages}`);
+      document.getElementById("label-pagina").setAttribute("value", `PAG.\n${paginaActual + 1} / ${totalPages}`);
     }
 
     function renderizarTabla3D() {
@@ -3039,7 +3427,7 @@
         msg.setAttribute("width", "8");
         msg.setAttribute("align", "center");
         cuerpo.appendChild(msg);
-        document.getElementById("label-pagina").setAttribute("value", "PÁG.\n0 / 0");
+      document.getElementById("label-pagina").setAttribute("value", "PAG.\n0 / 0");
         return;
       }
 
@@ -3075,7 +3463,7 @@
         cuerpo.appendChild(row);
       });
 
-      document.getElementById("label-pagina").setAttribute("value", `PÁG.\n${paginaActual + 1} / ${totalPages}`);
+      document.getElementById("label-pagina").setAttribute("value", `PAG.\n${paginaActual + 1} / ${totalPages}`);
     }
 
     function cambiarPagina(delta) {
@@ -3140,8 +3528,7 @@
                       position="0 ${-altBarra / 2} 0"
                       material="color: ${colorHex}; emissive: ${colorHex}; emissiveIntensity: 0.7; opacity: 0.4"></a-cylinder>
 
-          <a-text value="${String(clave).length > 10 ? String(clave).slice(0, 9) + '…' : clave}"
-                  position="0 ${-altBarra / 2 - 0.62} 0"
+          <a-text value="${String(clave).length > 10 ? String(clave).slice(0, 9) + '...' : clave}"                  position="0 ${-altBarra / 2 - 0.62} 0"
                   color="${rol.primario}" align="center" width="4.2"></a-text>
 
           <a-text value="${tipo === 'num' ? Number(val).toFixed(2) : val}"
@@ -3225,7 +3612,7 @@
         cont.appendChild(bar);
 
         const label = document.createElement("a-text");
-        label.setAttribute("value", String(k).length > 8 ? String(k).slice(0, 8) + "…" : k);
+        label.setAttribute("value", String(k).length > 8 ? String(k).slice(0, 8) + "..." : k);
         label.setAttribute("position", `${x} -2.35 0.03`);
         label.setAttribute("align", "center");
         label.setAttribute("width", "3.2");
@@ -3467,6 +3854,12 @@
       document.getElementById("user-display-role").textContent = `${usuarioActual.role.toUpperCase()}`;
       document.getElementById("admin-users-btn").style.display =
         usuarioActual.role === "admin" ? "block" : "none";
+
+      // Equivalente 3D del panel de usuario, para cuando se entra en VR/AR (ver hud-xr-root
+      // más abajo y los listeners enter-vr/exit-vr de la escena).
+      document.getElementById("hud-user-name")?.setAttribute("value", usuarioActual.username);
+      document.getElementById("hud-user-role")?.setAttribute("value", usuarioActual.role.toUpperCase());
+      document.getElementById("hud-user-gestionar")?.setAttribute("visible", usuarioActual.role === "admin");
     }
 
     async function hacerLogout() {
@@ -3488,6 +3881,10 @@
       document.getElementById("login-username").value = "";
       document.getElementById("login-password").value = "";
       document.getElementById("login-error").style.display = "none";
+
+      const loginBtn = document.getElementById("login-btn");
+      loginBtn.disabled = false;
+      loginBtn.textContent = "▶ ENTRAR";
 
       mostrarToastHUD("👋 Sesión cerrada");
     }
