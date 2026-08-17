@@ -1,0 +1,277 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1780" height="900" viewBox="0 0 1780 900" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+<rect x="0" y="0" width="1780" height="900" fill="#f5f5f5"/>
+<defs><marker id="crowmany" markerWidth="16" markerHeight="14" refX="15" refY="7" orient="auto"><path d="M0,7 L15,0 M0,7 L15,7 M0,7 L15,14" stroke="#555" fill="none" stroke-width="1.2"/></marker><marker id="oneend" markerWidth="10" markerHeight="14" refX="8" refY="7" orient="auto"><path d="M8,0 L8,14 M4,0 L4,14" stroke="#555" fill="none" stroke-width="1.2"/></marker></defs>
+<text x="24" y="30" font-size="16" font-weight="bold" fill="#222">Diagrama entidad-relacion (estilo pgAdmin) &#8212; Base de datos Universidad</text>
+<rect x="60" y="60" width="316" height="176" fill="white" stroke="#9a9a9a" stroke-width="1"/>
+<rect x="60" y="60" width="316" height="24" fill="#e8e8e8" stroke="#9a9a9a" stroke-width="1"/>
+<rect x="64" y="66" width="12" height="12" fill="none" stroke="#4a86c8" stroke-width="1.3"/>
+<line x1="64" y1="70" x2="76" y2="70" stroke="#4a86c8" stroke-width="1"/>
+<line x1="70" y1="66" x2="70" y2="78" stroke="#4a86c8" stroke-width="1"/>
+<text x="82" y="77" font-size="13" font-weight="bold" fill="#111">profesores</text>
+<rect x="60" y="84" width="316" height="20" fill="#fbfbfb" stroke="#d8d8d8" stroke-width="0.6"/>
+<polygon points="68,89 73,94 68,99 63,94" fill="#c0504d"/>
+<text x="80" y="99" font-size="11" fill="#666">public</text>
+<rect x="60" y="104" width="316" height="22" fill="#ffffff" stroke="#e4e4e4" stroke-width="0.5"/>
+<circle cx="72" cy="115.0" r="3.4" fill="none" stroke="#c9962c" stroke-width="1.3"/><line x1="75.2" y1="115.0" x2="81" y2="115.0" stroke="#c9962c" stroke-width="1.3"/><line x1="81" y1="115.0" x2="81" y2="118.0" stroke="#c9962c" stroke-width="1.3"/><line x1="78.5" y1="115.0" x2="78.5" y2="117.4" stroke="#c9962c" stroke-width="1.3"/>
+<text x="84" y="119" font-size="11.5" font-weight="bold" font-style="normal" fill="#111">idprofesor</text>
+<text x="368" y="119" font-size="10.5" fill="#888" text-anchor="end">integer</text>
+<rect x="60" y="126" width="316" height="22" fill="#f7f7f9" stroke="#e4e4e4" stroke-width="0.5"/>
+<text x="84" y="141" font-size="11.5" font-weight="normal" font-style="normal" fill="#111">nombre</text>
+<text x="368" y="141" font-size="10.5" fill="#888" text-anchor="end">character varying(50)</text>
+<rect x="60" y="148" width="316" height="22" fill="#ffffff" stroke="#e4e4e4" stroke-width="0.5"/>
+<text x="84" y="163" font-size="11.5" font-weight="normal" font-style="normal" fill="#111">apellido</text>
+<text x="368" y="163" font-size="10.5" fill="#888" text-anchor="end">character varying(50)</text>
+<rect x="60" y="170" width="316" height="22" fill="#f7f7f9" stroke="#e4e4e4" stroke-width="0.5"/>
+<text x="84" y="185" font-size="11.5" font-weight="normal" font-style="normal" fill="#111">correoelectronico</text>
+<text x="368" y="185" font-size="10.5" fill="#888" text-anchor="end">character varying(100)</text>
+<rect x="60" y="192" width="316" height="22" fill="#ffffff" stroke="#e4e4e4" stroke-width="0.5"/>
+<text x="84" y="207" font-size="11.5" font-weight="normal" font-style="normal" fill="#111">departamento</text>
+<text x="368" y="207" font-size="10.5" fill="#888" text-anchor="end">character varying(50)</text>
+<rect x="60" y="214" width="316" height="22" fill="#f7f7f9" stroke="#e4e4e4" stroke-width="0.5"/>
+<text x="84" y="229" font-size="11.5" font-weight="normal" font-style="normal" fill="#111">salario</text>
+<text x="368" y="229" font-size="10.5" fill="#888" text-anchor="end">numeric(10,2)</text>
+<rect x="520" y="60" width="316" height="176" fill="white" stroke="#9a9a9a" stroke-width="1"/>
+<rect x="520" y="60" width="316" height="24" fill="#e8e8e8" stroke="#9a9a9a" stroke-width="1"/>
+<rect x="524" y="66" width="12" height="12" fill="none" stroke="#4a86c8" stroke-width="1.3"/>
+<line x1="524" y1="70" x2="536" y2="70" stroke="#4a86c8" stroke-width="1"/>
+<line x1="530" y1="66" x2="530" y2="78" stroke="#4a86c8" stroke-width="1"/>
+<text x="542" y="77" font-size="13" font-weight="bold" fill="#111">asignaturas</text>
+<rect x="520" y="84" width="316" height="20" fill="#fbfbfb" stroke="#d8d8d8" stroke-width="0.6"/>
+<polygon points="528,89 533,94 528,99 523,94" fill="#c0504d"/>
+<text x="540" y="99" font-size="11" fill="#666">public</text>
+<rect x="520" y="104" width="316" height="22" fill="#ffffff" stroke="#e4e4e4" stroke-width="0.5"/>
+<circle cx="532" cy="115.0" r="3.4" fill="none" stroke="#c9962c" stroke-width="1.3"/><line x1="535.2" y1="115.0" x2="541" y2="115.0" stroke="#c9962c" stroke-width="1.3"/><line x1="541" y1="115.0" x2="541" y2="118.0" stroke="#c9962c" stroke-width="1.3"/><line x1="538.5" y1="115.0" x2="538.5" y2="117.4" stroke="#c9962c" stroke-width="1.3"/>
+<text x="544" y="119" font-size="11.5" font-weight="bold" font-style="normal" fill="#111">idasignatura</text>
+<text x="828" y="119" font-size="10.5" fill="#888" text-anchor="end">integer</text>
+<rect x="520" y="126" width="316" height="22" fill="#f7f7f9" stroke="#e4e4e4" stroke-width="0.5"/>
+<text x="544" y="141" font-size="11.5" font-weight="normal" font-style="normal" fill="#111">nombre</text>
+<text x="828" y="141" font-size="10.5" fill="#888" text-anchor="end">character varying(100)</text>
+<rect x="520" y="148" width="316" height="22" fill="#ffffff" stroke="#e4e4e4" stroke-width="0.5"/>
+<text x="544" y="163" font-size="11.5" font-weight="normal" font-style="normal" fill="#111">creditos</text>
+<text x="828" y="163" font-size="10.5" fill="#888" text-anchor="end">integer</text>
+<rect x="520" y="170" width="316" height="22" fill="#f7f7f9" stroke="#e4e4e4" stroke-width="0.5"/>
+<text x="544" y="185" font-size="11.5" font-weight="normal" font-style="normal" fill="#111">curso</text>
+<text x="828" y="185" font-size="10.5" fill="#888" text-anchor="end">integer</text>
+<rect x="520" y="192" width="316" height="22" fill="#ffffff" stroke="#e4e4e4" stroke-width="0.5"/>
+<text x="544" y="207" font-size="11.5" font-weight="normal" font-style="normal" fill="#111">semestre</text>
+<text x="828" y="207" font-size="10.5" fill="#888" text-anchor="end">integer</text>
+<rect x="520" y="214" width="316" height="22" fill="#f7f7f9" stroke="#e4e4e4" stroke-width="0.5"/>
+<circle cx="532" cy="225.0" r="3.4" fill="none" stroke="#8a8a8a" stroke-width="1.3"/><line x1="535.2" y1="225.0" x2="541" y2="225.0" stroke="#8a8a8a" stroke-width="1.3"/><line x1="541" y1="225.0" x2="541" y2="228.0" stroke="#8a8a8a" stroke-width="1.3"/><line x1="538.5" y1="225.0" x2="538.5" y2="227.4" stroke="#8a8a8a" stroke-width="1.3"/>
+<text x="544" y="229" font-size="11.5" font-weight="normal" font-style="italic" fill="#111">idprofesor</text>
+<text x="828" y="229" font-size="10.5" fill="#888" text-anchor="end">integer</text>
+<rect x="60" y="460" width="316" height="198" fill="white" stroke="#9a9a9a" stroke-width="1"/>
+<rect x="60" y="460" width="316" height="24" fill="#e8e8e8" stroke="#9a9a9a" stroke-width="1"/>
+<rect x="64" y="466" width="12" height="12" fill="none" stroke="#4a86c8" stroke-width="1.3"/>
+<line x1="64" y1="470" x2="76" y2="470" stroke="#4a86c8" stroke-width="1"/>
+<line x1="70" y1="466" x2="70" y2="478" stroke="#4a86c8" stroke-width="1"/>
+<text x="82" y="477" font-size="13" font-weight="bold" fill="#111">estudiantes</text>
+<rect x="60" y="484" width="316" height="20" fill="#fbfbfb" stroke="#d8d8d8" stroke-width="0.6"/>
+<polygon points="68,489 73,494 68,499 63,494" fill="#c0504d"/>
+<text x="80" y="499" font-size="11" fill="#666">public</text>
+<rect x="60" y="504" width="316" height="22" fill="#ffffff" stroke="#e4e4e4" stroke-width="0.5"/>
+<circle cx="72" cy="515.0" r="3.4" fill="none" stroke="#c9962c" stroke-width="1.3"/><line x1="75.2" y1="515.0" x2="81" y2="515.0" stroke="#c9962c" stroke-width="1.3"/><line x1="81" y1="515.0" x2="81" y2="518.0" stroke="#c9962c" stroke-width="1.3"/><line x1="78.5" y1="515.0" x2="78.5" y2="517.4" stroke="#c9962c" stroke-width="1.3"/>
+<text x="84" y="519" font-size="11.5" font-weight="bold" font-style="normal" fill="#111">matricula</text>
+<text x="368" y="519" font-size="10.5" fill="#888" text-anchor="end">integer</text>
+<rect x="60" y="526" width="316" height="22" fill="#f7f7f9" stroke="#e4e4e4" stroke-width="0.5"/>
+<text x="84" y="541" font-size="11.5" font-weight="normal" font-style="normal" fill="#111">nombre</text>
+<text x="368" y="541" font-size="10.5" fill="#888" text-anchor="end">character varying(50)</text>
+<rect x="60" y="548" width="316" height="22" fill="#ffffff" stroke="#e4e4e4" stroke-width="0.5"/>
+<text x="84" y="563" font-size="11.5" font-weight="normal" font-style="normal" fill="#111">apellido</text>
+<text x="368" y="563" font-size="10.5" fill="#888" text-anchor="end">character varying(50)</text>
+<rect x="60" y="570" width="316" height="22" fill="#f7f7f9" stroke="#e4e4e4" stroke-width="0.5"/>
+<text x="84" y="585" font-size="11.5" font-weight="normal" font-style="normal" fill="#111">telefono</text>
+<text x="368" y="585" font-size="10.5" fill="#888" text-anchor="end">character varying(15)</text>
+<rect x="60" y="592" width="316" height="22" fill="#ffffff" stroke="#e4e4e4" stroke-width="0.5"/>
+<text x="84" y="607" font-size="11.5" font-weight="normal" font-style="normal" fill="#111">correoelectronico</text>
+<text x="368" y="607" font-size="10.5" fill="#888" text-anchor="end">character varying(100)</text>
+<rect x="60" y="614" width="316" height="22" fill="#f7f7f9" stroke="#e4e4e4" stroke-width="0.5"/>
+<text x="84" y="629" font-size="11.5" font-weight="normal" font-style="normal" fill="#111">direccion</text>
+<text x="368" y="629" font-size="10.5" fill="#888" text-anchor="end">character varying(100)</text>
+<rect x="60" y="636" width="316" height="22" fill="#ffffff" stroke="#e4e4e4" stroke-width="0.5"/>
+<text x="84" y="651" font-size="11.5" font-weight="normal" font-style="normal" fill="#111">edad</text>
+<text x="368" y="651" font-size="10.5" fill="#888" text-anchor="end">integer</text>
+<rect x="520" y="460" width="316" height="154" fill="white" stroke="#9a9a9a" stroke-width="1"/>
+<rect x="520" y="460" width="316" height="24" fill="#e8e8e8" stroke="#9a9a9a" stroke-width="1"/>
+<rect x="524" y="466" width="12" height="12" fill="none" stroke="#4a86c8" stroke-width="1.3"/>
+<line x1="524" y1="470" x2="536" y2="470" stroke="#4a86c8" stroke-width="1"/>
+<line x1="530" y1="466" x2="530" y2="478" stroke="#4a86c8" stroke-width="1"/>
+<text x="542" y="477" font-size="13" font-weight="bold" fill="#111">matriculas</text>
+<rect x="520" y="484" width="316" height="20" fill="#fbfbfb" stroke="#d8d8d8" stroke-width="0.6"/>
+<polygon points="528,489 533,494 528,499 523,494" fill="#c0504d"/>
+<text x="540" y="499" font-size="11" fill="#666">public</text>
+<rect x="520" y="504" width="316" height="22" fill="#ffffff" stroke="#e4e4e4" stroke-width="0.5"/>
+<circle cx="532" cy="515.0" r="3.4" fill="none" stroke="#c9962c" stroke-width="1.3"/><line x1="535.2" y1="515.0" x2="541" y2="515.0" stroke="#c9962c" stroke-width="1.3"/><line x1="541" y1="515.0" x2="541" y2="518.0" stroke="#c9962c" stroke-width="1.3"/><line x1="538.5" y1="515.0" x2="538.5" y2="517.4" stroke="#c9962c" stroke-width="1.3"/>
+<text x="544" y="519" font-size="11.5" font-weight="bold" font-style="normal" fill="#111">matricula</text>
+<text x="828" y="519" font-size="10.5" fill="#888" text-anchor="end">integer</text>
+<rect x="520" y="526" width="316" height="22" fill="#f7f7f9" stroke="#e4e4e4" stroke-width="0.5"/>
+<circle cx="532" cy="537.0" r="3.4" fill="none" stroke="#c9962c" stroke-width="1.3"/><line x1="535.2" y1="537.0" x2="541" y2="537.0" stroke="#c9962c" stroke-width="1.3"/><line x1="541" y1="537.0" x2="541" y2="540.0" stroke="#c9962c" stroke-width="1.3"/><line x1="538.5" y1="537.0" x2="538.5" y2="539.4" stroke="#c9962c" stroke-width="1.3"/>
+<text x="544" y="541" font-size="11.5" font-weight="bold" font-style="normal" fill="#111">idasignatura</text>
+<text x="828" y="541" font-size="10.5" fill="#888" text-anchor="end">integer</text>
+<rect x="520" y="548" width="316" height="22" fill="#ffffff" stroke="#e4e4e4" stroke-width="0.5"/>
+<text x="544" y="563" font-size="11.5" font-weight="normal" font-style="normal" fill="#111">fechamatriculacion</text>
+<text x="828" y="563" font-size="10.5" fill="#888" text-anchor="end">date</text>
+<rect x="520" y="570" width="316" height="22" fill="#f7f7f9" stroke="#e4e4e4" stroke-width="0.5"/>
+<text x="544" y="585" font-size="11.5" font-weight="normal" font-style="normal" fill="#111">notanumerica</text>
+<text x="828" y="585" font-size="10.5" fill="#888" text-anchor="end">numeric(4,2)</text>
+<rect x="520" y="592" width="316" height="22" fill="#ffffff" stroke="#e4e4e4" stroke-width="0.5"/>
+<text x="544" y="607" font-size="11.5" font-weight="normal" font-style="normal" fill="#111">notatexto</text>
+<text x="828" y="607" font-size="10.5" fill="#888" text-anchor="end">character varying(50)</text>
+<rect x="960" y="60" width="316" height="198" fill="white" stroke="#9a9a9a" stroke-width="1"/>
+<rect x="960" y="60" width="316" height="24" fill="#e8e8e8" stroke="#9a9a9a" stroke-width="1"/>
+<rect x="964" y="66" width="12" height="12" fill="none" stroke="#4a86c8" stroke-width="1.3"/>
+<line x1="964" y1="70" x2="976" y2="70" stroke="#4a86c8" stroke-width="1"/>
+<line x1="970" y1="66" x2="970" y2="78" stroke="#4a86c8" stroke-width="1"/>
+<text x="982" y="77" font-size="13" font-weight="bold" fill="#111">users</text>
+<rect x="960" y="84" width="316" height="20" fill="#fbfbfb" stroke="#d8d8d8" stroke-width="0.6"/>
+<polygon points="968,89 973,94 968,99 963,94" fill="#c0504d"/>
+<text x="980" y="99" font-size="11" fill="#666">public</text>
+<rect x="960" y="104" width="316" height="22" fill="#ffffff" stroke="#e4e4e4" stroke-width="0.5"/>
+<circle cx="972" cy="115.0" r="3.4" fill="none" stroke="#c9962c" stroke-width="1.3"/><line x1="975.2" y1="115.0" x2="981" y2="115.0" stroke="#c9962c" stroke-width="1.3"/><line x1="981" y1="115.0" x2="981" y2="118.0" stroke="#c9962c" stroke-width="1.3"/><line x1="978.5" y1="115.0" x2="978.5" y2="117.4" stroke="#c9962c" stroke-width="1.3"/>
+<text x="984" y="119" font-size="11.5" font-weight="bold" font-style="normal" fill="#111">user_id</text>
+<text x="1268" y="119" font-size="10.5" fill="#888" text-anchor="end">serial</text>
+<rect x="960" y="126" width="316" height="22" fill="#f7f7f9" stroke="#e4e4e4" stroke-width="0.5"/>
+<text x="984" y="141" font-size="11.5" font-weight="normal" font-style="normal" fill="#111">username</text>
+<text x="1268" y="141" font-size="10.5" fill="#888" text-anchor="end">character varying(50)</text>
+<rect x="960" y="148" width="316" height="22" fill="#ffffff" stroke="#e4e4e4" stroke-width="0.5"/>
+<text x="984" y="163" font-size="11.5" font-weight="normal" font-style="normal" fill="#111">password_hash</text>
+<text x="1268" y="163" font-size="10.5" fill="#888" text-anchor="end">character varying</text>
+<rect x="960" y="170" width="316" height="22" fill="#f7f7f9" stroke="#e4e4e4" stroke-width="0.5"/>
+<text x="984" y="185" font-size="11.5" font-weight="normal" font-style="normal" fill="#111">email</text>
+<text x="1268" y="185" font-size="10.5" fill="#888" text-anchor="end">character varying(100)</text>
+<rect x="960" y="192" width="316" height="22" fill="#ffffff" stroke="#e4e4e4" stroke-width="0.5"/>
+<text x="984" y="207" font-size="11.5" font-weight="normal" font-style="normal" fill="#111">role</text>
+<text x="1268" y="207" font-size="10.5" fill="#888" text-anchor="end">character varying(50)</text>
+<rect x="960" y="214" width="316" height="22" fill="#f7f7f9" stroke="#e4e4e4" stroke-width="0.5"/>
+<text x="984" y="229" font-size="11.5" font-weight="normal" font-style="normal" fill="#111">created_at</text>
+<text x="1268" y="229" font-size="10.5" fill="#888" text-anchor="end">timestamp</text>
+<rect x="960" y="236" width="316" height="22" fill="#ffffff" stroke="#e4e4e4" stroke-width="0.5"/>
+<text x="984" y="251" font-size="11.5" font-weight="normal" font-style="normal" fill="#111">is_active</text>
+<text x="1268" y="251" font-size="10.5" fill="#888" text-anchor="end">boolean</text>
+<rect x="1400" y="60" width="316" height="132" fill="white" stroke="#9a9a9a" stroke-width="1"/>
+<rect x="1400" y="60" width="316" height="24" fill="#e8e8e8" stroke="#9a9a9a" stroke-width="1"/>
+<rect x="1404" y="66" width="12" height="12" fill="none" stroke="#4a86c8" stroke-width="1.3"/>
+<line x1="1404" y1="70" x2="1416" y2="70" stroke="#4a86c8" stroke-width="1"/>
+<line x1="1410" y1="66" x2="1410" y2="78" stroke="#4a86c8" stroke-width="1"/>
+<text x="1422" y="77" font-size="13" font-weight="bold" fill="#111">permissions</text>
+<rect x="1400" y="84" width="316" height="20" fill="#fbfbfb" stroke="#d8d8d8" stroke-width="0.6"/>
+<polygon points="1408,89 1413,94 1408,99 1403,94" fill="#c0504d"/>
+<text x="1420" y="99" font-size="11" fill="#666">public</text>
+<rect x="1400" y="104" width="316" height="22" fill="#ffffff" stroke="#e4e4e4" stroke-width="0.5"/>
+<circle cx="1412" cy="115.0" r="3.4" fill="none" stroke="#c9962c" stroke-width="1.3"/><line x1="1415.2" y1="115.0" x2="1421" y2="115.0" stroke="#c9962c" stroke-width="1.3"/><line x1="1421" y1="115.0" x2="1421" y2="118.0" stroke="#c9962c" stroke-width="1.3"/><line x1="1418.5" y1="115.0" x2="1418.5" y2="117.4" stroke="#c9962c" stroke-width="1.3"/>
+<text x="1424" y="119" font-size="11.5" font-weight="bold" font-style="normal" fill="#111">permission_id</text>
+<text x="1708" y="119" font-size="10.5" fill="#888" text-anchor="end">serial</text>
+<rect x="1400" y="126" width="316" height="22" fill="#f7f7f9" stroke="#e4e4e4" stroke-width="0.5"/>
+<text x="1424" y="141" font-size="11.5" font-weight="normal" font-style="normal" fill="#111">role_name</text>
+<text x="1708" y="141" font-size="10.5" fill="#888" text-anchor="end">character varying(50)</text>
+<rect x="1400" y="148" width="316" height="22" fill="#ffffff" stroke="#e4e4e4" stroke-width="0.5"/>
+<text x="1424" y="163" font-size="11.5" font-weight="normal" font-style="normal" fill="#111">permission_name</text>
+<text x="1708" y="163" font-size="10.5" fill="#888" text-anchor="end">character varying(100)</text>
+<rect x="1400" y="170" width="316" height="22" fill="#f7f7f9" stroke="#e4e4e4" stroke-width="0.5"/>
+<text x="1424" y="185" font-size="11.5" font-weight="normal" font-style="normal" fill="#111">description</text>
+<text x="1708" y="185" font-size="10.5" fill="#888" text-anchor="end">character varying</text>
+<rect x="960" y="300" width="316" height="110" fill="white" stroke="#9a9a9a" stroke-width="1"/>
+<rect x="960" y="300" width="316" height="24" fill="#e8e8e8" stroke="#9a9a9a" stroke-width="1"/>
+<rect x="964" y="306" width="12" height="12" fill="none" stroke="#4a86c8" stroke-width="1.3"/>
+<line x1="964" y1="310" x2="976" y2="310" stroke="#4a86c8" stroke-width="1"/>
+<line x1="970" y1="306" x2="970" y2="318" stroke="#4a86c8" stroke-width="1"/>
+<text x="982" y="317" font-size="13" font-weight="bold" fill="#111">roles</text>
+<rect x="960" y="324" width="316" height="20" fill="#fbfbfb" stroke="#d8d8d8" stroke-width="0.6"/>
+<polygon points="968,329 973,334 968,339 963,334" fill="#c0504d"/>
+<text x="980" y="339" font-size="11" fill="#666">public</text>
+<rect x="960" y="344" width="316" height="22" fill="#ffffff" stroke="#e4e4e4" stroke-width="0.5"/>
+<circle cx="972" cy="355.0" r="3.4" fill="none" stroke="#c9962c" stroke-width="1.3"/><line x1="975.2" y1="355.0" x2="981" y2="355.0" stroke="#c9962c" stroke-width="1.3"/><line x1="981" y1="355.0" x2="981" y2="358.0" stroke="#c9962c" stroke-width="1.3"/><line x1="978.5" y1="355.0" x2="978.5" y2="357.4" stroke="#c9962c" stroke-width="1.3"/>
+<text x="984" y="359" font-size="11.5" font-weight="bold" font-style="normal" fill="#111">role_id</text>
+<text x="1268" y="359" font-size="10.5" fill="#888" text-anchor="end">serial</text>
+<rect x="960" y="366" width="316" height="22" fill="#f7f7f9" stroke="#e4e4e4" stroke-width="0.5"/>
+<text x="984" y="381" font-size="11.5" font-weight="normal" font-style="normal" fill="#111">role_name</text>
+<text x="1268" y="381" font-size="10.5" fill="#888" text-anchor="end">character varying(50)</text>
+<rect x="960" y="388" width="316" height="22" fill="#ffffff" stroke="#e4e4e4" stroke-width="0.5"/>
+<text x="984" y="403" font-size="11.5" font-weight="normal" font-style="normal" fill="#111">description</text>
+<text x="1268" y="403" font-size="10.5" fill="#888" text-anchor="end">character varying(255)</text>
+<rect x="1400" y="300" width="316" height="110" fill="white" stroke="#9a9a9a" stroke-width="1"/>
+<rect x="1400" y="300" width="316" height="24" fill="#e8e8e8" stroke="#9a9a9a" stroke-width="1"/>
+<rect x="1404" y="306" width="12" height="12" fill="none" stroke="#4a86c8" stroke-width="1.3"/>
+<line x1="1404" y1="310" x2="1416" y2="310" stroke="#4a86c8" stroke-width="1"/>
+<line x1="1410" y1="306" x2="1410" y2="318" stroke="#4a86c8" stroke-width="1"/>
+<text x="1422" y="317" font-size="13" font-weight="bold" fill="#111">role_default_tables</text>
+<rect x="1400" y="324" width="316" height="20" fill="#fbfbfb" stroke="#d8d8d8" stroke-width="0.6"/>
+<polygon points="1408,329 1413,334 1408,339 1403,334" fill="#c0504d"/>
+<text x="1420" y="339" font-size="11" fill="#666">public</text>
+<rect x="1400" y="344" width="316" height="22" fill="#ffffff" stroke="#e4e4e4" stroke-width="0.5"/>
+<circle cx="1412" cy="355.0" r="3.4" fill="none" stroke="#c9962c" stroke-width="1.3"/><line x1="1415.2" y1="355.0" x2="1421" y2="355.0" stroke="#c9962c" stroke-width="1.3"/><line x1="1421" y1="355.0" x2="1421" y2="358.0" stroke="#c9962c" stroke-width="1.3"/><line x1="1418.5" y1="355.0" x2="1418.5" y2="357.4" stroke="#c9962c" stroke-width="1.3"/>
+<text x="1424" y="359" font-size="11.5" font-weight="bold" font-style="normal" fill="#111">role_name</text>
+<text x="1708" y="359" font-size="10.5" fill="#888" text-anchor="end">character varying(50)</text>
+<rect x="1400" y="366" width="316" height="22" fill="#f7f7f9" stroke="#e4e4e4" stroke-width="0.5"/>
+<circle cx="1412" cy="377.0" r="3.4" fill="none" stroke="#c9962c" stroke-width="1.3"/><line x1="1415.2" y1="377.0" x2="1421" y2="377.0" stroke="#c9962c" stroke-width="1.3"/><line x1="1421" y1="377.0" x2="1421" y2="380.0" stroke="#c9962c" stroke-width="1.3"/><line x1="1418.5" y1="377.0" x2="1418.5" y2="379.4" stroke="#c9962c" stroke-width="1.3"/>
+<text x="1424" y="381" font-size="11.5" font-weight="bold" font-style="normal" fill="#111">table_name</text>
+<text x="1708" y="381" font-size="10.5" fill="#888" text-anchor="end">character varying(100)</text>
+<rect x="1400" y="388" width="316" height="22" fill="#ffffff" stroke="#e4e4e4" stroke-width="0.5"/>
+<text x="1424" y="403" font-size="11.5" font-weight="normal" font-style="normal" fill="#111">can_write</text>
+<text x="1708" y="403" font-size="10.5" fill="#888" text-anchor="end">boolean</text>
+<rect x="960" y="460" width="316" height="132" fill="white" stroke="#9a9a9a" stroke-width="1"/>
+<rect x="960" y="460" width="316" height="24" fill="#e8e8e8" stroke="#9a9a9a" stroke-width="1"/>
+<rect x="964" y="466" width="12" height="12" fill="none" stroke="#4a86c8" stroke-width="1.3"/>
+<line x1="964" y1="470" x2="976" y2="470" stroke="#4a86c8" stroke-width="1"/>
+<line x1="970" y1="466" x2="970" y2="478" stroke="#4a86c8" stroke-width="1"/>
+<text x="982" y="477" font-size="13" font-weight="bold" fill="#111">user_table_permissions</text>
+<rect x="960" y="484" width="316" height="20" fill="#fbfbfb" stroke="#d8d8d8" stroke-width="0.6"/>
+<polygon points="968,489 973,494 968,499 963,494" fill="#c0504d"/>
+<text x="980" y="499" font-size="11" fill="#666">public</text>
+<rect x="960" y="504" width="316" height="22" fill="#ffffff" stroke="#e4e4e4" stroke-width="0.5"/>
+<circle cx="972" cy="515.0" r="3.4" fill="none" stroke="#c9962c" stroke-width="1.3"/><line x1="975.2" y1="515.0" x2="981" y2="515.0" stroke="#c9962c" stroke-width="1.3"/><line x1="981" y1="515.0" x2="981" y2="518.0" stroke="#c9962c" stroke-width="1.3"/><line x1="978.5" y1="515.0" x2="978.5" y2="517.4" stroke="#c9962c" stroke-width="1.3"/>
+<text x="984" y="519" font-size="11.5" font-weight="bold" font-style="normal" fill="#111">user_id</text>
+<text x="1268" y="519" font-size="10.5" fill="#888" text-anchor="end">integer</text>
+<rect x="960" y="526" width="316" height="22" fill="#f7f7f9" stroke="#e4e4e4" stroke-width="0.5"/>
+<circle cx="972" cy="537.0" r="3.4" fill="none" stroke="#c9962c" stroke-width="1.3"/><line x1="975.2" y1="537.0" x2="981" y2="537.0" stroke="#c9962c" stroke-width="1.3"/><line x1="981" y1="537.0" x2="981" y2="540.0" stroke="#c9962c" stroke-width="1.3"/><line x1="978.5" y1="537.0" x2="978.5" y2="539.4" stroke="#c9962c" stroke-width="1.3"/>
+<text x="984" y="541" font-size="11.5" font-weight="bold" font-style="normal" fill="#111">table_name</text>
+<text x="1268" y="541" font-size="10.5" fill="#888" text-anchor="end">character varying(100)</text>
+<rect x="960" y="548" width="316" height="22" fill="#ffffff" stroke="#e4e4e4" stroke-width="0.5"/>
+<text x="984" y="563" font-size="11.5" font-weight="normal" font-style="normal" fill="#111">can_read</text>
+<text x="1268" y="563" font-size="10.5" fill="#888" text-anchor="end">boolean</text>
+<rect x="960" y="570" width="316" height="22" fill="#f7f7f9" stroke="#e4e4e4" stroke-width="0.5"/>
+<text x="984" y="585" font-size="11.5" font-weight="normal" font-style="normal" fill="#111">can_write</text>
+<text x="1268" y="585" font-size="10.5" fill="#888" text-anchor="end">boolean</text>
+<rect x="1400" y="460" width="316" height="198" fill="white" stroke="#9a9a9a" stroke-width="1"/>
+<rect x="1400" y="460" width="316" height="24" fill="#e8e8e8" stroke="#9a9a9a" stroke-width="1"/>
+<rect x="1404" y="466" width="12" height="12" fill="none" stroke="#4a86c8" stroke-width="1.3"/>
+<line x1="1404" y1="470" x2="1416" y2="470" stroke="#4a86c8" stroke-width="1"/>
+<line x1="1410" y1="466" x2="1410" y2="478" stroke="#4a86c8" stroke-width="1"/>
+<text x="1422" y="477" font-size="13" font-weight="bold" fill="#111">audit_log</text>
+<rect x="1400" y="484" width="316" height="20" fill="#fbfbfb" stroke="#d8d8d8" stroke-width="0.6"/>
+<polygon points="1408,489 1413,494 1408,499 1403,494" fill="#c0504d"/>
+<text x="1420" y="499" font-size="11" fill="#666">public</text>
+<rect x="1400" y="504" width="316" height="22" fill="#ffffff" stroke="#e4e4e4" stroke-width="0.5"/>
+<circle cx="1412" cy="515.0" r="3.4" fill="none" stroke="#c9962c" stroke-width="1.3"/><line x1="1415.2" y1="515.0" x2="1421" y2="515.0" stroke="#c9962c" stroke-width="1.3"/><line x1="1421" y1="515.0" x2="1421" y2="518.0" stroke="#c9962c" stroke-width="1.3"/><line x1="1418.5" y1="515.0" x2="1418.5" y2="517.4" stroke="#c9962c" stroke-width="1.3"/>
+<text x="1424" y="519" font-size="11.5" font-weight="bold" font-style="normal" fill="#111">log_id</text>
+<text x="1708" y="519" font-size="10.5" fill="#888" text-anchor="end">bigserial</text>
+<rect x="1400" y="526" width="316" height="22" fill="#f7f7f9" stroke="#e4e4e4" stroke-width="0.5"/>
+<text x="1424" y="541" font-size="11.5" font-weight="normal" font-style="normal" fill="#111">table_name</text>
+<text x="1708" y="541" font-size="10.5" fill="#888" text-anchor="end">character varying(100)</text>
+<rect x="1400" y="548" width="316" height="22" fill="#ffffff" stroke="#e4e4e4" stroke-width="0.5"/>
+<text x="1424" y="563" font-size="11.5" font-weight="normal" font-style="normal" fill="#111">operation</text>
+<text x="1708" y="563" font-size="10.5" fill="#888" text-anchor="end">character varying(10)</text>
+<rect x="1400" y="570" width="316" height="22" fill="#f7f7f9" stroke="#e4e4e4" stroke-width="0.5"/>
+<text x="1424" y="585" font-size="11.5" font-weight="normal" font-style="normal" fill="#111">changed_by</text>
+<text x="1708" y="585" font-size="10.5" fill="#888" text-anchor="end">character varying(100)</text>
+<rect x="1400" y="592" width="316" height="22" fill="#ffffff" stroke="#e4e4e4" stroke-width="0.5"/>
+<text x="1424" y="607" font-size="11.5" font-weight="normal" font-style="normal" fill="#111">changed_at</text>
+<text x="1708" y="607" font-size="10.5" fill="#888" text-anchor="end">timestamp</text>
+<rect x="1400" y="614" width="316" height="22" fill="#f7f7f9" stroke="#e4e4e4" stroke-width="0.5"/>
+<text x="1424" y="629" font-size="11.5" font-weight="normal" font-style="normal" fill="#111">old_data</text>
+<text x="1708" y="629" font-size="10.5" fill="#888" text-anchor="end">jsonb</text>
+<rect x="1400" y="636" width="316" height="22" fill="#ffffff" stroke="#e4e4e4" stroke-width="0.5"/>
+<text x="1424" y="651" font-size="11.5" font-weight="normal" font-style="normal" fill="#111">new_data</text>
+<text x="1708" y="651" font-size="10.5" fill="#888" text-anchor="end">jsonb</text>
+<path d="M520,225.0 L448.0,225.0 L448.0,115.0 L376,115.0" fill="none" stroke="#666" stroke-width="1.2" marker-start="url(#crowmany)" marker-end="url(#oneend)"/>
+<path d="M520,515.0 L448.0,515.0 L448.0,515.0 L376,515.0" fill="none" stroke="#666" stroke-width="1.2" marker-start="url(#crowmany)" marker-end="url(#oneend)"/>
+<path d="M678.0,460 L678.0,348.0 L678.0,348.0 L678.0,236" fill="none" stroke="#666" stroke-width="1.2" marker-start="url(#crowmany)" marker-end="url(#oneend)"/>
+<path d="M1118.0,460 L1118.0,359.0 L1118.0,359.0 L1118.0,258" fill="none" stroke="#666" stroke-width="1.2" marker-start="url(#crowmany)" marker-end="url(#oneend)"/>
+<path d="M1400,137.0 L1338.0,137.0 L1338.0,377.0 L1276,377.0" fill="none" stroke="#666" stroke-width="1.2" marker-start="url(#crowmany)" marker-end="url(#oneend)"/>
+<path d="M1118.0,258 L1118.0,279.0 L1118.0,279.0 L1118.0,300" fill="none" stroke="#666" stroke-width="1.2" marker-start="url(#crowmany)" marker-end="url(#oneend)"/>
+<rect x="24" y="810" width="430" height="50" fill="white" stroke="#ccc"/>
+<text x="34" y="828" font-size="11" font-weight="bold" fill="#333">Leyenda</text>
+<circle cx="40" cy="842" r="3.4" fill="none" stroke="#c9962c" stroke-width="1.3"/><line x1="43.2" y1="842" x2="49" y2="842" stroke="#c9962c" stroke-width="1.3"/><line x1="49" y1="842" x2="49" y2="845" stroke="#c9962c" stroke-width="1.3"/><line x1="46.5" y1="842" x2="46.5" y2="844.4" stroke="#c9962c" stroke-width="1.3"/>
+<text x="52" y="846" font-size="10.5" fill="#333">Clave primaria (PK)</text>
+<circle cx="210" cy="842" r="3.4" fill="none" stroke="#8a8a8a" stroke-width="1.3"/><line x1="213.2" y1="842" x2="219" y2="842" stroke="#8a8a8a" stroke-width="1.3"/><line x1="219" y1="842" x2="219" y2="845" stroke="#8a8a8a" stroke-width="1.3"/><line x1="216.5" y1="842" x2="216.5" y2="844.4" stroke="#8a8a8a" stroke-width="1.3"/>
+<text x="222" y="846" font-size="10.5" fill="#333">Clave foranea (FK)</text>
+</svg>

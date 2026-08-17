@@ -550,7 +550,7 @@
           </a-box>
         </a-entity>
 
-        <a-entity position="5.3 0 0">
+        <a-entity position="6 0 0">
           <a-box id="btn-guiadas-box" class="clickable" interactable color="#00FF88" depth="0.8" height="1.2" width="6" data-action="iniciarConsultasGuiadas">
             <a-text id="btn-guiadas-text" value="CONSULTAS\nGUIADAS" align="center" position="0 0 0.5" width="7" color="#001A0E"></a-text>
           </a-box>
@@ -692,27 +692,20 @@
       </a-entity>
 
       <a-entity id="controles-lateral" position="-6.2 2.5 0">
-        <a-box color="#111" depth="0.3" height="6.2" width="2" opacity="0.85"></a-box>
-        <a-text value="CONTROLES" position="0 2.3 0.2" align="center" color="#00E5FF" data-rol="primario" width="4"></a-text>
+        <a-plane id="controles-fondo" width="2" height="6.2" material="shader: flat; transparent: true; side: double"></a-plane>
+        <a-troika-text value="CONTROLES" position="0 2.3 0.05" align="center" color="#00E5FF" data-rol="primario" font="#font-noto-sans" font-size="0.32" max-width="1.85"></a-troika-text>
 
-        <a-entity position="0 1.3 0.15">
-          <a-box id="btn-anterior" class="clickable" interactable color="#222" width="1.8" height="0.7" depth="0.3" data-action="cambiarPagina" data-param="-1">
-            <a-text value="ANTERIOR" align="center" position="0 0 0.2" width="4.4" color="#00E5FF" data-rol="primario"></a-text>
-          </a-box>
-        </a-entity>
+        <a-entity id="controles-botones-tabla" position="0 0 0"></a-entity>
 
-        <a-entity position="0 0.35 0.2">
-          <a-text id="label-pagina" value="PAG.\n1 / 1" align="center" color="#FFF" width="4.8"></a-text>        </a-entity>
-
-        <a-entity position="0 -0.6 0.15">
-          <a-box id="btn-siguiente" class="clickable" interactable color="#222" width="1.8" height="0.7" depth="0.3" data-action="cambiarPagina" data-param="1">
-            <a-text value="SIGUIENTE" align="center" position="0 0 0.2" width="4.4" color="#00E5FF" data-rol="primario"></a-text>
-          </a-box>
+        <a-entity position="0 0.35 0.05">
+          <a-troika-text id="label-pagina" value="PAG. 1 / 1" align="center" color="#FFF" font="#font-noto-sans" font-size="0.26" max-width="1.85" line-height="1.15"></a-troika-text>
         </a-entity>
       </a-entity>
 
-      <!-- SWITCH 2D / 3D PARA TABLA -->
-      <a-entity id="switch-vista-tabla" position="-6.2 0.7 0.15">
+      <!-- SWITCH 2D / 3D PARA TABLA. Nota: reposicionado más abajo (antes estaba en y=0.7,
+           dentro del rango vertical del panel CONTROLES -que va de y=-0.6 a y=5.6-, así que
+           ambos se solapaban visualmente; con y=-1.35 queda claramente por debajo. -->
+      <a-entity id="switch-vista-tabla" position="-6.2 -1.35 0.15">
         <a-entity class="clickable" position="0 0 0">
           <a-box class="clickable" interactable width="1.8" height="0.62" depth="0.3" data-rol="primario" data-rol-target="material-emissive"
                  material="color: #0A1020; emissive: #00E5FF; emissiveIntensity: 0.35; opacity: 0.98"
@@ -803,24 +796,13 @@
 
       <!-- CONTROLES LATERALES (idénticos a escena-tabla) -->
       <a-entity id="qr-controles-lateral" position="-6.2 2.5 0">
-        <a-box color="#111" depth="0.3" height="6.2" width="2" opacity="0.85"></a-box>
-        <a-text value="CONTROLES" position="0 2.3 0.2" align="center" color="#00E5FF" data-rol="primario" width="4"></a-text>
+        <a-plane id="qr-controles-fondo" width="2" height="6.2" material="shader: flat; transparent: true; side: double"></a-plane>
+        <a-troika-text value="CONTROLES" position="0 2.3 0.05" align="center" color="#00E5FF" data-rol="primario" font="#font-noto-sans" font-size="0.32" max-width="1.85"></a-troika-text>
 
-        <a-entity position="0 1.3 0.15">
-          <a-box class="clickable" interactable color="#222" width="1.8" height="0.7" depth="0.3"
-                 data-action="cambiarPagina" data-param="-1">
-            <a-text value="ANTERIOR" align="center" position="0 0 0.2" width="4.4" color="#00E5FF" data-rol="primario"></a-text>
-          </a-box>
-        </a-entity>
+        <a-entity id="controles-botones-qr" position="0 0 0"></a-entity>
 
-        <a-entity position="0 0.35 0.2">
-          <a-text id="qr-label-pagina" value="PAG.\n1 / 1" align="center" color="#FFF" width="4.8"></a-text>        </a-entity>
-
-        <a-entity position="0 -0.6 0.15">
-          <a-box class="clickable" interactable color="#222" width="1.8" height="0.7" depth="0.3"
-                 data-action="cambiarPagina" data-param="1">
-            <a-text value="SIGUIENTE" align="center" position="0 0 0.2" width="4.4" color="#00E5FF" data-rol="primario"></a-text>
-          </a-box>
+        <a-entity position="0 0.35 0.05">
+          <a-troika-text id="qr-label-pagina" value="PAG. 1 / 1" align="center" color="#FFF" font="#font-noto-sans" font-size="0.26" max-width="1.85" line-height="1.15"></a-troika-text>
         </a-entity>
       </a-entity>
 
@@ -883,7 +865,7 @@
       <a-entity id="vrkb-keys" position="0 1.0 0.12"></a-entity>
 
       <!-- Botones de acción -->
-      <a-entity id="vrkb-actions" position="0 -2.6 0.12"></a-entity>
+      <a-entity id="vrkb-actions" position="0 -2.85 0.12"></a-entity>
     </a-entity>
 
     <!-- Rig -->
@@ -985,6 +967,22 @@
       { id:"edad-distribucion", label:"Distribucion\nde Edades", emoji:"", rol:"primario" },      { id:"edad-prom-curso", label:"Edad Promedio\nGlobal", emoji:"", rol:"terciario" },      { id:"prof-departamento", label:"Profesores por\nDepartamento", emoji:"", rol:"secundario" },      { id:"salario-departamento", label:"Salario Promedio\npor Depto.", emoji:"", rol:"ambar" },      { id:"asignaturas-curso", label:"Asignaturas\npor Curso", emoji:"", rol:"violeta" },      { id:"nota-asignatura", label:"Nota Promedio\npor Asignatura", emoji:"", rol:"rosaClaro" }
     ];
 
+    // Three.js NO excluye del raycasting los objetos con visible=false (eso solo afecta al
+    // render) — una caja .clickable dentro de una escena "oculta" con nav.goTo() sigue siendo
+    // un objetivo válido para el rayo, y si geométricamente "gana" la intersección más cercana,
+    // bloquea en silencio el clic sobre lo que sí se ve (confirmado con vídeo real: al escribir
+    // en el teclado VR, el rayo a veces golpeaba antes "VER TABLAS" de la escena de bienvenida
+    // oculta detrás, y el click quedaba BLOQUEADO por la comprobación de visibilidad del
+    // componente interactable, sin llegar nunca a la tecla que sí se veía). Quitar la clase
+    // "clickable" al ocultar (y devolverla al mostrar) saca esas cajas de la lista de objetos
+    // del raycaster por completo, en vez de solo detectarlas y bloquearlas después del hecho.
+    function ocultarClickables(el) {
+      el.querySelectorAll(".clickable").forEach(box => box.classList.remove("clickable"));
+    }
+    function mostrarClickables(el) {
+      el.querySelectorAll("[data-action]").forEach(box => box.classList.add("clickable"));
+    }
+
     class NavigationManager {
       constructor() {
         this.stack = ["escena-bienvenida"];
@@ -998,26 +996,40 @@
           "escena-tabla",
           "escena-analisis-edades",
           "escena-query-resultado"
-        ].forEach(id => document.getElementById(id).setAttribute("visible", "false"));
+        ].forEach(id => {
+          const el = document.getElementById(id);
+          el.setAttribute("visible", "false");
+          ocultarClickables(el);
+        });
       }
       goTo(escena) {
         this.hideAll();
-        document.getElementById(escena).setAttribute("visible", "true");
+        const el = document.getElementById(escena);
+        el.setAttribute("visible", "true");
+        mostrarClickables(el);
         if (this.stack[this.stack.length - 1] !== escena) this.stack.push(escena);
       }
       goBack() {
         if (this.stack.length > 1) this.stack.pop();
         const prev = this.stack[this.stack.length - 1];
         this.hideAll();
-        document.getElementById(prev).setAttribute("visible", "true");
+        const el = document.getElementById(prev);
+        el.setAttribute("visible", "true");
+        mostrarClickables(el);
       }
     }
     const nav = new NavigationManager();
 
-    function puedeEjecutarAccion(action) {
-      if (accionesEnProgreso.has(action)) return false;
-      accionesEnProgreso.add(action);
-      setTimeout(() => accionesEnProgreso.delete(action), 250);
+    // Se debounça por accion+param, no solo accion: varias acciones (vrkb_key del teclado,
+    // qb_col de columnas...) comparten el mismo nombre de accion para CADA tecla/opcion
+    // distinta, solo cambia el param. Debounçar solo por accion bloqueaba pulsar una tecla
+    // distinta a los <250ms de la anterior (p.ej. si el otro mando roza otra tecla al mismo
+    // tiempo) - con esto solo se bloquea repetir EXACTAMENTE el mismo boton.
+    function puedeEjecutarAccion(action, param) {
+      const key = `${action}:${param}`;
+      if (accionesEnProgreso.has(key)) return false;
+      accionesEnProgreso.add(key);
+      setTimeout(() => accionesEnProgreso.delete(key), 250);
       return true;
     }
 
@@ -1051,20 +1063,206 @@
       return `font-size="${fontSize}" max-width="${maxWidth}" overflow-wrap="break-word" line-height="1.05"`;
     }
 
-    function crearBoton(label, action, param, bg="#111", color="#FF00FF", width) {
+    // =========================
+    // TEXTURAS DE BOTÓN (esquinas redondeadas + borde + sombra sutil)
+    // =========================
+    // Sustituye las cajas rectas de antes por paneles planos con una textura dibujada en canvas:
+    // así se consigue un aspecto redondeado y con algo de profundidad sin depender de ninguna
+    // librería de geometría nueva (A-Frame no trae "rounded box" de serie).
+    const _cacheTexturasBoton = new Map();
+
+    function luminanciaHex(hex) {
+      const h = String(hex || "#888888").replace("#", "");
+      if (h.length < 6) return 0.5;
+      const r = parseInt(h.substring(0, 2), 16) / 255;
+      const g = parseInt(h.substring(2, 4), 16) / 255;
+      const b = parseInt(h.substring(4, 6), 16) / 255;
+      const lin = c => (c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4));
+      return 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b);
+    }
+
+    // Elige negro o blanco según el brillo real del fondo, en vez de un negro fijo que
+    // se volvía ilegible sobre fondos oscuros o poco saturados.
+    function colorTextoContraste(hexFondo) {
+      return luminanciaHex(hexFondo) > 0.45 ? "#111111" : "#FFFFFF";
+    }
+
+    function mezclarHex(hexA, hexB, factor) {
+      const pa = String(hexA).replace("#", ""), pb = String(hexB).replace("#", "");
+      const ra = parseInt(pa.substring(0, 2), 16), ga = parseInt(pa.substring(2, 4), 16), ba = parseInt(pa.substring(4, 6), 16);
+      const rb = parseInt(pb.substring(0, 2), 16), gb = parseInt(pb.substring(2, 4), 16), bb = parseInt(pb.substring(4, 6), 16);
+      const mezcla = (a, b) => Math.round(a + (b - a) * factor).toString(16).padStart(2, "0");
+      return `#${mezcla(ra, rb)}${mezcla(ga, gb)}${mezcla(ba, bb)}`;
+    }
+
+    function crearTexturaBoton(w, h, bg, borde) {
+      const key = `${w.toFixed(2)}x${h.toFixed(2)}|${bg}|${borde}`;
+      if (_cacheTexturasBoton.has(key)) return _cacheTexturasBoton.get(key);
+
+      const escala = 150;
+      const cw = Math.max(48, Math.round(w * escala));
+      const ch = Math.max(48, Math.round(h * escala));
+      const canvas = document.createElement("canvas");
+      canvas.width = cw;
+      canvas.height = ch;
+      const ctx = canvas.getContext("2d");
+
+      const pad = Math.round(Math.min(cw, ch) * 0.05);
+      const radio = Math.min(cw, ch) * 0.24;
+
+      function trazarRedondeado(x, y, width, height, r) {
+        ctx.beginPath();
+        ctx.moveTo(x + r, y);
+        ctx.arcTo(x + width, y, x + width, y + height, r);
+        ctx.arcTo(x + width, y + height, x, y + height, r);
+        ctx.arcTo(x, y + height, x, y, r);
+        ctx.arcTo(x, y, x + width, y, r);
+        ctx.closePath();
+      }
+
+      // Sombra suave detrás de la forma, para dar sensación de volumen sin geometría extra
+      ctx.save();
+      ctx.shadowColor = "rgba(0,0,0,0.5)";
+      ctx.shadowBlur = cw * 0.05;
+      ctx.shadowOffsetY = ch * 0.045;
+      trazarRedondeado(pad, pad, cw - 2 * pad, ch - 2 * pad, radio);
+      ctx.fillStyle = bg;
+      ctx.fill();
+      ctx.restore();
+
+      // Brillo superior sutil
+      trazarRedondeado(pad, pad, cw - 2 * pad, ch - 2 * pad, radio);
+      const grad = ctx.createLinearGradient(0, pad, 0, ch * 0.55);
+      grad.addColorStop(0, "rgba(255,255,255,0.16)");
+      grad.addColorStop(1, "rgba(255,255,255,0)");
+      ctx.fillStyle = grad;
+      ctx.fill();
+
+      // Borde de color (mantiene el aire "neón" que ya tenía la app)
+      trazarRedondeado(pad, pad, cw - 2 * pad, ch - 2 * pad, radio);
+      ctx.lineWidth = Math.max(2, cw * 0.014);
+      ctx.strokeStyle = borde;
+      ctx.stroke();
+
+      _cacheTexturasBoton.set(key, canvas);
+      return canvas;
+    }
+
+    function aplicarTexturaBoton(el, w, h, bg, borde) {
+      const canvas = crearTexturaBoton(w, h, bg, borde);
+      const THREE_ = (window.AFRAME && AFRAME.THREE) || window.THREE;
+      const asignar = () => {
+        const malla = el.getObject3D("mesh");
+        if (!malla) { el.addEventListener("loaded", asignar, { once: true }); return; }
+        const tex = new THREE_.CanvasTexture(canvas);
+        tex.needsUpdate = true;
+        const mats = Array.isArray(malla.material) ? malla.material : [malla.material];
+        mats.forEach(m => { m.map = tex; m.transparent = true; m.needsUpdate = true; });
+      };
+      asignar();
+    }
+
+    // =========================
+    // TEXTURAS DE CELDA (para las tablas de datos: cabecera y filas)
+    // =========================
+    // Mismo mecanismo que crearTexturaBoton, pero con un radio de esquina mucho menor y sin
+    // borde grueso: en una rejilla de datos muchas celdas pegadas unas a otras, un redondeado
+    // fuerte tipo "pastilla" (el de los botones) queda raro y rompe la lectura tabular. Aquí solo
+    // se suaviza la esquina lo justo para que no parezca un bloque totalmente cuadrado.
+    const _cacheTexturasCelda = new Map();
+
+    function crearTexturaCelda(w, h, bg) {
+      const key = `${w.toFixed(2)}x${h.toFixed(2)}|${bg}`;
+      if (_cacheTexturasCelda.has(key)) return _cacheTexturasCelda.get(key);
+
+      const escala = 150;
+      const cw = Math.max(32, Math.round(w * escala));
+      const ch = Math.max(32, Math.round(h * escala));
+      const canvas = document.createElement("canvas");
+      canvas.width = cw;
+      canvas.height = ch;
+      const ctx = canvas.getContext("2d");
+
+      const pad = Math.max(1, Math.round(Math.min(cw, ch) * 0.035));
+      const radio = Math.min(cw, ch) * 0.14;
+
+      function trazarRedondeado(x, y, width, height, r) {
+        ctx.beginPath();
+        ctx.moveTo(x + r, y);
+        ctx.arcTo(x + width, y, x + width, y + height, r);
+        ctx.arcTo(x + width, y + height, x, y + height, r);
+        ctx.arcTo(x, y + height, x, y, r);
+        ctx.arcTo(x, y, x + width, y, r);
+        ctx.closePath();
+      }
+
+      trazarRedondeado(pad, pad, cw - 2 * pad, ch - 2 * pad, radio);
+      ctx.fillStyle = bg;
+      ctx.fill();
+
+      // Brillo superior muy sutil, solo para dar algo de profundidad sin distraer del dato
+      trazarRedondeado(pad, pad, cw - 2 * pad, ch - 2 * pad, radio);
+      const grad = ctx.createLinearGradient(0, pad, 0, ch * 0.5);
+      grad.addColorStop(0, "rgba(255,255,255,0.09)");
+      grad.addColorStop(1, "rgba(255,255,255,0)");
+      ctx.fillStyle = grad;
+      ctx.fill();
+
+      _cacheTexturasCelda.set(key, canvas);
+      return canvas;
+    }
+
+    function aplicarTexturaCelda(el, w, h, bg) {
+      const canvas = crearTexturaCelda(w, h, bg);
+      const THREE_ = (window.AFRAME && AFRAME.THREE) || window.THREE;
+      const asignar = () => {
+        const malla = el.getObject3D("mesh");
+        if (!malla) { el.addEventListener("loaded", asignar, { once: true }); return; }
+        const tex = new THREE_.CanvasTexture(canvas);
+        tex.needsUpdate = true;
+        const mats = Array.isArray(malla.material) ? malla.material : [malla.material];
+        mats.forEach(m => { m.map = tex; m.transparent = true; m.needsUpdate = true; });
+      };
+      asignar();
+    }
+
+    // Crea el <a-plane> que sustituye a la antigua celda <a-box> (cabecera o dato de tabla).
+    function crearCeldaPlano(w, h, x, bg) {
+      const plane = document.createElement("a-plane");
+      plane.setAttribute("width", w);
+      plane.setAttribute("height", h);
+      plane.setAttribute("position", `${x} 0 0`);
+      plane.setAttribute("material", "shader: flat; transparent: true; side: double");
+      aplicarTexturaCelda(plane, w, h, bg);
+      return plane;
+    }
+
+    // Botón de tamaño explícito (sin el auto-cálculo de calcButtonSize): útil para paneles
+    // estrechos como la barra lateral de CONTROLES, donde el ancho lo marca el hueco disponible,
+    // no la longitud del texto.
+    function crearBotonFijo(label, action, param, w, h, bg, borde) {
       const e = document.createElement("a-entity");
       const pAttr = param !== undefined ? `data-param="${String(param).replace(/"/g, "&quot;")}"` : "";
-      const size = calcButtonSize(label, { maxW: width ?? 7.6 });
+      const textoColor = colorTextoContraste(bg);
 
       e.innerHTML = `
-        <a-box class="clickable" interactable width="${size.width}" height="${size.height}" depth="0.4"
-               material="color: ${bg}; emissive: ${color}; emissiveIntensity: 0.32"
-               data-action="${action}" ${pAttr}>
-          <a-troika-text value="${label}" align="center" position="0 0 0.22"
-                  ${troikaLabelAttrs(size.width, size.height)}
-                  font="#font-noto-sans" color="#0A0A0A"></a-troika-text>
-        </a-box>
+        <a-plane class="clickable" interactable width="${w}" height="${h}"
+                 material="shader: flat; transparent: true; side: double"
+                 data-action="${action}" ${pAttr}>
+          <a-troika-text value="${label}" align="center" position="0 0 0.02"
+                  ${troikaLabelAttrs(w, h)}
+                  font="#font-noto-sans" color="${textoColor}"></a-troika-text>
+        </a-plane>
       `;
+      const plano = e.querySelector("a-plane");
+      aplicarTexturaBoton(plano, w, h, bg, borde);
+      return e;
+    }
+
+    function crearBoton(label, action, param, bg="#111", color="#FF00FF", width) {
+      const size = calcButtonSize(label, { maxW: width ?? 7.6 });
+      const relleno = mezclarHex(bg, color, 0.22);
+      const e = crearBotonFijo(label, action, param, size.width, size.height, relleno, color);
       return e;
     }
 
@@ -1107,20 +1305,24 @@
           const ent = document.createElement("a-entity");
           ent.setAttribute("position", `${x + op._w / 2} ${-rowIndex * gapY} 0`);
 
-          // El texto va siempre en negro: usar el mismo color del rol para el brillo del botón Y
-          // para la letra hacía que se fundieran en cuanto el tono no era un neón muy saturado
-          // (cian/magenta originales sí colaban, ámbar/turquesa/terracota ya no).
+          // Antes el texto iba siempre en negro fijo: con tonos poco saturados (ámbar/turquesa/
+          // terracota de bosque y desierto) se volvía ilegible. Ahora se calcula el contraste
+          // contra el color de relleno real de cada botón.
           const emisivoDefecto = op.emissive || rolesActuales().primario;
+          const relleno = mezclarHex("#0a1020", emisivoDefecto, op.emissive ? 0.26 : 0.16);
+          const textoColor = colorTextoContraste(relleno);
           ent.innerHTML = `
-            <a-box class="clickable" interactable
-                   width="${op._w}" height="${op._h}" depth="0.35"
-                   material="color: #0a1020; emissive: ${emisivoDefecto}; emissiveIntensity: ${op.emissive ? 0.3 : 0.18}"
-                   data-action="${op.action}" ${op.param !== undefined ? `data-param="${String(op.param).replace(/"/g, "&quot;")}"` : ""}>
-              <a-troika-text value="${op.label}" align="center" position="0 0 0.19"
+            <a-plane class="clickable" interactable
+                     width="${op._w}" height="${op._h}"
+                     material="shader: flat; transparent: true; side: double"
+                     data-action="${op.action}" ${op.param !== undefined ? `data-param="${String(op.param).replace(/"/g, "&quot;")}"` : ""}>
+              <a-troika-text value="${op.label}" align="center" position="0 0 0.02"
                       ${troikaLabelAttrs(op._w, op._h)}
-                      font="#font-noto-sans" color="#0A0A0A"></a-troika-text>
-            </a-box>
+                      font="#font-noto-sans" color="${textoColor}"></a-troika-text>
+            </a-plane>
           `;
+          const plano = ent.querySelector("a-plane");
+          aplicarTexturaBoton(plano, op._w, op._h, relleno, emisivoDefecto);
           cont.appendChild(ent);
           x += op._w + gapX;
         });
@@ -1479,6 +1681,96 @@
       }
     }
 
+    // =========================
+    // CONVERSIÓN DE CAJAS ESTÁTICAS RESTANTES AL NUEVO ESTILO REDONDEADO
+    // =========================
+    // Quedan ~15 botones escritos a mano directamente en el HTML (VOLVER, VER 3D/VER 2D, etc.)
+    // que nunca pasan por crearBoton()/layoutBotones() y por eso se quedaron con el aspecto de
+    // caja recta sin redondear. En vez de reescribir cada uno a mano, se convierten aquí de forma
+    // automática: cada <a-box class="clickable"> se sustituye por un <a-plane> con la misma
+    // textura redondeada, conservando su acción, tamaño y el texto que llevara dentro. Se guarda
+    // un registro para poder volver a generar la textura cuando cambia el entorno (igual que
+    // ocurre con el resto de botones dinámicos).
+    const _cajasEstaticasConvertidas = [];
+
+    function _convertirCajaEstatica(box) {
+      const w = parseFloat(box.getAttribute("width")) || 3;
+      const h = parseFloat(box.getAttribute("height")) || 0.8;
+      const rolAttr = box.getAttribute("data-rol");
+      const colorAttr = box.getAttribute("color");
+
+      const plane = document.createElement("a-plane");
+      plane.setAttribute("class", "clickable");
+      plane.setAttribute("interactable", "");
+      plane.setAttribute("width", w);
+      plane.setAttribute("height", h);
+      plane.setAttribute("material", "shader: flat; transparent: true; side: double");
+      ["data-action", "data-param", "id"].forEach(attr => {
+        if (box.hasAttribute(attr)) plane.setAttribute(attr, box.getAttribute(attr));
+      });
+
+      // Los textos internos se mueven tal cual al nuevo panel, solo acercándolos un poco
+      // (la caja tenía profundidad y el texto flotaba delante; el panel es plano, z pequeño).
+      // OJO: getAttribute("position") en A-Frame devuelve el objeto {x,y,z} ya parseado, no el
+      // string original -- por eso se lee x/y de ahí en vez de hacer split() de una cadena.
+      Array.from(box.children).forEach(child => {
+        const pos = child.getAttribute("position") || { x: 0, y: 0 };
+        child.setAttribute("position", `${pos.x || 0} ${pos.y || 0} 0.02`);
+        plane.appendChild(child);
+      });
+
+      box.parentNode.replaceChild(plane, box);
+      _cajasEstaticasConvertidas.push({ plane, w, h, rolAttr, colorAttr });
+      return plane;
+    }
+
+    function _retexturizarCajasEstaticas() {
+      const rol = rolesActuales();
+      _cajasEstaticasConvertidas.forEach(({ plane, w, h, rolAttr, colorAttr }) => {
+        const borde = rolAttr ? (rol[rolAttr] || rol.primario) : (colorAttr || rol.primario);
+        const relleno = mezclarHex("#111111", borde, rolAttr ? 0.2 : 0.24);
+        aplicarTexturaBoton(plane, w, h, relleno, borde);
+        const textoEl = plane.querySelector("a-text, a-troika-text");
+        if (textoEl) textoEl.setAttribute("color", colorTextoContraste(relleno));
+      });
+    }
+
+    function _modernizarCajasEstaticas() {
+      document.querySelectorAll("a-scene a-box.clickable").forEach(box => _convertirCajaEstatica(box));
+      _retexturizarCajasEstaticas();
+    }
+
+    // Panel CONTROLES (barra lateral de paginación en la vista de tabla y en resultados de
+    // consultas): antes eran cajas grises fijas con <a-text> sin tematizar, por eso desentonaban
+    // junto al resto de botones (que sí llevan el color del entorno activo). Se generan aquí con
+    // el mismo sistema de textura redondeada que el resto de la app, y se refrescan cada vez que
+    // cambia el entorno para que no se queden con los colores del tema anterior.
+    function _refrescarControlesLaterales() {
+      const rol = rolesActuales();
+      const fondo = mezclarHex("#0a0a0a", rol.primario, 0.1);
+      const relleno = mezclarHex("#111111", rol.primario, 0.2);
+
+      [
+        { fondoId: "controles-fondo", contId: "controles-botones-tabla" },
+        { fondoId: "qr-controles-fondo", contId: "controles-botones-qr" }
+      ].forEach(({ fondoId, contId }) => {
+        const panelFondo = document.getElementById(fondoId);
+        if (panelFondo) aplicarTexturaBoton(panelFondo, 2, 6.2, fondo, rol.primario);
+
+        const cont = document.getElementById(contId);
+        if (!cont) return;
+        cont.innerHTML = "";
+
+        const btnAnterior = crearBotonFijo("ANTERIOR", "cambiarPagina", -1, 1.8, 0.7, relleno, rol.primario);
+        btnAnterior.setAttribute("position", "0 1.3 0");
+        cont.appendChild(btnAnterior);
+
+        const btnSiguiente = crearBotonFijo("SIGUIENTE", "cambiarPagina", 1, 1.8, 0.7, relleno, rol.primario);
+        btnSiguiente.setAttribute("position", "0 -0.6 0");
+        cont.appendChild(btnSiguiente);
+      });
+    }
+
     function aplicarEntorno(nombre, opts = {}) {
       const cfg = ENTORNOS[nombre];
       if (!cfg) return;
@@ -1510,6 +1802,8 @@
 
       generarDecoracionEntorno(cfg.decor);
       aplicarPaletaUI(nombre, opts);
+      _refrescarControlesLaterales();
+      _retexturizarCajasEstaticas();
 
       document.querySelectorAll(".entorno-btn").forEach(b => b.classList.remove("activo"));
       document.getElementById(`entorno-btn-${nombre}`)?.classList.add("activo");
@@ -1521,6 +1815,7 @@
       if (!opts.silent) mostrarToastHUD(`🌍 ENTORNO: ${cfg.label.toUpperCase()}`);
     }
 
+    _modernizarCajasEstaticas();
     aplicarEntorno("cyberpunk", { silent: true });
 
     const rig = document.querySelector("#rig");
@@ -1617,7 +1912,7 @@
     }
 
     function handleClickAction(action, param) {
-      if (!puedeEjecutarAccion(action)) return;
+      if (!puedeEjecutarAccion(action, param)) return;
 
       if (action === "volver") return nav.goBack();
 
@@ -1740,20 +2035,16 @@
       nav.goTo("escena-menu-tablas");
       const menu = limpiarEntidad("menu-tablas");
 
+      const rol = rolesActuales();
       tablas.forEach((nombre, index) => {
         const angle = (index / tablas.length) * Math.PI * 2;
         const x = Math.cos(angle) * 8;
         const z = Math.sin(angle) * 8;
 
-        const btn = document.createElement("a-entity");
+        const relleno = mezclarHex("#111111", rol.primario, 0.2);
+        const btn = crearBotonFijo(nombreBonito(nombre), "cargarTabla", nombre, 4.2, 1.2, relleno, rol.primario);
         btn.setAttribute("position", `${x} 3 ${z}`);
         btn.setAttribute("float-bob", `amp: 0.08; speed: 0.9; offset: ${index * 0.9}`);
-        btn.innerHTML = `
-          <a-box class="clickable" interactable width="4.2" height="1.2" depth="0.5" color="#222"
-                 data-action="cargarTabla" data-param="${nombre}">
-            <a-troika-text value="${nombreBonito(nombre)}" align="center" position="0 0 0.26" font="#font-noto-sans" font-size="0.32" max-width="3.6" overflow-wrap="break-word" color="${rolesActuales().primario}"></a-troika-text>
-          </a-box>
-        `;
         menu.appendChild(btn);
       });
 
@@ -2803,6 +3094,7 @@
       _vrkbMode = "upper";
       const panel = document.getElementById("vr-keyboard-panel");
       panel.setAttribute("visible", "true");
+      mostrarClickables(panel);
       panel.setAttribute("position", QB_KEYBOARD_POS);
       panel.setAttribute("rotation", "0 0 0");
       panel.setAttribute("scale", QB_KEYBOARD_SCALE);
@@ -2836,7 +3128,9 @@
     }
 
     function cerrarTecladoVR() {
-      document.getElementById("vr-keyboard-panel").setAttribute("visible", "false");
+      const panel = document.getElementById("vr-keyboard-panel");
+      panel.setAttribute("visible", "false");
+      ocultarClickables(panel);
       _vrkbCallback = null;
 
       const qb = document.getElementById("escena-query-builder");
@@ -2866,7 +3160,12 @@
                   : _vrkbMode === "upper" ? _vrkbShiftRows
                   : _vrkbLowerRows;
 
-      const keyW = 1.15, keyH = 0.72, gapX = 0.10, gapY = 0.10;
+      // gapY generoso (0.30, el triple que antes) a propósito: con filas más pegadas el
+      // rayo/láser ambiguaba entre la fila que apuntabas y la de al lado (parpadeo del hover,
+      // "a veces escribe la de al lado") - el resto de la app (layoutBotones) siempre usó huecos
+      // de ~2 unidades entre filas y nunca dio ese problema. Las teclas se reducen un poco
+      // (de 1.15x0.72 a 1.05x0.62) para no tener que agrandar todo el panel del teclado.
+      const keyW = 1.05, keyH = 0.62, gapX = 0.12, gapY = 0.30;
       const rowsTotal = rows.length;
 
       rows.forEach((row, rowIdx) => {
@@ -2876,23 +3175,10 @@
 
         row.forEach((char, colIdx) => {
           const x = startX + colIdx * (keyW + gapX);
-          const ent = document.createElement("a-entity");
-          ent.setAttribute("position", `${x} ${y} 0`);
-
-          const bg = "#0A1828";
-          const emissive = rol.primario;
-          // El texto va en negro (no del color del rol): con tonos menos neón que el cian/magenta
-          // original, letra y brillo del mismo color se fundían y se volvían ilegibles.
-          ent.innerHTML = `
-            <a-box class="clickable" interactable
-                   width="${keyW}" height="${keyH}" depth="0.22"
-                   material="color: ${bg}; emissive: ${emissive}; emissiveIntensity: 0.32; opacity: 0.98"
-                   data-action="vrkb_key" data-param="${char}">
-              <a-troika-text value="${char}" align="center" position="0 0 0.13"
-                      font="#font-noto-sans" font-size="0.42" max-width="${keyW * 0.9}" color="#0A0A0A"></a-troika-text>
-            </a-box>
-          `;
-          cont.appendChild(ent);
+          const relleno = mezclarHex("#0A1828", rol.primario, 0.22);
+          const tecla = crearBotonFijo(char, "vrkb_key", char, keyW, keyH, relleno, rol.primario);
+          tecla.setAttribute("position", `${x} ${y} 0`);
+          cont.appendChild(tecla);
         });
       });
 
@@ -2906,37 +3192,22 @@
       const totalSpecialW = specialKeys.reduce((a, k) => a + k.w, 0) + (specialKeys.length - 1) * 0.15;
       let sx = -totalSpecialW / 2;
       specialKeys.forEach(k => {
-        const ent = document.createElement("a-entity");
-        ent.setAttribute("position", `${sx + k.w / 2} ${bottomY} 0`);
-        ent.innerHTML = `
-          <a-box class="clickable" interactable
-                 width="${k.w}" height="${keyH}" depth="0.22"
-                 material="color: #0D0020; emissive: ${k.color}; emissiveIntensity: 0.4; opacity: 0.98"
-                 data-action="${k.param}">
-            <a-troika-text value="${k.label}" align="center" position="0 0 0.13"
-                    font="#font-noto-sans" font-size="0.3" max-width="${k.w * 0.9}" overflow-wrap="break-word" color="#0A0A0A"></a-troika-text>
-          </a-box>
-        `;
-        cont.appendChild(ent);
+        const relleno = mezclarHex("#0D0020", k.color, 0.28);
+        const tecla = crearBotonFijo(k.label, k.param, undefined, k.w, keyH, relleno, k.color);
+        tecla.setAttribute("position", `${sx + k.w / 2} ${bottomY} 0`);
+        cont.appendChild(tecla);
         sx += k.w + 0.15;
       });
 
       // Botones CONFIRMAR / CANCELAR
       const actCont = document.getElementById("vrkb-actions");
-      actCont.innerHTML = `
-        <a-entity position="-2.2 0 0">
-          <a-box class="clickable" interactable width="4.0" height="0.78" depth="0.22"
-                 material="color: #001800; emissive: ${rol.terciario}; emissiveIntensity: 0.55; opacity: 0.98"
-                 data-action="vrkb_confirm">
-          <a-text value="CONFIRMAR" align="center" position="0 0 0.13" width="7.5" color="#0A0A0A"></a-text>          </a-box>
-        </a-entity>
-        <a-entity position="2.6 0 0">
-          <a-box class="clickable" interactable width="4.0" height="0.78" depth="0.22"
-                 material="color: #1A0000; emissive: ${rol.peligro}; emissiveIntensity: 0.5; opacity: 0.98"
-                 data-action="vrkb_cancel">
-          <a-text value="CANCELAR" align="center" position="0 0 0.13" width="7.5" color="#0A0A0A"></a-text>          </a-box>
-        </a-entity>
-      `;
+      actCont.innerHTML = "";
+      const btnConfirmar = crearBotonFijo("CONFIRMAR", "vrkb_confirm", undefined, 4.0, 0.78, mezclarHex("#001800", rol.terciario, 0.28), rol.terciario);
+      btnConfirmar.setAttribute("position", "-2.2 0 0");
+      actCont.appendChild(btnConfirmar);
+      const btnCancelar = crearBotonFijo("CANCELAR", "vrkb_cancel", undefined, 4.0, 0.78, mezclarHex("#1A0000", rol.peligro, 0.28), rol.peligro);
+      btnCancelar.setAttribute("position", "2.6 0 0");
+      actCont.appendChild(btnCancelar);
     }
 
     function qb_create_set_name() {
@@ -3141,13 +3412,6 @@
         card.setAttribute("float-bob", `amp: 0.1; speed: 0.9; offset: ${i * 1.1}`);
 
         card.innerHTML = `
-          <a-box class="clickable" interactable
-                 width="5.2" height="2.6" depth="0.28"
-                 material="color: ${bg}; emissive: ${color}; emissiveIntensity: 0.10; opacity: 0.96"
-                 data-action="ejecutarConsultaGuiada"
-                 data-param="${q.id}">
-          </a-box>
-
           <a-box width="5.2" height="0.06" depth="0.30" position="0 1.27 0"
                  material="color: ${color}; emissive: ${color}; emissiveIntensity: 1; opacity: 0.85"></a-box>
 
@@ -3160,6 +3424,19 @@
           <a-box width="3.2" height="0.03" depth="0.29" position="0 -1.06 0"
                  material="color: ${color}; emissive: ${color}; emissiveIntensity: 0.5; opacity: 0.35"></a-box>
         `;
+
+        // El fondo de la tarjeta (redondeado) va como primer hijo, detrás de las líneas de
+        // acento y los textos que ya se crearon arriba mediante innerHTML.
+        const fondo = document.createElement("a-plane");
+        fondo.setAttribute("class", "clickable");
+        fondo.setAttribute("interactable", "");
+        fondo.setAttribute("width", 5.2);
+        fondo.setAttribute("height", 2.6);
+        fondo.setAttribute("material", "shader: flat; transparent: true; side: double");
+        fondo.setAttribute("data-action", "ejecutarConsultaGuiada");
+        fondo.setAttribute("data-param", q.id);
+        card.insertBefore(fondo, card.firstChild);
+        aplicarTexturaBoton(fondo, 5.2, 2.6, bg, color);
 
         cont.appendChild(card);
       });
@@ -3373,13 +3650,7 @@
       columnas.forEach((col, i) => {
         const x = i * espaciadoX + offsetX;
 
-        const box = document.createElement("a-box");
-        box.setAttribute("width", "3");
-        box.setAttribute("height", "0.85");
-        box.setAttribute("depth", "0.4");
-        box.setAttribute("position", `${x} 0 0`);
-        box.setAttribute("color", colores.cabecera);
-        box.setAttribute("opacity", "0.9");
+        const box = crearCeldaPlano(3, 0.85, x, colores.cabecera);
 
         const txt = document.createElement("a-troika-text");
         txt.setAttribute("value", nombreBonito(col));
@@ -3420,13 +3691,7 @@
         columnas.forEach((col, colI) => {
           const x = colI * espaciadoX + offsetX;
 
-          const box = document.createElement("a-box");
-          box.setAttribute("width", "3");
-          box.setAttribute("height", "0.9");
-          box.setAttribute("depth", "0.4");
-          box.setAttribute("position", `${x} 0 0`);
-          box.setAttribute("color", rowI % 2 === 0 ? colores.celda : colores.fila_alt);
-          box.setAttribute("opacity", "0.86");
+          const box = crearCeldaPlano(3, 0.9, x, rowI % 2 === 0 ? colores.celda : colores.fila_alt);
 
           const txt = document.createElement("a-troika-text");
           let val = fila[col] ?? "-";
