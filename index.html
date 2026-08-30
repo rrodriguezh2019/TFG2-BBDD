@@ -475,7 +475,6 @@
           <option value="profesor">Profesor</option>
           <option value="estudiante">Estudiante</option>
           <option value="admin">Admin</option>
-          <option value="otro">Otro...</option>
         </select>
         <input id="admin-new-role-custom" type="text" placeholder="Nombre del rol" style="display:none; margin-top:8px; width:100%; padding:8px; background:rgba(0,50,100,0.5); border:1px solid #00E5FF; color:#00E5FF; border-radius:6px; box-sizing:border-box;" />
       </div>
@@ -674,7 +673,7 @@
         <a-text value="Selecciona un analisis para visualizar datos en 3D o 2D"                align="center" position="0 -0.25 0.14" width="11" color="#4DFFBB" data-rol="verdeClaro"></a-text>
       </a-entity>
 
-      <a-entity position="-7.5 6.8 -6">
+      <a-entity position="-9.5 6.8 -6">
         <a-box class="clickable" interactable depth="0.3" width="3.2" height="0.9" data-rol="volver" data-rol-target="material-emissive"
                material="color: #1A0800; emissive: #FF6B00; emissiveIntensity: 0.35"
                data-action="volver">
@@ -1708,14 +1707,27 @@
       ["data-action", "data-param", "id"].forEach(attr => {
         if (box.hasAttribute(attr)) plane.setAttribute(attr, box.getAttribute(attr));
       });
+      // La caja original a veces lleva su propia `position` (en vez de depender de un
+      // <a-entity> contenedor que la posicione) -- si no se copia aquí, el nuevo plano cae
+      // siempre en 0 0 0 y varios botones distintos acaban apilados unos sobre otros.
+      // OJO: box.getAttribute("position") de A-Frame puede devolver todavía {0,0,0} si el
+      // componente no ha terminado de inicializarse en este punto tan temprano de la carga,
+      // aunque el HTML sí tenga el atributo -- por eso se lee el atributo crudo del DOM
+      // (Element.prototype.getAttribute, sin pasar por A-Frame) y se parsea a mano.
+      const posRaw = Element.prototype.getAttribute.call(box, "position");
+      if (posRaw) {
+        const [px = 0, py = 0, pz = 0] = posRaw.trim().split(/\s+/).map(Number);
+        plane.setAttribute("position", `${px} ${py} ${pz}`);
+      }
 
       // Los textos internos se mueven tal cual al nuevo panel, solo acercándolos un poco
       // (la caja tenía profundidad y el texto flotaba delante; el panel es plano, z pequeño).
-      // OJO: getAttribute("position") en A-Frame devuelve el objeto {x,y,z} ya parseado, no el
-      // string original -- por eso se lee x/y de ahí en vez de hacer split() de una cadena.
+      // Mismo motivo que arriba: se lee el atributo crudo, no el getAttribute() de A-Frame,
+      // que en este punto tan temprano puede devolver todavía {0,0,0} sin haberse inicializado.
       Array.from(box.children).forEach(child => {
-        const pos = child.getAttribute("position") || { x: 0, y: 0 };
-        child.setAttribute("position", `${pos.x || 0} ${pos.y || 0} 0.02`);
+        const childPosRaw = Element.prototype.getAttribute.call(child, "position");
+        const [cx = 0, cy = 0] = childPosRaw ? childPosRaw.trim().split(/\s+/).map(Number) : [0, 0];
+        child.setAttribute("position", `${cx} ${cy} 0.02`);
         plane.appendChild(child);
       });
 
@@ -2395,12 +2407,7 @@
           label: r.toUpperCase(), action: "cu_set_role", param: r,
           emissive: cu.role === r ? rol.ambar : rol.primario
         }));
-        opciones.push({
-          label: cu.role === "otro" ? `OTRO: ${cu.roleCustom || "..."}` : "OTRO ROL...",
-          action: "cu_set_role", param: "otro",
-          emissive: cu.role === "otro" ? rol.ambar : rol.primario
-        });
-        if (cu.role && (cu.role !== "otro" || cu.roleCustom)) {
+        if (cu.role) {
           extraButtons.push({ label: "PASO 5 ->", action: "cu_next", bg: "#1A1A2E", color: rol.primario, w: 5 });
         }
       }
