@@ -1,0 +1,13 @@
+# Python
+venv/
+__pycache__/
+*.pyc
+
+# Entorno / secretos locales
+.env
+
+# Editor / SO
+.vscode/
+.idea/
+*.swp
+.DS_Store
